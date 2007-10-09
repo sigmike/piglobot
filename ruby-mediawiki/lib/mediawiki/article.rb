@@ -26,7 +26,7 @@ module MediaWiki
     # name:: [String] Article name
     # section:: [Fixnum] Optional article section number
     # load_text:: [Boolean] Invoke Article#reload to retrieve Article#text
-    def initialize(wiki, name, section = nil, load_text=true)
+    def initialize(wiki, name, section = nil, load_text=false)
       @wiki = wiki
       @name = name
       @section = section
@@ -123,9 +123,15 @@ module MediaWiki
           # wpEditToken might be missing, that's ok
         end
       else
-        # the article is probably locked and you do not have sufficient privileges
-        @text = doc.elements['//textarea'].text
-        @read_only = true
+        if doc.elements['//textarea']
+          # the article is probably locked and you do not have sufficient privileges
+          @text = doc.elements['//textarea'].text
+          @read_only = true
+        else
+          #File.open("tmp.html", "w") { |f| f.puts doc }
+          #system "mozilla-firefox tmp.html"
+          raise "Error while parsing result, no edit form found"
+        end
       end
     end
 
@@ -191,13 +197,23 @@ module MediaWiki
     ##
     # What articles link to this article?
     # result:: [Array] of [String] Article names
-    def what_links_here
+    def what_links_here(count = nil)
       res = []
-      links = to_rexml(@wiki.browser.get_content(@wiki.article_url("Spezial:Whatlinkshere/#{full_name}")))
+      url = @wiki.article_url("Special:Whatlinkshere/#{full_name}")
+      url << "&limit=#{count}" if count
+      links = to_rexml(@wiki.browser.get_content(url))
       links.each_element('//div[@id="bodyContent"]//ul/li/a') { |a|
         res << a.attributes['title']
       }
       res
+    end
+    
+    def fast_what_links_here(count = nil)
+      res = []
+      url = @wiki.article_url("Special:Whatlinkshere/#{full_name}")
+      url << "&limit=#{count}" if count
+      content = @wiki.browser.get_content(url)
+      content.scan(%r{<li><a href=".+?" title="(.+?)">.+?</a>.+?</li>})
     end
 
   protected

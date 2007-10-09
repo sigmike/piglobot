@@ -52,7 +52,7 @@ module MediaWiki
     # result:: [String] Document
     def get_content(url)
       retries = 10
-
+      puts "get #{url}" if $VERBOSE
       @http.start { |http|
         loop {
           raise "too many redirects" if retries < 1
@@ -115,7 +115,7 @@ module MediaWiki
           end
           return get_content(response['Location'])
         else
-          raise "Unknown Response: #{response.inspect}"
+          raise "Unknown Response on #{url}: #{response.inspect}"
       end
     end
   end
