@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>new (HTree::Name)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File htree/name.rb, line 60</span>
+    <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">namespace_prefix</span>, <span class="ruby-identifier">namespace_uri</span>, <span class="ruby-identifier">local_name</span>)
+      <span class="ruby-ivar">@namespace_prefix</span> = <span class="ruby-identifier">namespace_prefix</span>
+      <span class="ruby-ivar">@namespace_uri</span> = <span class="ruby-identifier">namespace_uri</span>
+      <span class="ruby-ivar">@local_name</span> = <span class="ruby-identifier">local_name</span>
+      <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@namespace_prefix</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-node">/\A#{Pat::Nmtoken}\z/o</span> <span class="ruby-operator">!~</span> <span class="ruby-ivar">@namespace_prefix</span>
+        <span class="ruby-identifier">raise</span> <span class="ruby-constant">HTree</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span>, <span class="ruby-node">&quot;invalid namespace prefix: #{@namespace_prefix.inspect}&quot;</span>
+      <span class="ruby-keyword kw">end</span>
+      <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@local_name</span> <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-node">/\A#{Pat::Nmtoken}\z/o</span> <span class="ruby-operator">!~</span> <span class="ruby-ivar">@local_name</span>
+        <span class="ruby-identifier">raise</span> <span class="ruby-constant">HTree</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span>, <span class="ruby-node">&quot;invalid local name: #{@local_name.inspect}&quot;</span>
+      <span class="ruby-keyword kw">end</span>
+      <span class="ruby-keyword kw">if</span> <span class="ruby-ivar">@namespace_prefix</span> <span class="ruby-operator">==</span> <span class="ruby-value str">'xmlns'</span>
+        <span class="ruby-keyword kw">unless</span> <span class="ruby-ivar">@namespace_uri</span> <span class="ruby-operator">==</span> <span class="ruby-keyword kw">nil</span>
+          <span class="ruby-identifier">raise</span> <span class="ruby-constant">HTree</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span>, <span class="ruby-node">&quot;Name object for xmlns:* must not have namespace URI: #{@namespace_uri.inspect}&quot;</span>
+        <span class="ruby-keyword kw">end</span>
+      <span class="ruby-keyword kw">else</span>
+        <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">String</span> <span class="ruby-operator">===</span> <span class="ruby-ivar">@namespace_uri</span> 
+          <span class="ruby-identifier">raise</span> <span class="ruby-constant">HTree</span><span class="ruby-operator">::</span><span class="ruby-constant">Error</span>, <span class="ruby-node">&quot;invalid namespace URI: #{@namespace_uri.inspect}&quot;</span>
+        <span class="ruby-keyword kw">end</span>
+      <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

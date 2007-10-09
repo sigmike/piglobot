@@ -1,0 +1,130 @@
+
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<!--
+
+    Methods
+
+  -->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>Methods</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="rdoc-style.css" type="text/css" />
+  <base target="docwin" />
+</head>
+<body>
+<div id="index">
+  <h1 class="section-bar">Methods</h1>
+  <div id="index-entries">
+    <a href="classes/HTree.html#M000003">== (HTree)</a><br />
+    <a href="files/htree/template_rb.html#M000001">HTree (htree/template.rb)</a><br />
+    <a href="classes/HTree/Elem/Trav.html#M000053">attributes (HTree::Elem::Trav)</a><br />
+    <a href="classes/HTree/Doc/Trav.html#M000074">author (HTree::Doc::Trav)</a><br />
+    <a href="classes/HTree/Traverse.html#M000037">bogusetag? (HTree::Traverse)</a><br />
+    <a href="classes/HTree/Container.html#M000019">children (HTree::Container)</a><br />
+    <a href="classes/HTree/Container/Loc.html#M000029">children (HTree::Container::Loc)</a><br />
+    <a href="classes/HTree/Traverse.html#M000036">comment? (HTree::Traverse)</a><br />
+    <a href="classes/HTree.html#M000009">compile_template (HTree)</a><br />
+    <a href="classes/HTree/Text.html#M000084">concat (HTree::Text)</a><br />
+    <a href="classes/HTree/Elem.html#M000046">context (HTree::Elem)</a><br />
+    <a href="classes/HTree/Elem/Loc.html#M000059">context (HTree::Elem::Loc)</a><br />
+    <a href="classes/Regexp.html#M000002">disable_capture (Regexp)</a><br />
+    <a href="classes/HTree/Node.html#M000011">display_html (HTree::Node)</a><br />
+    <a href="classes/HTree/Node.html#M000010">display_xml (HTree::Node)</a><br />
+    <a href="classes/HTree/Traverse.html#M000030">doc? (HTree::Traverse)</a><br />
+    <a href="classes/HTree/Traverse.html#M000034">doctype? (HTree::Traverse)</a><br />
+    <a href="classes/HTree/Elem/Trav.html#M000054">each_attr (HTree::Elem::Trav)</a><br />
+    <a href="classes/HTree/Elem/Loc.html#M000062">each_attribute (HTree::Elem::Loc)</a><br />
+    <a href="classes/HTree/Elem.html#M000049">each_attribute (HTree::Elem)</a><br />
+    <a href="classes/HTree/Container/Trav.html#M000020">each_child (HTree::Container::Trav)</a><br />
+    <a href="classes/HTree/Container/Trav.html#M000021">each_child_with_index (HTree::Container::Trav)</a><br />
+    <a href="classes/HTree/Container/Trav.html#M000025">each_hyperlink (HTree::Container::Trav)</a><br />
+    <a href="classes/HTree/Container/Trav.html#M000024">each_hyperlink_uri (HTree::Container::Trav)</a><br />
+    <a href="classes/HTree/Container/Trav.html#M000026">each_uri (HTree::Container::Trav)</a><br />
+    <a href="classes/HTree/Traverse.html#M000031">elem? (HTree::Traverse)</a><br />
+    <a href="classes/HTree/Elem/Loc.html#M000060">element_name (HTree::Elem::Loc)</a><br />
+    <a href="classes/HTree/Elem.html#M000047">element_name (HTree::Elem)</a><br />
+    <a href="classes/HTree/Node.html#M000017">eliminate_raw_string (HTree::Node)</a><br />
+    <a href="classes/HTree/Text/Loc.html#M000087">empty? (HTree::Text::Loc)</a><br />
+    <a href="classes/HTree/Text.html#M000082">empty? (HTree::Text)</a><br />
+    <a href="classes/HTree/Elem.html#M000048">empty_element? (HTree::Elem)</a><br />
+    <a href="classes/HTree/Elem/Loc.html#M000061">empty_element? (HTree::Elem::Loc)</a><br />
+    <a href="classes/HTree.html#M000004">eql? (HTree)</a><br />
+    <a href="classes/HTree.html#M000008">expand_template (HTree)</a><br />
+    <a href="classes/HTree/Node.html#M000012">extract_text (HTree::Node)</a><br />
+    <a href="classes/HTree/Location.html#M000063">extract_text (HTree::Location)</a><br />
+    <a href="classes/HTree/Elem/Trav.html#M000056">fetch_attr (HTree::Elem::Trav)</a><br />
+    <a href="classes/HTree/Elem/Trav.html#M000055">fetch_attribute (HTree::Elem::Trav)</a><br />
+    <a href="classes/HTree/Container/Trav.html#M000027">filter (HTree::Container::Trav)</a><br />
+    <a href="classes/HTree/Container/Trav.html#M000022">find_element (HTree::Container::Trav)</a><br />
+    <a href="classes/HTree/Encoder.html#M000101">finish (HTree::Encoder)</a><br />
+    <a href="classes/HTree/Encoder.html#M000102">finish_with_xmldecl (HTree::Encoder)</a><br />
+    <a href="classes/HTree/Elem/Trav.html#M000058">get_attr (HTree::Elem::Trav)</a><br />
+    <a href="classes/HTree/Elem/Trav.html#M000057">get_attribute (HTree::Elem::Trav)</a><br />
+    <a href="classes/HTree/Traverse.html#M000038">get_subnode (HTree::Traverse)</a><br />
+    <a href="classes/HTree/Doc/Trav.html#M000076">has_xmldecl? (HTree::Doc::Trav)</a><br />
+    <a href="classes/HTree.html#M000005">hash (HTree)</a><br />
+    <a href="classes/HTree/Text.html#M000080">initialize (HTree::Text)</a><br />
+    <a href="classes/HTree/ProcIns.html#M000041">initialize (HTree::ProcIns)</a><br />
+    <a href="classes/HTree/Elem.html#M000045">initialize (HTree::Elem)</a><br />
+    <a href="classes/HTree/Comment.html#M000078">initialize (HTree::Comment)</a><br />
+    <a href="classes/HTree/Doc.html#M000071">initialize (HTree::Doc)</a><br />
+    <a href="classes/HTree/Encoder.html#M000099">internal_charset (HTree::Encoder)</a><br />
+    <a href="classes/HTree/Location.html#M000068">loc_list (HTree::Location)</a><br />
+    <a href="classes/HTree/Node.html#M000013">make_loc (HTree::Node)</a><br />
+    <a href="classes/HTree/Location.html#M000064">make_loc (HTree::Location)</a><br />
+    <a href="classes/HTree/Encoder.html#M000103">minimal_charset (HTree::Encoder)</a><br />
+    <a href="classes/HTree/Elem/Trav.html#M000051">name (HTree::Elem::Trav)</a><br />
+    <a href="classes/HTree/Context.html#M000089">namespace_uri (HTree::Context)</a><br />
+    <a href="classes/HTree/DocType.html#M000104">new (HTree::DocType)</a><br />
+    <a href="classes/HTree/BogusETag.html#M000042">new (HTree::BogusETag)</a><br />
+    <a href="classes/HTree/XMLDecl.html#M000043">new (HTree::XMLDecl)</a><br />
+    <a href="classes/HTree/Elem.html#M000044">new (HTree::Elem)</a><br />
+    <a href="classes/HTree/Encoder.html#M000100">new (HTree::Encoder)</a><br />
+    <a href="classes/HTree/ProcIns.html#M000040">new (HTree::ProcIns)</a><br />
+    <a href="classes/HTree/Text.html#M000079">new (HTree::Text)</a><br />
+    <a href="classes/HTree/Name.html#M000094">new (HTree::Name)</a><br />
+    <a href="classes/HTree/Comment.html#M000077">new (HTree::Comment)</a><br />
+    <a href="classes/HTree/Doc.html#M000070">new (HTree::Doc)</a><br />
+    <a href="classes/HTree/Context.html#M000088">new (HTree::Context)</a><br />
+    <a href="classes/HTree/Name.html#M000093">new (HTree::Name)</a><br />
+    <a href="classes/HTree.html#M000006">parse (HTree)</a><br />
+    <a href="classes/HTree/Name.html#M000092">parse_attribute_name (HTree::Name)</a><br />
+    <a href="classes/HTree/Name.html#M000091">parse_element_name (HTree::Name)</a><br />
+    <a href="classes/HTree.html#M000007">parse_xml (HTree)</a><br />
+    <a href="classes/HTree/Location.html#M000069">path (HTree::Location)</a><br />
+    <a href="classes/HTree/Traverse.html#M000035">procins? (HTree::Traverse)</a><br />
+    <a href="classes/HTree/Elem/Trav.html#M000052">qualified_name (HTree::Elem::Trav)</a><br />
+    <a href="classes/HTree/Name.html#M000097">qualified_name (HTree::Name)</a><br />
+    <a href="classes/HTree/Node.html#M000016">raw_string (HTree::Node)</a><br />
+    <a href="classes/HTree/Doc/Trav.html#M000075">root (HTree::Doc::Trav)</a><br />
+    <a href="classes/HTree/Text.html#M000083">strip (HTree::Text)</a><br />
+    <a href="classes/HTree/Text/Loc.html#M000086">strip (HTree::Text::Loc)</a><br />
+    <a href="classes/HTree/Location.html#M000067">subst (HTree::Location)</a><br />
+    <a href="classes/HTree/Node.html#M000015">subst (HTree::Node)</a><br />
+    <a href="classes/HTree/Location.html#M000066">subst_itself (HTree::Location)</a><br />
+    <a href="classes/HTree/Context.html#M000090">subst_namespaces (HTree::Context)</a><br />
+    <a href="classes/HTree/Doc.html#M000072">subst_subnode (HTree::Doc)</a><br />
+    <a href="classes/HTree/Elem.html#M000050">subst_subnode (HTree::Elem)</a><br />
+    <a href="classes/HTree/Container/Loc.html#M000028">subst_subnode (HTree::Container::Loc)</a><br />
+    <a href="classes/HTree/Traverse.html#M000032">text? (HTree::Traverse)</a><br />
+    <a href="classes/HTree/Doc/Trav.html#M000073">title (HTree::Doc::Trav)</a><br />
+    <a href="classes/HTree/Node.html#M000014">to_node (HTree::Node)</a><br />
+    <a href="classes/HTree/Node.html#M000018">to_rexml (HTree::Node)</a><br />
+    <a href="classes/HTree/Name.html#M000098">to_s (HTree::Name)</a><br />
+    <a href="classes/HTree/Text.html#M000081">to_s (HTree::Text)</a><br />
+    <a href="classes/HTree/Text/Loc.html#M000085">to_s (HTree::Text::Loc)</a><br />
+    <a href="classes/HTree/Location.html#M000065">top (HTree::Location)</a><br />
+    <a href="classes/HTree/Container/Trav.html#M000023">traverse_element (HTree::Container::Trav)</a><br />
+    <a href="classes/HTree/Traverse.html#M000039">traverse_text (HTree::Traverse)</a><br />
+    <a href="classes/HTree/Name.html#M000096">universal_name (HTree::Name)</a><br />
+    <a href="classes/HTree/Traverse.html#M000033">xmldecl? (HTree::Traverse)</a><br />
+    <a href="classes/HTree/Name.html#M000095">xmlns? (HTree::Name)</a><br />
+  </div>
+</div>
+</body>
+</html>

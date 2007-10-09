@@ -1,0 +1,600 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>File: template.rb</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <meta http-equiv="Content-Script-Type" content="text/javascript" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+  <script type="text/javascript">
+  // <![CDATA[
+
+  function popupCode( url ) {
+    window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+  }
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+    
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  
+  // Make codeblocks hidden by default
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  
+  // ]]>
+  </script>
+
+</head>
+<body>
+
+
+
+  <div id="fileHeader">
+    <h1>template.rb</h1>
+    <table class="header-table">
+    <tr class="top-aligned-row">
+      <td><strong>Path:</strong></td>
+      <td>htree/template.rb
+      </td>
+    </tr>
+    <tr class="top-aligned-row">
+      <td><strong>Last Update:</strong></td>
+      <td>2007-01-10 16:09:22 +0900</td>
+    </tr>
+    </table>
+  </div>
+  <!-- banner header -->
+
+  <div id="bodyContent">
+
+
+
+  <div id="contextContent">
+
+    <div id="description">
+      <h1>Template Engine</h1>
+<p>
+The htree template engine converts HTML and some data to HTML or XML.
+</p>
+<h2>Template Method Summary</h2>
+<ul>
+<li><a
+href="../../classes/HTree.html#M000008">HTree.expand_template</a>(<em>template_pathname</em>)
+-&gt; $stdout
+
+</li>
+<li><a
+href="../../classes/HTree.html#M000008">HTree.expand_template</a>(<em>template_pathname</em>,
+<em>obj</em>) -&gt; $stdout
+
+</li>
+<li><a
+href="../../classes/HTree.html#M000008">HTree.expand_template</a>(<em>template_pathname</em>,
+<em>obj</em>, <em>out</em>) -&gt; <em>out</em>
+
+</li>
+<li><a
+href="../../classes/HTree.html#M000008">HTree.expand_template</a>(<em>template_pathname</em>,
+<em>obj</em>, <em>out</em>, <em>encoding</em>) -&gt; <em>out</em>
+
+</li>
+<li><a
+href="../../classes/HTree.html#M000008">HTree.expand_template</a>{<em>template_string</em>}
+-&gt; $stdout
+
+</li>
+<li><a
+href="../../classes/HTree.html#M000008">HTree.expand_template</a>(<em>out</em>)
+{<em>template_string</em>} -&gt; <em>out</em>
+
+</li>
+<li><a
+href="../../classes/HTree.html#M000008">HTree.expand_template</a>(<em>out</em>,
+<em>encoding</em>) {<em>template_string</em>} -&gt; <em>out</em>
+
+</li>
+<li><a
+href="../../classes/HTree.html#M000009">HTree.compile_template</a>(<em>template_string</em>)
+-&gt; Module
+
+</li>
+<li><a href="../../classes/HTree.html">HTree</a>{<em>template_string</em>}
+-&gt; <a href="../../classes/HTree/Doc.html">HTree::Doc</a>
+
+</li>
+</ul>
+<p>
+Note that the following method, <a
+href="../../classes/HTree.html">HTree</a>(), is not a template method.
+</p>
+<ul>
+<li><a href="../../classes/HTree.html">HTree</a>(<em>html_string</em>) -&gt; <a
+href="../../classes/HTree/Doc.html">HTree::Doc</a>
+
+</li>
+</ul>
+<h2>Template Directives.</h2>
+<p>
+A template directive is described as a special HTML attribute which name
+begins with underscore.
+</p>
+<p>
+The template directives are listed as follows.
+</p>
+<ul>
+<li>&lt;elem
+_attr_<em>name</em>=&quot;<em>expr</em>&quot;&gt;content&lt;/elem&gt;
+
+</li>
+<li>&lt;elem _text=&quot;<em>expr</em>&quot;&gt;dummy-content&lt;/elem&gt;
+
+</li>
+<li>&lt;elem _text&gt;<em>expr</em>&lt;/elem&gt;
+
+</li>
+<li>&lt;elem _tree=&quot;<em>expr</em>&quot;&gt;dummy-content&lt;/elem&gt;
+
+</li>
+<li>&lt;elem _tree&gt;<em>expr</em>&lt;/elem&gt;
+
+</li>
+<li>&lt;elem _if=&quot;<em>expr</em>&quot;
+_else=&quot;<em>mod.name(args)</em>&quot;&gt;then-content&lt;/elem&gt;
+
+</li>
+<li>&lt;elem
+_iter=&quot;<em>expr.meth(args)//vars</em>&quot;&gt;content&lt;/elem&gt;
+
+</li>
+<li>&lt;elem
+_iter_content=&quot;<em>expr.meth(args)//vars</em>&quot;&gt;content&lt;/elem&gt;
+
+</li>
+<li>&lt;elem
+_call=&quot;<em>mod.name(args)</em>&quot;&gt;dummy-content&lt;/elem&gt;
+
+</li>
+<li>&lt;elem _template=&quot;<em>name(vars)</em>&quot;&gt;body&lt;/elem&gt;
+
+</li>
+</ul>
+<h3>Template Semantics</h3>
+<ul>
+<li>attribute substitution
+
+<ul>
+<li>&lt;elem
+_attr_<em>name</em>=&quot;<em>expr</em>&quot;&gt;content&lt;/elem&gt;
+
+</li>
+</ul>
+<p>
+_attr_<em>name</em> is used for a dynamic attribute.
+</p>
+<pre>
+     &lt;elem _attr_xxx=&quot;...&quot;/&gt;
+  -&gt; &lt;elem xxx=&quot;...&quot;/&gt;
+</pre>
+<p>
+It is expanded to <em>name</em>=&quot;content&quot;. The content is
+generated by evaluating <em>expr</em>. Usually you don&#8216;t need to care
+escaping: &amp;, &lt;, &gt; and &quot; are automatically escaped. If you
+need to output character references, the value of <em>expr</em> should be
+an object which have a <tt>rcdata</tt> method such as an <a
+href="../../classes/HTree/Text.html">HTree::Text</a>. If the value has a
+<tt>rcdata</tt> method, it is called and the result is used as the content
+with escaping &lt;, &gt; and &quot;.
+</p>
+<p>
+_attr_<em>name</em> can be used multiple times in single element.
+</p>
+</li>
+<li>text substitution
+
+<ul>
+<li>&lt;elem _text=&quot;<em>expr</em>&quot;&gt;dummy-content&lt;/elem&gt;
+
+</li>
+<li>&lt;elem _text&gt;<em>expr</em>&lt;/elem&gt;
+
+</li>
+</ul>
+<p>
+_text substitutes the content of the element by the string evaluated from
+<em>expr</em>. <em>expr</em> is described in the attribute value or the
+content of the element.
+</p>
+<p>
+If a result of <em>expr</em> have &amp;, &lt; and/or &gt;, they are
+automatically escaped. If you need to output character references, the
+value of <em>expr</em> should be an object which have a <tt>rcdata</tt>
+method such as an <a href="../../classes/HTree/Text.html">HTree::Text</a>.
+If the value has a <tt>rcdata</tt> method, it is called and the result is
+used as the content with escaping &lt; and &gt;.
+</p>
+<p>
+If the element is span or div, and there is no other attributes, no tags
+are produced.
+</p>
+<pre>
+     &lt;elem _text=&quot;...&quot;&gt;dummy-content&lt;/elem&gt;
+  -&gt; &lt;elem&gt;...&lt;/elem&gt;
+</pre>
+</li>
+<li>tree substitution
+
+<ul>
+<li>&lt;elem _tree=&quot;<em>expr</em>&quot;&gt;dummy-content&lt;/elem&gt;
+
+</li>
+<li>&lt;elem _tree&gt;<em>expr</em>&lt;/elem&gt;
+
+</li>
+</ul>
+<p>
+_tree substitutes the content of the element by the htree object evaluated
+from <em>expr</em>. <em>expr</em> is described in the attribute value or
+the content of the element.
+</p>
+<p>
+If the element is span or div, and there is no other attributes, no tags
+are produced.
+</p>
+<pre>
+     &lt;elem _tree=&quot;...&quot;&gt;dummy-content&lt;/elem&gt;
+  -&gt; &lt;elem&gt;...&lt;/elem&gt;
+</pre>
+</li>
+<li>conditional
+
+<ul>
+<li>&lt;elem _if=&quot;<em>expr</em>&quot;&gt;then-content&lt;/elem&gt;
+
+</li>
+<li>&lt;elem _if=&quot;<em>expr</em>&quot;
+_else=&quot;<em>name(args)</em>&quot;&gt;then-content&lt;/elem&gt;
+
+</li>
+</ul>
+<p>
+_if is used for conditional.
+</p>
+<p>
+If <em>expr</em> is evaluated to true, it expands as follows regardless of
+existence of _else.
+</p>
+<pre>
+     &lt;elem _if=&quot;&lt;i&gt;expr&lt;/i&gt;&quot;&gt;then-content&lt;/elem&gt;
+  -&gt; &lt;elem&gt;then-content&lt;/elem&gt;
+</pre>
+<p>
+If <em>expr</em> is evaluated to false, it expands using _else. If _else is
+not given, it expands to empty. If _else is given, it expands as follows.
+</p>
+<pre>
+     &lt;elem _if=&quot;&lt;i&gt;expr&lt;/i&gt;&quot; _else=&quot;&lt;i&gt;name(args)&lt;/i&gt;&quot;&gt;then-content&lt;/elem&gt;
+  -&gt; &lt;elem _call=&quot;&lt;i&gt;name(args)&lt;/i&gt;&quot;&gt;then-content&lt;/elem&gt;
+  -&gt; see _call for further expansion.
+</pre>
+<p>
+It is expanded to &lt;elem&gt;then-content&lt;/elem&gt; if <em>expr</em> is
+evaluated to a true value. Otherwise, it is replaced by other template
+specified by _else attribute. If _else attribute is not given, it just
+replaced by empty.
+</p>
+</li>
+<li>iteration
+
+<ul>
+<li>&lt;elem
+_iter=&quot;<em>expr.meth(args)//vars</em>&quot;&gt;content&lt;/elem&gt;
+
+</li>
+<li>&lt;elem
+_iter_content=&quot;<em>expr.meth(args)//vars</em>&quot;&gt;content&lt;/elem&gt;
+
+</li>
+</ul>
+<p>
+_iter and _iter_content is used for iteration. _iter iterates the element
+itself but _iter_content iterates the content.
+</p>
+<pre>
+     &lt;outer _iter=&quot;...&quot;&gt;&lt;inner/&gt;&lt;/outer&gt;
+  -&gt; &lt;outer&gt;&lt;inner/&gt;&lt;/outer&gt;&lt;outer&gt;&lt;inner/&gt;&lt;/outer&gt;...
+
+     &lt;outer _iter_content=&quot;...&quot;&gt;&lt;inner/&gt;&lt;/outer&gt;
+  -&gt; &lt;outer&gt;&lt;inner/&gt;&lt;inner/&gt;...&lt;/outer&gt;
+</pre>
+<p>
+<em>expr.meth(args)</em> specifies iterator method call. It is actually
+called with a block. The block have block parameters <em>vars</em>.
+<em>vars</em> must be variables separated by comma.
+</p>
+</li>
+<li>template call
+
+<ul>
+<li>&lt;elem
+_call=&quot;<em>name(args)</em>&quot;&gt;dummy-content&lt;/elem&gt;
+
+</li>
+<li>&lt;elem
+_call=&quot;<em>mod.name(args)</em>&quot;&gt;dummy-content&lt;/elem&gt;
+
+</li>
+</ul>
+<p>
+_call is used to expand a template function. The template function is
+defined by _template.
+</p>
+<pre>
+     &lt;d _template=&quot;m&quot;&gt;...&lt;/d&gt;
+     &lt;c _call=&quot;m&quot;&gt;...&lt;/c&gt;
+  -&gt; &lt;d&gt;...&lt;/d&gt;
+</pre>
+<p>
+A local template can be called as follows:
+</p>
+<pre>
+  HTree.expand_template{&lt;&lt;'End'}
+  &lt;a _template=ruby_talk(num)
+     _attr_href='&quot;http://ruby-talk.org/#{num}&quot;'
+     &gt;[ruby-talk:&lt;span _text=num&gt;nnn&lt;/span&gt;]&lt;/a&gt;
+  Ruby 1.8.0 is released at &lt;span _call=ruby_talk(77946) /&gt;.
+  Ruby 1.8.1 is released at &lt;span _call=ruby_talk(88814) /&gt;.
+  End
+</pre>
+<p>
+<em>mod</em> should be the result of <a
+href="../../classes/HTree.html#M000009">HTree.compile_template</a>.
+</p>
+<pre>
+  M = HTree.compile_template(&lt;&lt;'End')
+  &lt;a _template=ruby_talk(num)
+     _attr_href='&quot;http://ruby-talk.org/#{num}&quot;'
+     &gt;[ruby-talk:&lt;span _text=num&gt;nnn&lt;/span&gt;]&lt;/a&gt;
+  End
+  HTree.expand_template{&lt;&lt;'End'}
+  &lt;html&gt;
+  Ruby 1.8.0 is released at &lt;span _call=M.ruby_talk(77946) /&gt;.
+  Ruby 1.8.1 is released at &lt;span _call=M.ruby_talk(88814) /&gt;.
+  &lt;/html&gt;
+  End
+</pre>
+<p>
+The module can included. In such case, the template function can be called
+without <em>mod.</em> prefix.
+</p>
+<pre>
+  include HTree.compile_template(&lt;&lt;'End')
+  &lt;a _template=ruby_talk(num)
+     _attr_href='&quot;http://ruby-talk.org/#{num}&quot;'
+     &gt;[ruby-talk:&lt;span _text=num&gt;nnn&lt;/span&gt;]&lt;/a&gt;
+  End
+  HTree.expand_template{&lt;&lt;'End'}
+  &lt;html&gt;
+  Ruby 1.8.0 is released at &lt;span _call=ruby_talk(77946) /&gt;.
+  Ruby 1.8.1 is released at &lt;span _call=ruby_talk(88814) /&gt;.
+  &lt;/html&gt;
+  End
+</pre>
+</li>
+<li>template definition
+
+<ul>
+<li>&lt;elem _template=&quot;<em>name(vars)</em>&quot;&gt;body&lt;/elem&gt;
+
+</li>
+</ul>
+<p>
+_template defines a template function which is usable by _call.
+</p>
+<p>
+When a template is compiled to a module by <a
+href="../../classes/HTree.html#M000009">HTree.compile_template</a>, the
+module have a module function for each template function defined by
+outermost _template attribute.
+</p>
+</li>
+</ul>
+<h3>White Space Handling</h3>
+<p>
+The htree template engine strips whitespace text nodes in a template except
+under HTML pre element.
+</p>
+<p>
+For example the white space text node between two spans in following
+template is stripped.
+</p>
+<pre>
+  &lt;span _text=&quot;'a'&quot;/&gt; &lt;span _text=&quot;'b'&quot;/&gt; -&gt; &quot;ab&quot;
+</pre>
+<p>
+Character entity references are not stripped.
+</p>
+<pre>
+  &lt;span _text=&quot;'a'&quot;/&gt;&amp;#32;&lt;span _text=&quot;'b'&quot;/&gt; -&gt; &quot;a&amp;#32;b&quot;
+</pre>
+<p>
+Text nodes generated by _text is not stripped.
+</p>
+<pre>
+  &lt;span _text=&quot;'a'&quot;/&gt;&lt;span _text=&quot;' '&quot;&gt; &lt;/span&gt;&lt;span _text=&quot;'b'&quot;/&gt; -&gt; &quot;a b&quot;
+</pre>
+<h2>HTML and XML</h2>
+<p>
+The htree template engine outputs HTML or XML.
+</p>
+<p>
+If a template has no XML declaration and the top element is HTML, the
+result is HTML. Otherwise the result is XML.
+</p>
+<p>
+They differs as follows.
+</p>
+<ul>
+<li>XML declaration is (re-)generated for XML.
+
+</li>
+<li>empty elements ends with a slash for XML.
+
+</li>
+<li>script and style element is escaped for XML.
+
+</li>
+</ul>
+<h2>Design Decision on Design/Logic Separation</h2>
+<p>
+<a href="../../classes/HTree.html">HTree</a> template engine doesn&#8216;t
+force you to separate design and logic. Any logic (Ruby code) can be
+embedded in design (HTML).
+</p>
+<p>
+However the template engine cares the separation by logic refactorings. The
+logic is easy to move between a template and an application. For example,
+following tangled template
+</p>
+<pre>
+  tmpl.html:
+    &lt;html&gt;
+      &lt;head&gt;
+        &lt;title _text=&quot;very-complex-ruby-code&quot;&gt;dummy&lt;/title&gt;
+      &lt;/head&gt;
+      ...
+    &lt;/html&gt;
+
+  app.rb:
+    HTree.expand_template('tmpl.html', obj)
+</pre>
+<p>
+can be refactored as follows.
+</p>
+<pre>
+  tmpl.html:
+    &lt;html&gt;
+      &lt;head&gt;
+        &lt;title _text=&quot;title&quot;&gt;dummy&lt;/title&gt;
+      &lt;/head&gt;
+      ...
+    &lt;/html&gt;
+
+  app.rb:
+    def obj.title
+      very-complex-ruby-code
+    end
+    HTree.expand_template('tmpl.html', obj)
+</pre>
+<p>
+In general, any expression in a template can be refactored to an
+application by extracting it as a method. In JSP, this is difficult
+especially for a code fragment of an iteration.
+</p>
+<p>
+Also <a href="../../classes/HTree.html">HTree</a> encourages to separate
+business logic (Ruby code in an application) and presentation logic (Ruby
+code in a template). For example, presentation logic to color table rows
+stripe can be embedded in a template. It doesn&#8216;t need to tangle an
+application.
+</p>
+
+    </div>
+
+    <div id="requires-list">
+      <h3 class="section-bar">Required files</h3>
+
+      <div class="name-list">
+      <a href="parse_rb.html">htree/parse</a>&nbsp;&nbsp;
+      <a href="gencode_rb.html">htree/gencode</a>&nbsp;&nbsp;
+      <a href="equality_rb.html">htree/equality</a>&nbsp;&nbsp;
+      <a href="traverse_rb.html">htree/traverse</a>&nbsp;&nbsp;
+      </div>
+    </div>
+
+   </div>
+
+    <div id="method-list">
+      <h3 class="section-bar">Methods</h3>
+
+      <div class="name-list">
+      <a href="#M000001">HTree</a>&nbsp;&nbsp;
+      </div>
+    </div>
+
+  </div>
+
+
+    <!-- if includes -->
+
+    <div id="section">
+
+
+
+
+
+      
+
+
+    <!-- if method_list -->
+    <div id="methods">
+      <h3 class="section-bar">Public Instance methods</h3>
+
+      <div id="method-M000001" class="method-detail">
+        <a name="M000001"></a>
+
+        <div class="method-heading">
+          <a href="template_rb.src/M000001.html" target="Code" class="method-signature"
+            onclick="popupCode('template_rb.src/M000001.html');return false;">
+          <span class="method-name">HTree(html_string) &rarr; doc<br />
+HTree{template_string} &rarr; doc<br />
+</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+<tt><a href="../../classes/HTree.html">HTree</a>(<em>html_string</em>)</tt>
+parses <em>html_string</em>. <tt><a
+href="../../classes/HTree.html">HTree</a>{<em>template_string</em>}</tt>
+parses <em>template_string</em> and expand it as a template. Ruby
+expressions in <em>template_string</em> is evaluated in the scope of the
+caller.
+</p>
+<p>
+<tt><a href="../../classes/HTree.html">HTree</a>()</tt> and <tt><a
+href="../../classes/HTree.html">HTree</a>{}</tt> returns a tree as an
+instance of <a href="../../classes/HTree/Doc.html">HTree::Doc</a>.
+</p>
+        </div>
+      </div>
+
+
+    </div>
+
+
+  </div>
+
+
+<div id="validator-badges">
+  <p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+</div>
+
+</body>
+</html>
