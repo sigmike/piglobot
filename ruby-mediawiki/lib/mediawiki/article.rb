@@ -213,7 +213,9 @@ module MediaWiki
       url = @wiki.article_url("Special:Whatlinkshere/#{full_name}")
       url << "&limit=#{count}" if count
       content = @wiki.browser.get_content(url)
-      content.scan(%r{<li><a href=".+?" title="(.+?)">.+?</a>.+?</li>})
+      content.scan(%r{<li><a href=".+?" title="(.+?)">.+?</a>.+?</li>}).flatten.map { |title|
+        REXML::Text.unnormalize(title)
+      }
     end
 
   protected
