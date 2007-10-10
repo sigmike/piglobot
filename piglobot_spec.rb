@@ -37,6 +37,22 @@ describe Piglobot do
     @wiki.should_receive(:post).with("Utilisateur:Piglobot/Code", text, "comment")
     @bot.publish_code("comment")
   end
+  
+  it "should load data" do
+    data = "foo"
+    text = "<source lang=\"text\">\n" + data.to_yaml + "</source" + ">"
+    @wiki.should_receive(:get).with("Utilisateur:Piglobot/Data").once.and_return(text)
+    @bot.load_data
+    @bot.data.should == data
+  end
+
+  it "should save data" do
+    data = "bar"
+    text = "<source lang=\"text\">\n" + data.to_yaml + "</source" + ">"
+    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Data", text, "Sauvegarde").once
+    @bot.data = data
+    @bot.save_data
+  end
 end
 
 describe Piglobot::Wiki do
@@ -51,5 +67,11 @@ describe Piglobot::Wiki do
     @article.should_receive(:text=).with("article content")
     @article.should_receive(:submit).with("comment")
     @wiki.post "Article name", "article content", "comment"
+  end
+  
+  it "should get text" do
+    @mediawiki.should_receive(:article).with("Article name").once.and_return(@article)
+    @article.should_receive(:text).with().and_return("content")
+    @wiki.get("Article name").should == "content"
   end
 end
