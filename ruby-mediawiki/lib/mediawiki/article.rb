@@ -106,6 +106,9 @@ module MediaWiki
       parse @wiki.browser.get_content("#{@wiki.article_url(full_name, @section)}&action=edit")
     end
 
+    class NoEditFormFound < RuntimeError
+    end
+
     def parse(html)
       doc = to_rexml( html )
       # does not work for MediaWiki 1.4.x and is always the same name you ask for under 1.5.x
@@ -130,7 +133,7 @@ module MediaWiki
         else
           #File.open("tmp.html", "w") { |f| f.puts doc }
           #system "mozilla-firefox tmp.html"
-          raise "Error while parsing result, no edit form found"
+          raise NoEditFormFound, "Error while parsing result, no edit form found"
         end
       end
     end
@@ -150,7 +153,7 @@ module MediaWiki
       data['wpWatchthis'] = 'on' if watch_this
       begin
         parse @wiki.browser.post_content("#{@wiki.article_url(full_name, @section)}&action=submit", data)
-      rescue NoMethodError
+      rescue NoEditFormFound
         # This means, we havn't got the preview page, but the posted article
         # So everything is Ok, but we must reload the edit page here, to get
         # a new wpEditToken and wpEdittime
