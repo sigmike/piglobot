@@ -17,16 +17,25 @@
 =end
 
 class Piglobot
+  class Wiki
+    def initialize(wiki)
+      @wiki = wiki
+    end
+    
+    def post(article, text, comment)
+      article = @wiki.article(article)
+      article.text = text
+      article.submit(comment)
+    end
+  end
+  
   def initialize(wiki)
-    @wiki = wiki
+    @wiki = Wiki.new(wiki)
   end
   
   def publish(name, file, comment)
-    article = @wiki.article("Utilisateur:Piglobot/#{name}")
-    article.text = "<source lang=\"ruby\">\n" +
-      File.read(file) +
-      "<" + "/source>"
-    article.submit(comment)
+    text = "<source lang=\"ruby\">\n#{File.read(file)}</source" + ">"
+    article = @wiki.post("Utilisateur:Piglobot/#{name}", text, comment)
   end
   
   def publish_spec(comment)

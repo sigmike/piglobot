@@ -20,24 +20,36 @@ require 'piglobot'
 
 describe Piglobot do
   before do
+    @mediawiki = mock("mediawiki")
     @wiki = mock("wiki")
-    @article = mock("article")
-    @bot = Piglobot.new(@wiki)
+    Piglobot::Wiki.should_receive(:new).once.and_return(@wiki)
+    @bot = Piglobot.new(@mediawiki)
   end
   
   it "should publish spec" do
-    @wiki.should_receive(:article).with("Utilisateur:Piglobot/Spec").once.and_return(@article)
     text = "<source lang=\"ruby\">\n" + File.read("piglobot_spec.rb") + "<" + "/source>"
-    @article.should_receive(:text=).with(text)
-    @article.should_receive(:submit).with("comment")
+    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Spec", text, "comment")
     @bot.publish_spec("comment")
   end
 
   it "should publish code" do
-    @wiki.should_receive(:article).with("Utilisateur:Piglobot/Code").once.and_return(@article)
     text = "<source lang=\"ruby\">\n" + File.read("piglobot.rb") + "<" + "/source>"
-    @article.should_receive(:text=).with(text)
-    @article.should_receive(:submit).with("comment")
+    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Code", text, "comment")
     @bot.publish_code("comment")
+  end
+end
+
+describe Piglobot::Wiki do
+  before do
+    @mediawiki = mock("mediawiki")
+    @article = mock("article")
+    @wiki = Piglobot::Wiki.new(@mediawiki)
+  end
+  
+  it "should post text" do
+    @mediawiki.should_receive(:article).with("Article name").once.and_return(@article)
+    @article.should_receive(:text=).with("article content")
+    @article.should_receive(:submit).with("comment")
+    @wiki.post "Article name", "article content", "comment"
   end
 end
