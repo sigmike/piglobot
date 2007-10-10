@@ -9,5 +9,7 @@ wiki = MediaWiki.dotfile
 bot = Piglobot.new(wiki)
 
 system("svn", "ci", "-m", comment) || exit(1)
+puts "publish spec"
 bot.publish_spec comment
+puts "publish code"
 bot.publish_code comment
