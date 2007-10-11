@@ -26,7 +26,7 @@ module MediaWiki
     # name:: [String] Article name
     # section:: [Fixnum] Optional article section number
     # load_text:: [Boolean] Invoke Article#reload to retrieve Article#text
-    def initialize(wiki, name, section = nil, load_text=false)
+    def initialize(wiki, name, section = nil, load_text=true)
       @wiki = wiki
       @name = name
       @section = section

@@ -62,6 +62,7 @@ module MediaWiki
                                               'Cookie' => cookies})
           request.basic_auth(@url.user, @url.password) if @url.user
           response = http.request(request)
+          puts "response: #{response}" if $VERBOSE
 
           case response 
             when Net::HTTPSuccess, Net::HTTPNotFound then 
