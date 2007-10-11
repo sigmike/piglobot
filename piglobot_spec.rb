@@ -18,48 +18,55 @@
 
 require 'piglobot'
 
-describe Piglobot do
+describe Piglobot::Dump do
   before do
-    @mediawiki = mock("mediawiki")
     @wiki = mock("wiki")
-    Piglobot::Wiki.should_receive(:new).once.and_return(@wiki)
-    @bot = Piglobot.new(@mediawiki)
+    @dump = Piglobot::Dump.new(@wiki)
   end
   
   it "should publish spec" do
     text = "<source lang=\"ruby\">\n" + File.read("piglobot_spec.rb") + "<" + "/source>"
     @wiki.should_receive(:post).with("Utilisateur:Piglobot/Spec", text, "comment")
-    @bot.publish_spec("comment")
+    @dump.publish_spec("comment")
   end
 
   it "should publish code" do
     text = "<source lang=\"ruby\">\n" + File.read("piglobot.rb") + "<" + "/source>"
     @wiki.should_receive(:post).with("Utilisateur:Piglobot/Code", text, "comment")
-    @bot.publish_code("comment")
+    @dump.publish_code("comment")
   end
   
   it "should load data" do
     data = "foo"
     text = "<source lang=\"text\">\n" + data.to_yaml + "</source" + ">"
     @wiki.should_receive(:get).with("Utilisateur:Piglobot/Data").once.and_return(text)
-    @bot.load_data
-    @bot.data.should == data
+    @dump.load_data.should == data
   end
 
   it "should save data" do
     data = "bar"
     text = "<source lang=\"text\">\n" + data.to_yaml + "</source" + ">"
     @wiki.should_receive(:post).with("Utilisateur:Piglobot/Data", text, "Sauvegarde").once
-    @bot.data = data
-    @bot.save_data
+    @dump.save_data(data)
+  end
+  
+  it "should load nil when no data" do
+    text = "\n"
+    @wiki.should_receive(:get).with("Utilisateur:Piglobot/Data").once.and_return(text)
+    @dump.load_data.should == nil
   end
 end
 
 describe Piglobot::Wiki do
   before do
     @mediawiki = mock("mediawiki")
+    MediaWiki::Wiki.should_receive(:new).once.with(
+      "http://fr.wikipedia.org/w",
+      "Piglobot",
+      File.read("password").strip
+    ).and_return(@mediawiki)
     @article = mock("article")
-    @wiki = Piglobot::Wiki.new(@mediawiki)
+    @wiki = Piglobot::Wiki.new
   end
   
   it "should post text" do
@@ -73,5 +80,21 @@ describe Piglobot::Wiki do
     @mediawiki.should_receive(:article).with("Article name").once.and_return(@article)
     @article.should_receive(:text).with().and_return("content")
     @wiki.get("Article name").should == "content"
+  end
+end
+
+describe Piglobot do
+  before do
+    @wiki = mock("wiki")
+    @dump = mock("dump")
+    Piglobot::Wiki.should_receive(:new).and_return(@wiki)
+    Piglobot::Dump.should_receive(:new).once.with(@wiki).and_return(@dump)
+    @bot = Piglobot.new
+  end
+  
+  it "should initialize data on first run" do
+    @dump.should_receive(:load_data).and_return(nil)
+    @dump.should_receive(:save_data).and_return({})
+    @bot.run
   end
 end

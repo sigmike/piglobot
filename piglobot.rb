@@ -16,10 +16,14 @@
     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 =end
 
+require 'libs'
+require 'yaml'
+require 'mediawiki'
+
 class Piglobot
   class Wiki
-    def initialize(wiki)
-      @wiki = wiki
+    def initialize
+      @wiki = MediaWiki::Wiki.new("http://fr.wikipedia.org/w", "Piglobot", File.read("password"))
     end
     
     def post(article, text, comment)
@@ -34,31 +38,48 @@ class Piglobot
     end
   end
   
-  def initialize(wiki)
-    @wiki = Wiki.new(wiki)
+  class Dump
+    def initialize(wiki)
+      @wiki = wiki
+    end
+    
+    def publish(name, text, comment, lang = "ruby")
+      text = "<source lang=\"#{lang}\">\n#{text}</source" + ">"
+      article = @wiki.post("Utilisateur:Piglobot/#{name}", text, comment)
+    end
+    
+    def publish_spec(comment)
+      publish("Spec", File.read("piglobot_spec.rb"), comment)
+    end
+  
+    def publish_code(comment)
+      publish("Code", File.read("piglobot.rb"), comment)
+    end
+    
+    attr_accessor :data
+    def load_data
+      text = @wiki.get("Utilisateur:Piglobot/Data")
+      result = text.scan(/<source lang="text">(.*)<\/source>/m)
+      if result.first and result.first.first
+        @data = YAML.load(result.first.first)
+      else
+        @data = nil
+      end
+    end
+  
+    def save_data data
+      publish("Data", data.to_yaml, "Sauvegarde", "text")
+    end
   end
   
-  def publish(name, text, comment, lang = "ruby")
-    text = "<source lang=\"#{lang}\">\n#{text}</source" + ">"
-    article = @wiki.post("Utilisateur:Piglobot/#{name}", text, comment)
+  def initialize
+    @wiki = Wiki.new
+    @dump = Dump.new(@wiki)
   end
   
-  def publish_spec(comment)
-    publish("Spec", File.read("piglobot_spec.rb"), comment)
-  end
-
-  def publish_code(comment)
-    publish("Code", File.read("piglobot.rb"), comment)
-  end
-  
-  attr_accessor :data
-  def load_data
-    text = @wiki.get("Utilisateur:Piglobot/Data")
-    @data = YAML.load(text.scan(/<source lang="text">(.*)<\/source>/m).first.first)
-  end
-
-  def save_data
-    publish("Data", @data.to_yaml, "Sauvegarde", "text")
+  def run
+    @dump.load_data
+    @dump.save_data({})
   end
 end
 
