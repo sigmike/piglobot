@@ -84,12 +84,6 @@ class Piglobot
 end
 
 if __FILE__ == $0
-  require 'libs'
-  require 'mediawiki/dotfile'
-
-  ENV["MEDIAWIKI_RC"]="mediawikirc"
-  wiki = MediaWiki.dotfile
-  bot = Piglobot.new(wiki)
-  bot.data = { "test" => "plop" }
-  bot.save_data
+  bot = Piglobot.new
+  bot.run
 end

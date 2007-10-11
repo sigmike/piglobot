@@ -94,7 +94,7 @@ describe Piglobot do
   
   it "should initialize data on first run" do
     @dump.should_receive(:load_data).and_return(nil)
-    @dump.should_receive(:save_data).and_return({})
+    @dump.should_receive(:save_data).with({})
     @bot.run
   end
 end
