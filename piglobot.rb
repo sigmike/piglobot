@@ -36,6 +36,11 @@ class Piglobot
       article = @wiki.article(article)
       article.text
     end
+    
+    def links(name)
+      article = @wiki.article(name)
+      article.fast_what_links_here(1000)
+    end
   end
   
   class Dump
@@ -72,14 +77,36 @@ class Piglobot
     end
   end
   
+  class Editor
+    def initialize(wiki)
+      @wiki = wiki
+    end
+    
+    def edit_infobox(article, text)
+    end
+  end
+  
   def initialize
     @wiki = Wiki.new
     @dump = Dump.new(@wiki)
+    @editor = Editor.new(@wiki)
   end
   
   def run
-    @dump.load_data
-    @dump.save_data({})
+    data = @dump.load_data
+    if data.nil?
+      data = {}
+    else
+      articles = data["Infobox Logiciel"]
+      if articles and !articles.empty?
+        article = articles.shift
+        text = @wiki.get(article)
+        @editor.edit_infobox(article, text)
+      else
+        data["Infobox Logiciel"] = @wiki.links("Modèle:Infobox Logiciel")
+      end
+    end
+    @dump.save_data(data)
   end
 end
 

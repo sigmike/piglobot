@@ -81,14 +81,25 @@ describe Piglobot::Wiki do
     @article.should_receive(:text).with().and_return("content")
     @wiki.get("Article name").should == "content"
   end
+
+    
+  it "should use fast_what_links_here on links" do
+    name = Object.new
+    links = Object.new
+    @mediawiki.should_receive(:article).with(name).once.and_return(@article)
+    @article.should_receive(:fast_what_links_here).with(1000).and_return(links)
+    @wiki.links(name).should == links
+  end
 end
 
 describe Piglobot do
   before do
     @wiki = mock("wiki")
     @dump = mock("dump")
+    @editor = mock("editor")
     Piglobot::Wiki.should_receive(:new).and_return(@wiki)
     Piglobot::Dump.should_receive(:new).once.with(@wiki).and_return(@dump)
+    Piglobot::Editor.should_receive(:new).once.with(@wiki).and_return(@editor)
     @bot = Piglobot.new
   end
   
@@ -96,5 +107,38 @@ describe Piglobot do
     @dump.should_receive(:load_data).and_return(nil)
     @dump.should_receive(:save_data).with({})
     @bot.run
+  end
+  
+  it "should get infobox links on second run" do
+    @dump.should_receive(:load_data).and_return({})
+    @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["Foo", "Bar"])
+    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Foo", "Bar"]})
+    @bot.run
+  end
+  
+  it "should send infobox links to InfoboxEditor" do
+    @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["Article 1", "Article 2"]})
+    @wiki.should_receive(:get).with("Article 1").and_return("foo")
+    @editor.should_receive(:edit_infobox).with("Article 1", "foo")
+    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
+    @bot.run
+  end
+
+  it "should get infobox links when list is empty" do
+    @dump.should_receive(:load_data).and_return({"Infobox Logiciel" => [], "Foo" => "Bar"})
+    @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["A", "B"])
+    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["A", "B"], "Foo" => "Bar"})
+    @bot.run
+  end
+  
+end
+
+describe Piglobot::Editor do
+  before do
+    @wiki = mock("wiki")
+    @editor = Piglobot::Editor.new(@wiki)
+  end
+  it "should respond to edit_infobox" do
+    @editor.edit_infobox("A", "B")
   end
 end
