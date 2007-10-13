@@ -119,7 +119,21 @@ describe Piglobot do
   it "should send infobox links to InfoboxEditor" do
     @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["Article 1", "Article 2"]})
     @wiki.should_receive(:get).with("Article 1").and_return("foo")
-    @editor.should_receive(:edit_infobox).with("Article 1", "foo")
+    comment = "Texte initial de l'article [[Article 1]]"
+    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Bac à sable", "foo", comment)
+    infobox = mock("infobox")
+    @editor.should_receive(:parse_infobox).with("foo").and_return(infobox)
+    @editor.should_receive(:write_infobox).with(infobox).and_return("result")
+    comment = "Correction de la syntaxe de l'infobox"
+    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Bac à sable", "result", comment)
+    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
+    @bot.run
+  end
+  
+  it "should not write infobox if none found" do
+    @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["Article 1", "Article 2"]})
+    @wiki.should_receive(:get).with("Article 1").and_return("foo")
+    @editor.should_receive(:parse_infobox).with("foo").and_return(nil)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
     @bot.run
   end
@@ -137,8 +151,66 @@ describe Piglobot::Editor do
   before do
     @wiki = mock("wiki")
     @editor = Piglobot::Editor.new(@wiki)
+    @infobox = {
+      :before => "",
+      :after => "",
+      :parameters => [],
+    }
   end
-  it "should respond to edit_infobox" do
-    @editor.edit_infobox("A", "B")
+  it "should parse empty infobox" do
+    @editor.parse_infobox("{{Infobox Logiciel}}").should == @infobox
+  end
+  
+  it "should return nil when there's no infobox" do
+    @editor.parse_infobox("").should == nil
+    @editor.parse_infobox("foo").should == nil
+    @editor.parse_infobox("{{foo}}").should == nil
+    @editor.parse_infobox("{{Infobox Logiciel}").should == nil
+    @editor.parse_infobox("Infobox Logiciel").should == nil
+  end
+  
+  it "should keep text before infobox on parsing" do
+    @infobox[:before] = "text before"
+    @editor.parse_infobox("text before{{Infobox Logiciel}}").should == @infobox
+  end
+  
+  it "should keep text after infobox on parsing" do
+    @infobox[:after] = "text after"
+    @editor.parse_infobox("{{Infobox Logiciel}}text after").should == @infobox
+  end
+  
+  it "should allow line breaks before and after" do
+    @infobox[:before] = "\nfoo\n\nbar\n"
+    @infobox[:after] = "bob\n\nmock\n\n"
+    text = "#{@infobox[:before]}{{Infobox Logiciel}}#{@infobox[:after]}"
+    @editor.parse_infobox(text).should == @infobox
+  end
+  
+  it "should parse simple parameter" do
+    text = "{{Infobox Logiciel | nom = Nom }}"
+    @infobox[:parameters] = [["nom", "Nom"]]
+    @editor.parse_infobox(text).should == @infobox
+  end
+  
+  it "should parse multiple parameters" do
+    text = "{{Infobox Logiciel | nom = Nom | foo = bar }}"
+    @infobox[:parameters] = [["nom", "Nom"], ["foo", "bar"]]
+    @editor.parse_infobox(text).should == @infobox
+  end
+  
+  it "should parse parameters on multiple lines" do
+    text = "{{Infobox Logiciel\n|\n  nom = \nNom\nsuite\n | foo\n = \nbar\n\nbaz\n\n }}"
+    @infobox[:parameters] = [["nom", "Nom\nsuite"], ["foo", "bar\n\nbaz"]]
+    @editor.parse_infobox(text).should == @infobox
+  end
+  
+  it "should parse parameters with pipes" do
+    text = "{{Infobox Logiciel | logo = [[Image:Logo.svg|80px]] | foo = bar }}"
+    @infobox[:parameters] = [["logo", "[[Image:Logo.svg|80px]]"], ["foo", "bar"]]
+    @editor.parse_infobox(text).should == @infobox
+  end
+  
+  it "should write empty infobox" do
+    @editor.write_infobox(@infobox).should == "{{Infobox Logiciel}}"
   end
 end

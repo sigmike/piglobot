@@ -82,7 +82,27 @@ class Piglobot
       @wiki = wiki
     end
     
-    def edit_infobox(article, text)
+    def parse_infobox(text)
+      before, content, after = text.scan(/(.*)\{\{Infobox Logiciel(.*)\}\}(.*)/m).first
+      parameters = []
+      if content
+        content.split(/\s*\|\s*/m).each do |arg|
+          name, value = arg.scan(/(.+)\s*=\s*(.+)\s*/m).first
+          if name
+            parameters << [name.strip, value.strip]
+          end
+        end
+      end
+      return nil unless before
+      {
+        :before => before,
+        :after => after,
+        :parameters => parameters,
+      }
+    end
+    
+    def write_infobox(box)
+      "{{Infobox Logiciel}}"
     end
   end
   
@@ -101,7 +121,16 @@ class Piglobot
       if articles and !articles.empty?
         article = articles.shift
         text = @wiki.get(article)
-        @editor.edit_infobox(article, text)
+        box = @editor.parse_infobox(text)
+        if box
+          result = @editor.write_infobox(box)
+          @wiki.post("Utilisateur:Piglobot/Bac à sable",
+            text,
+            "Texte initial de l'article [[#{article}]]")
+          @wiki.post("Utilisateur:Piglobot/Bac à sable",
+            result,
+            "Correction de la syntaxe de l'infobox")
+        end
       else
         data["Infobox Logiciel"] = @wiki.links("Modèle:Infobox Logiciel")
       end
