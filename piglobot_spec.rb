@@ -161,11 +161,23 @@ describe Piglobot::Editor do
     @editor.parse_infobox("{{Infobox Logiciel}}").should == @infobox
   end
   
-  it "should return nil when there's no infobox" do
+  it "should return nil on empty string" do
     @editor.parse_infobox("").should == nil
+  end
+  
+  it "should return nil on 'foo'" do
     @editor.parse_infobox("foo").should == nil
+  end
+  
+  it "should return nil on '{{foo}}'" do
     @editor.parse_infobox("{{foo}}").should == nil
+  end
+  
+  it "should return nil on '{{Infobox Logiciel}'" do
     @editor.parse_infobox("{{Infobox Logiciel}").should == nil
+  end
+  
+  it "should return nil on 'Infobox Logiciel'" do
     @editor.parse_infobox("Infobox Logiciel").should == nil
   end
   

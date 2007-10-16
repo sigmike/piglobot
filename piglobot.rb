@@ -82,18 +82,42 @@ class Piglobot
       @wiki = wiki
     end
     
+    def parse_template(s)
+      res = s.scan_until(/\s*(\||\}\})/)
+      return nil unless res
+      name = res[0, res.size - s.matched.size]
+      return [name.strip, []] #if s.matched.strip == "}}"
+      
+    end
+    
     def parse_infobox(text)
-      before, content, after = text.scan(/(.*)\{\{Infobox Logiciel(.*)\}\}(.*)/m).first
+      require 'strscan'
+      s = StringScanner.new(text)
+      return nil unless s.scan_until(/\{\{/)
+      before = s.pre_match
+      name, parameters = parse_template(s)
+      return nil unless name == "Infobox Logiciel"
+      after = s.rest
+=begin
+      return nil unless s.scan_until(/\{\{Infobox Logiciel/m)
+      before = s.pre_match
       parameters = []
-      if content
-        content.split(/\s*\|\s*/m).each do |arg|
-          name, value = arg.scan(/(.+)\s*=\s*(.+)\s*/m).first
-          if name
-            parameters << [name.strip, value.strip]
-          end
+      unless s.scan(/\s*\}\}/m)
+        return nil unless s.skip(/\s*\|\s*/m)
+        loop do
+          s.skip(/\s+/m)
+          s.scan_until(/\s*=\s*/m)
+          name = s.pre_match
+          
+          s.scan_until(/(\||\}\})/m)
+          value = s.pre_match
+          parameters << [name, value]
+          
+          break if s.matched == "}}"
         end
       end
-      return nil unless before
+      after = s.scan(/.*/m)
+=end
       {
         :before => before,
         :after => after,
