@@ -134,6 +134,7 @@ describe Piglobot do
     @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["Article 1", "Article 2"]})
     @wiki.should_receive(:get).with("Article 1").and_return("foo")
     @editor.should_receive(:parse_infobox).with("foo").and_return(nil)
+    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Bac à sable", "foo", "Infobox non trouvée dans l'article [[Article 1]]")
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
     @bot.run
   end
@@ -222,7 +223,79 @@ describe Piglobot::Editor do
     @editor.parse_infobox(text).should == @infobox
   end
   
+  it "should parse parameters with template" do
+    text = "{{Infobox Logiciel | date = {{Date|12|janvier|2008}} | foo = bar }}"
+    @infobox[:parameters] = [["date", "{{Date|12|janvier|2008}}"], ["foo", "bar"]]
+    @editor.parse_infobox(text).should == @infobox
+  end
+  
+  it "should parse parameters with ref" do
+    text = "{{Infobox Logiciel | dernière version = 1.12<ref>[http://foo.com/bar ref]</ref> | foo = bar }}"
+    @infobox[:parameters] = [["dernière version", "1.12<ref>[http://foo.com/bar ref]</ref>"], ["foo", "bar"]]
+    @editor.parse_infobox(text).should == @infobox
+  end
+  
+  it "should parse parameters with new lines" do
+    text = "{{Infobox Logiciel | name = foo\n\n  bar\n | foo = bar }}"
+    @infobox[:parameters] = [["name", "foo\n\n  bar"], ["foo", "bar"]]
+    @editor.parse_infobox(text).should == @infobox
+  end
+  
+  it "should parse parameters with weird new lines" do
+    text = "{{Infobox Logiciel |\nname = foo |\nimage = |\n}}"
+    @infobox[:parameters] = [["name", "foo"], ["image", ""]]
+    @editor.parse_infobox(text).should == @infobox
+  end
+  
+  it "should parse Logicel simple" do
+    text = "{{Logiciel simple | bob = mock }}"
+    @infobox[:parameters] = [["bob", "mock"]]
+    @editor.parse_infobox(text).should == @infobox
+  end
+  
+  it "should parse Logicel_simple" do
+    text = "{{Logiciel_simple}}"
+    @editor.parse_infobox(text).should == @infobox
+  end
+  
   it "should write empty infobox" do
     @editor.write_infobox(@infobox).should == "{{Infobox Logiciel}}"
+  end
+  
+  it "should write infobox with surrounding text" do
+    @infobox[:before] = "before"
+    @infobox[:after] = "after"
+    @editor.write_infobox(@infobox).should == "before{{Infobox Logiciel}}after"
+  end
+  
+  it "should write infobox with parameters" do
+    @infobox[:parameters] = [["name", "value"], ["other name", "other value"]]
+    @editor.write_infobox(@infobox).should == "{{Infobox Logiciel\n| name = value\n| other name = other value\n}}"
+  end
+  
+  it "should write infobox with new lines in parameter" do
+    @infobox[:parameters] = [["name", "first line\n  second line\nthird line"]]
+    @editor.write_infobox(@infobox).should == "{{Infobox Logiciel\n| name = first line\n  second line\nthird line\n}}"
+  end
+  
+  it "should parse mono.sample" do
+    text = File.read("mono.sample")
+    @infobox[:parameters] = [
+      ["nom", "Mono"],
+      ["logo", "[[Image:Mono project logo.svg|80px]]"],
+      ["image", ""],
+      ["description", ""],
+      ["développeur", "[[Novell]]"],
+      ["dernière version", "1.2.5.1"],
+      ["date de dernière version", "{{Date|20|septembre|2007}}"],
+      ["version avancée", ""],
+      ["date de version avancée", ""],
+      ["environnement", "[[Multiplate-forme]]"],
+      ["langue", ""],
+      ["type", ""],
+      ["licence", "[[Licence Publique Générale|GPL]], [[Licence publique générale limitée GNU|LGPL]] ou [[X11]]"],
+      ["site web", "[http://www.mono-project.com www.mono-project.com]"],
+    ]
+    @editor.parse_infobox(text)[:parameters].should == @infobox[:parameters]
   end
 end
