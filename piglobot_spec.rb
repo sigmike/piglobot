@@ -124,7 +124,7 @@ describe Piglobot do
     infobox = mock("infobox")
     @editor.should_receive(:parse_infobox).with("foo").and_return(infobox)
     @editor.should_receive(:write_infobox).with(infobox).and_return("result")
-    comment = "Correction de la syntaxe de l'infobox"
+    comment = "Correction de l'[[Modèle:Infobox Logiciel|infobox Logiciel]]"
     @wiki.should_receive(:post).with("Utilisateur:Piglobot/Bac à sable", "result", comment)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
     @bot.run
@@ -304,5 +304,35 @@ describe Piglobot::Editor do
     @infobox[:parameters] = [["name", "first line\n  second line\nthird line"]]
     @editor.write_infobox(@infobox).should ==
       "{{Infobox Logiciel\n| name = first line\n  second line\nthird line\n}}"
+  end
+  
+  it "should rename parameters on write" do
+    @infobox[:parameters] = [
+      ["dernière_version", "1"],
+      ["date_de_dernière_version", "2"],
+      ["version_avancée", "3"],
+      ["date_de_version_avancée", "4"],
+      ["os", "5"],
+      ["site_web", "6"],
+      ["other", "7"],
+    ]
+    @editor.write_infobox(@infobox).should ==
+      "{{Infobox Logiciel\n" + [
+        ["dernière version", "1"],
+        ["date de dernière version", "2"],
+        ["version avancée", "3"],
+        ["date de version avancée", "4"],
+        ["environnement", "5"],
+        ["site web", "6"],
+        ["other", "7"],
+      ].map { |name, value|
+        "| #{name} = #{value}\n"
+      }.join + "}}"
+  end
+  
+  it "should remove [[open source]] from type" do
+    @infobox[:parameters] = [["type", "foo ([[open source]])"]]
+    @editor.write_infobox(@infobox).should ==
+      "{{Infobox Logiciel\n| type = foo\n}}"
   end
 end

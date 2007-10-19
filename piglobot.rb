@@ -341,6 +341,19 @@ class Piglobot
         args = ""
       else
         args = "\n" + box[:parameters].map { |name, value|
+          name = case name
+          when "dernière_version" then "dernière version"
+          when "date_de_dernière_version" then "date de dernière version"
+          when "version_avancée" then "version avancée"
+          when "date_de_version_avancée" then "date de version avancée"
+          when "os" then "environnement"
+          when "site_web" then "site web"
+          else name
+          end
+          if name == "type" and value =~ /(.+) \(\[\[open source\]\]\)$/
+            value = $1
+          end
+          [name, value]
           "| #{name} = #{value}\n"
         }.join
       end
@@ -371,7 +384,7 @@ class Piglobot
             "Texte initial de l'article [[#{article}]]")
           @wiki.post("Utilisateur:Piglobot/Bac à sable",
             result,
-            "Correction de la syntaxe de l'infobox")
+            "Correction de l'[[Modèle:Infobox Logiciel|infobox Logiciel]]")
         else
           @wiki.post("Utilisateur:Piglobot/Bac à sable",
             text,
