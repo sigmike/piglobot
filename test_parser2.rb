@@ -42,7 +42,7 @@ def replace_callback(text, callbacks)
   
   #while ( $i < strlen( $text ) ) {
   while i < text.length
-  
+    #debugger
     # Find next opening brace, closing brace or pipe
     #if ( $lastOpeningBrace == -1 ) {
       #$currentClosing = '';
@@ -135,7 +135,7 @@ def replace_callback(text, callbacks)
         # Skip any gaps in the callback array to find the true largest match
         # Need to use array_key_exists not isset because the callback can be null
         matchingCount = count
-        while matchingCount > 0 && !cbType['cb'][matchingCount]
+        while matchingCount > 0 && !cbType['cb'].has_key?(matchingCount)
           matchingCount -= 1
         end
       end
@@ -236,7 +236,7 @@ def replace_variables(text, args = [], args_only = false )
   # This function is called recursively. To keep track of arguments we need a stack:
   @arg_stack << args
 
-  brace_callbacks = []
+  brace_callbacks = {}
   if !args_only
     brace_callbacks[2] = [self, 'braceSubstitution']
   end
@@ -253,7 +253,8 @@ def replace_variables(text, args = [], args_only = false )
       },
       '[' => {
         'end' => ']',
-        'cb' => [nil, nil],
+        'cb' => { 2 => nil },
+#        'cb' => { 2 => [self, 'linkSubstitution'] },
         'min' => 2,
         'max' => 2,
       }
@@ -265,8 +266,15 @@ def replace_variables(text, args = [], args_only = false )
   text
 end
 
-def braceSubstitution(*args)
-  puts "braceSubstitution(#{args.inspect})"
+def braceSubstitution(args)
+  puts "Template #{args['title'].inspect} with args #{args['parts'].inspect}"
+  #puts "braceSubstitution(#{args.inspect})"
+  "(parsed template)"
+end
+
+def linkSubstitution(args)
+  puts "Link #{args['title'].inspect} with args #{args['parts'].inspect}"
+  #puts "braceSubstitution(#{args.inspect})"
 end
 
 def argSubstitution(*args)
@@ -279,9 +287,9 @@ def wikiparse text
 end
 
 
-wikiparse "{{foo | hello | bob | [[test]] }}"
+#wikiparse "{{foo | hello | bob | [[test]] }}"
 
-if false
+if true
 wikiparse <<EOF
 {{Logiciel_simple
 | nom = Konqueror
