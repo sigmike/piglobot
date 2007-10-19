@@ -84,35 +84,13 @@ class Piglobot
       @wiki = wiki
     end
     
-    #function replace_callback ($text, $callbacks) {
     def replace_callback(text, callbacks)
-      #wfProfileIn( __METHOD__ );
-      #$openingBraceStack = array();  # this array will hold a stack of parentheses which are not closed yet
       openingBraceStack = [] # this array will hold a stack of parentheses which are not closed yet
-    
-      #$lastOpeningBrace = -1;      # last not closed parentheses
       lastOpeningBrace = -1  # last not closed parentheses
-    
-      #$validOpeningBraces = implode( '', array_keys( $callbacks ) );
       validOpeningBraces = callbacks.keys.join
-    
-      #$i = 0;
       i = 0
       
-      
-      #while ( $i < strlen( $text ) ) {
       while i < text.length
-        #require 'ruby-debug'
-        #debugger
-        # Find next opening brace, closing brace or pipe
-        #if ( $lastOpeningBrace == -1 ) {
-          #$currentClosing = '';
-          #$search = $validOpeningBraces;
-        #} else {
-          #$currentClosing = $openingBraceStack[$lastOpeningBrace]['braceEnd'];
-          #$search = $validOpeningBraces . '|' . $currentClosing;
-        #}
-    
         if lastOpeningBrace == -1
           currentClosing = ''
           search = validOpeningBraces
@@ -121,26 +99,17 @@ class Piglobot
           search = validOpeningBraces + '|' + currentClosing
         end
         
-        #$rule = null;
         rule = nil
         
-        #$i += strcspn( $text, $search, $i );
         countUpToSearch = text.index(/[#{Regexp.escape search}]/, i)
         
-        #if countUpToSearch
         if countUpToSearch
           i = countUpToSearch
         else
           i = text.length
         end
-        #else
-        #  i += 1
-        #  next
-        #end
         
-        #if ( $i < strlen( $text ) ) {
         if i < text.length
-          #if ( $text[$i] == '|' ) {
           if text[i].chr == '|'
             found = 'pipe'
           elsif text[i].chr == currentClosing
@@ -149,8 +118,6 @@ class Piglobot
             found = 'open'
             rule = callbacks[text[i].chr]
           else
-            # Some versions of PHP have a strcspn which stops on null characters
-            # Ignore and continue
             i += 1
             next
           end
@@ -285,17 +252,10 @@ class Piglobot
         end
       end
     
-      #wfProfileOut( __METHOD__ );
       text
-    #}
     end
     
     def replace_variables(text, args = [], args_only = false )
-      # Prevent too big inclusions
-      #if text.length > @max_include_size
-      #  return text;
-      #end
-    
       # This function is called recursively. To keep track of arguments we need a stack:
       @arg_stack << args
     
@@ -330,20 +290,14 @@ class Piglobot
     end
     
     def braceSubstitution(args, before, after)
-      #puts "Template #{args['title'].inspect} with args #{args['parts'].inspect}"
-      #puts "braceSubstitution(#{args.inspect})"
-      #"(parsed template)"
       @templates << [args, before, after]
       nil
     end
     
     def linkSubstitution(args, before, after)
-      #puts "Link #{args['title'].inspect} with args #{args['parts'].inspect}"
-      #puts "braceSubstitution(#{args.inspect})"
     end
     
     def argSubstitution(args, before, after)
-      #puts "argSubstitution(#{args.inspect})"
     end
     
     def parse_infobox(text)
