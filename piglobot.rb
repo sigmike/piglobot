@@ -357,7 +357,8 @@ class Piglobot
         title = template[0]["title"]
         title == "Infobox Logiciel" or
           title == "Logiciel simple" or
-          title == "Logiciel_simple"
+          title == "Logiciel_simple" or
+          title == "Logiciel"
       }
       if t
         parameters = t.first["parts"] || []

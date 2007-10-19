@@ -230,8 +230,8 @@ describe Piglobot::Editor do
   end
   
   it "should parse parameters with ref" do
-    text = "{{Infobox Logiciel | dernière version = 1.12<ref>[http://foo.com/bar ref]</ref> | foo = bar }}"
-    @infobox[:parameters] = [["dernière version", "1.12<ref>[http://foo.com/bar ref]</ref>"], ["foo", "bar"]]
+    text = "{{Infobox Logiciel | dernière version = 1.12<ref>[http://foo.com/bar ref]</ref>}}"
+    @infobox[:parameters] = [["dernière version", "1.12<ref>[http://foo.com/bar ref]</ref>"]]
     @editor.parse_infobox(text).should == @infobox
   end
   
@@ -258,24 +258,9 @@ describe Piglobot::Editor do
     @editor.parse_infobox(text).should == @infobox
   end
   
-  it "should write empty infobox" do
-    @editor.write_infobox(@infobox).should == "{{Infobox Logiciel}}"
-  end
-  
-  it "should write infobox with surrounding text" do
-    @infobox[:before] = "before"
-    @infobox[:after] = "after"
-    @editor.write_infobox(@infobox).should == "before{{Infobox Logiciel}}after"
-  end
-  
-  it "should write infobox with parameters" do
-    @infobox[:parameters] = [["name", "value"], ["other name", "other value"]]
-    @editor.write_infobox(@infobox).should == "{{Infobox Logiciel\n| name = value\n| other name = other value\n}}"
-  end
-  
-  it "should write infobox with new lines in parameter" do
-    @infobox[:parameters] = [["name", "first line\n  second line\nthird line"]]
-    @editor.write_infobox(@infobox).should == "{{Infobox Logiciel\n| name = first line\n  second line\nthird line\n}}"
+  it "should parse Logicel" do
+    text = "{{Logiciel}}"
+    @editor.parse_infobox(text).should == @infobox
   end
   
   it "should parse mono.sample" do
@@ -297,5 +282,27 @@ describe Piglobot::Editor do
       ["site web", "[http://www.mono-project.com www.mono-project.com]"],
     ]
     @editor.parse_infobox(text)[:parameters].should == @infobox[:parameters]
+  end
+  
+  it "should write empty infobox" do
+    @editor.write_infobox(@infobox).should == "{{Infobox Logiciel}}"
+  end
+  
+  it "should write infobox with surrounding text" do
+    @infobox[:before] = "before"
+    @infobox[:after] = "after"
+    @editor.write_infobox(@infobox).should == "before{{Infobox Logiciel}}after"
+  end
+  
+  it "should write infobox with parameters" do
+    @infobox[:parameters] = [["name", "value"], ["other name", "other value"]]
+    @editor.write_infobox(@infobox).should ==
+      "{{Infobox Logiciel\n| name = value\n| other name = other value\n}}"
+  end
+  
+  it "should write infobox with new lines in parameter" do
+    @infobox[:parameters] = [["name", "first line\n  second line\nthird line"]]
+    @editor.write_infobox(@infobox).should ==
+      "{{Infobox Logiciel\n| name = first line\n  second line\nthird line\n}}"
   end
 end
