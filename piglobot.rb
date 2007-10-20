@@ -134,6 +134,9 @@ class Piglobot::Dump
 end
 
 class Piglobot::Editor
+  # Code ported from http://svn.wikimedia.org/svnroot/mediawiki/trunk/phase3/includes/Parser.php
+  # on revision 26849
+  
   OT_MSG = 1
   
   def initialize(wiki)
