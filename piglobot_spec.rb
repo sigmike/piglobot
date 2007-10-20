@@ -18,87 +18,6 @@
 
 require 'piglobot'
 
-describe Piglobot::Dump do
-  before do
-    @wiki = mock("wiki")
-    @dump = Piglobot::Dump.new(@wiki)
-  end
-  
-  it "should publish spec" do
-    Piglobot::Tools.should_receive(:spec_to_wiki).with(File.read("piglobot_spec.rb")).and_return("result")
-    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Spec", "result", "comment")
-    @dump.publish_spec("comment")
-  end
-
-  it "should publish code" do
-    text = "<source lang=\"ruby\">\n" + File.read("piglobot.rb") + "<" + "/source>"
-    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Code", text, "comment")
-    @dump.publish_code("comment")
-  end
-  
-  it "should load data" do
-    data = "foo"
-    text = "<source lang=\"text\">\n" + data.to_yaml + "</source" + ">"
-    @wiki.should_receive(:get).with("Utilisateur:Piglobot/Data").once.and_return(text)
-    @dump.load_data.should == data
-  end
-
-  it "should save data" do
-    data = "bar"
-    text = "<source lang=\"text\">\n" + data.to_yaml + "</source" + ">"
-    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Data", text, "Sauvegarde").once
-    @dump.save_data(data)
-  end
-  
-  it "should load nil when no data" do
-    text = "\n"
-    @wiki.should_receive(:get).with("Utilisateur:Piglobot/Data").once.and_return(text)
-    @dump.load_data.should == nil
-  end
-end
-
-describe Piglobot::Wiki do
-  before do
-    @mediawiki = mock("mediawiki")
-    MediaWiki::Wiki.should_receive(:new).once.with(
-      "http://fr.wikipedia.org/w",
-      "Piglobot",
-      File.read("password").strip
-    ).and_return(@mediawiki)
-    @article = mock("article")
-    @wiki = Piglobot::Wiki.new
-  end
-  
-  it "should post text" do
-    @mediawiki.should_receive(:article).with("Article name").once.and_return(@article)
-    @article.should_receive(:text=).with("article content")
-    @article.should_receive(:submit).with("comment")
-    @wiki.post "Article name", "article content", "comment"
-  end
-  
-  it "should get text" do
-    @mediawiki.should_receive(:article).with("Article name").once.and_return(@article)
-    @article.should_receive(:text).with().and_return("content")
-    @wiki.get("Article name").should == "content"
-  end
-  
-  it "should append text" do
-    @mediawiki.should_receive(:article).with("Article name").once.and_return(@article)
-    @article.should_receive(:text).with().and_return("content")
-    @article.should_receive(:text=).with("contentnew text")
-    @article.should_receive(:submit).with("append comment")
-    @wiki.append("Article name", "new text", "append comment")
-  end
-  
-  it "should use fast_what_links_here on links" do
-    name = Object.new
-    links = Object.new
-    @mediawiki.should_receive(:article).with(name).once.and_return(@article)
-    @article.should_receive(:fast_what_links_here).with(1000).and_return(links)
-    @wiki.links(name).should == links
-  end
-end
-
 describe Piglobot do
   before do
     @wiki = mock("wiki")
@@ -194,7 +113,7 @@ describe Piglobot do
   end
 end
 
-describe Piglobot::Editor do
+describe Piglobot::Editor, " parsing Infobox Logiciel" do
   before do
     @wiki = mock("wiki")
     @editor = Piglobot::Editor.new(@wiki)
@@ -204,6 +123,7 @@ describe Piglobot::Editor do
       :parameters => [],
     }
   end
+  
   it "should parse empty infobox" do
     @editor.parse_infobox("{{Infobox Logiciel}}").should == @infobox
   end
@@ -329,6 +249,18 @@ describe Piglobot::Editor do
     ]
     @editor.parse_infobox(text)[:parameters].should == @infobox[:parameters]
   end
+end
+
+describe Piglobot::Editor, " writing Infobox Logiciel" do
+  before do
+    @wiki = mock("wiki")
+    @editor = Piglobot::Editor.new(@wiki)
+    @infobox = {
+      :before => "",
+      :after => "",
+      :parameters => [],
+    }
+  end
   
   it "should write empty infobox" do
     @editor.write_infobox(@infobox).should == "{{Infobox Logiciel}}"
@@ -380,6 +312,87 @@ describe Piglobot::Editor do
     @infobox[:parameters] = [["type", "foo ([[open source]])"]]
     @editor.write_infobox(@infobox).should ==
       "{{Infobox Logiciel\n| type = foo\n}}"
+  end
+end
+
+describe Piglobot::Dump do
+  before do
+    @wiki = mock("wiki")
+    @dump = Piglobot::Dump.new(@wiki)
+  end
+  
+  it "should publish spec" do
+    Piglobot::Tools.should_receive(:spec_to_wiki).with(File.read("piglobot_spec.rb")).and_return("result")
+    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Spec", "result", "comment")
+    @dump.publish_spec("comment")
+  end
+
+  it "should publish code" do
+    text = "<source lang=\"ruby\">\n" + File.read("piglobot.rb") + "<" + "/source>"
+    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Code", text, "comment")
+    @dump.publish_code("comment")
+  end
+  
+  it "should load data" do
+    data = "foo"
+    text = "<source lang=\"text\">\n" + data.to_yaml + "</source" + ">"
+    @wiki.should_receive(:get).with("Utilisateur:Piglobot/Data").once.and_return(text)
+    @dump.load_data.should == data
+  end
+
+  it "should save data" do
+    data = "bar"
+    text = "<source lang=\"text\">\n" + data.to_yaml + "</source" + ">"
+    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Data", text, "Sauvegarde").once
+    @dump.save_data(data)
+  end
+  
+  it "should load nil when no data" do
+    text = "\n"
+    @wiki.should_receive(:get).with("Utilisateur:Piglobot/Data").once.and_return(text)
+    @dump.load_data.should == nil
+  end
+end
+
+describe Piglobot::Wiki do
+  before do
+    @mediawiki = mock("mediawiki")
+    MediaWiki::Wiki.should_receive(:new).once.with(
+      "http://fr.wikipedia.org/w",
+      "Piglobot",
+      File.read("password").strip
+    ).and_return(@mediawiki)
+    @article = mock("article")
+    @wiki = Piglobot::Wiki.new
+  end
+  
+  it "should post text" do
+    @mediawiki.should_receive(:article).with("Article name").once.and_return(@article)
+    @article.should_receive(:text=).with("article content")
+    @article.should_receive(:submit).with("comment")
+    @wiki.post "Article name", "article content", "comment"
+  end
+  
+  it "should get text" do
+    @mediawiki.should_receive(:article).with("Article name").once.and_return(@article)
+    @article.should_receive(:text).with().and_return("content")
+    @wiki.get("Article name").should == "content"
+  end
+  
+  it "should append text" do
+    @mediawiki.should_receive(:article).with("Article name").once.and_return(@article)
+    @article.should_receive(:text).with().and_return("content")
+    @article.should_receive(:text=).with("contentnew text")
+    @article.should_receive(:submit).with("append comment")
+    @wiki.append("Article name", "new text", "append comment")
+  end
+  
+  it "should use fast_what_links_here on links" do
+    name = Object.new
+    links = Object.new
+    @mediawiki.should_receive(:article).with(name).once.and_return(@article)
+    @article.should_receive(:fast_what_links_here).with(1000).and_return(links)
+    @wiki.links(name).should == links
   end
 end
 
