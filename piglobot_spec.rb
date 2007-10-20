@@ -81,8 +81,15 @@ describe Piglobot::Wiki do
     @article.should_receive(:text).with().and_return("content")
     @wiki.get("Article name").should == "content"
   end
-
-    
+  
+  it "should append text" do
+    @mediawiki.should_receive(:article).with("Article name").once.and_return(@article)
+    @article.should_receive(:text).with().and_return("content")
+    @article.should_receive(:text=).with("contentnew text")
+    @article.should_receive(:submit).with("append comment")
+    @wiki.append("Article name", "new text", "append comment")
+  end
+  
   it "should use fast_what_links_here on links" do
     name = Object.new
     links = Object.new
@@ -124,8 +131,10 @@ describe Piglobot do
     infobox = mock("infobox")
     @editor.should_receive(:parse_infobox).with("foo").and_return(infobox)
     @editor.should_receive(:write_infobox).with(infobox).and_return("result")
-    comment = "Correction de l'[[Modèle:Infobox Logiciel|infobox Logiciel]]"
+    comment = "Application automatique des [[Aide:Infobox|conventions]] dans [[Modèle:Infobox Logiciel|l'infobox Logiciel]]"
     @wiki.should_receive(:post).with("Utilisateur:Piglobot/Bac à sable", "result", comment)
+    text = "[[Article 1]], ~~~~~ : #{comment}"
+    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
     @bot.run
   end
@@ -134,7 +143,8 @@ describe Piglobot do
     @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["Article 1", "Article 2"]})
     @wiki.should_receive(:get).with("Article 1").and_return("foo")
     @editor.should_receive(:parse_infobox).with("foo").and_return(nil)
-    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Bac à sable", "foo", "Infobox non trouvée dans l'article [[Article 1]]")
+    text = "[[Article 1]], ~~~~~ : Infobox Logiciel non trouvée dans l'article"
+    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
     @bot.run
   end

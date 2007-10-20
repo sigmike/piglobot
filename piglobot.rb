@@ -37,6 +37,12 @@ class Piglobot
       article.text
     end
     
+    def append(article, text, comment)
+      article = @wiki.article(article)
+      article.text += text
+      article.submit(comment)
+    end
+    
     def links(name)
       article = @wiki.article(name)
       article.fast_what_links_here(1000)
@@ -385,13 +391,15 @@ class Piglobot
           @wiki.post("Utilisateur:Piglobot/Bac à sable",
             text,
             "Texte initial de l'article [[#{article}]]")
+          comment = "Application automatique des [[Aide:Infobox|conventions]] dans [[Modèle:Infobox Logiciel|l'infobox Logiciel]]"
           @wiki.post("Utilisateur:Piglobot/Bac à sable",
             result,
-            "Correction de l'[[Modèle:Infobox Logiciel|infobox Logiciel]]")
+            comment)
+          text = "[[#{article}]], ~~~~~ : #{comment}"
+          @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
         else
-          @wiki.post("Utilisateur:Piglobot/Bac à sable",
-            text,
-            "Infobox non trouvée dans l'article [[#{article}]]")
+          text = "[[#{article}]], ~~~~~ : Infobox Logiciel non trouvée dans l'article"
+          @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
         end
       else
         data["Infobox Logiciel"] = @wiki.links("Modèle:Infobox Logiciel")
