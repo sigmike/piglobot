@@ -395,6 +395,21 @@ class Piglobot
       wiki = "<source lang=\"ruby\">\n" + wiki + '<' + "/source>\n"
       wiki
     end
+  
+    def code_to_wiki(spec)
+      wiki = spec.dup
+      wiki.gsub! /^class (.+)/ do |line|
+        match = $1
+        title = match
+        result = '<' + "/source>\n"
+        result << "== #{title} ==\n"
+        result << "<source lang=\"ruby\">\n"
+        result << line
+        result
+      end
+      wiki = "<source lang=\"ruby\">\n" + wiki + '<' + "/source>\n"
+      wiki
+    end
   end
   
   def initialize

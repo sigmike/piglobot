@@ -454,4 +454,41 @@ describe Piglobot::Tools do
       '<' + '/source>',
     ].map { |line| line + "\n" }.join)
   end
+  
+  it "should convert class to title in code_to_wiki" do
+    result = Piglobot::Tools.code_to_wiki([
+      "foo",
+      "class Foo",
+      "  foo",
+      "end",
+      "foo then bar",
+      "class Foo::Bar",
+      "  bar",
+      "  class Baz",
+      "    baz",
+      "  end",
+      "end",
+    ].map { |line| line + "\n" }.join)
+    result.should == ([
+      '<source lang="ruby">',
+      'foo',
+      '<' + '/source>',
+      '== Foo ==',
+      '<source lang="ruby">',
+      "class Foo",
+      "  foo",
+      "end",
+      "foo then bar",
+      '<' + '/source>',
+      '== Foo::Bar ==',
+      '<source lang="ruby">',
+      "class Foo::Bar",
+      "  bar",
+      "  class Baz",
+      "    baz",
+      "  end",
+      "end",
+      '<' + '/source>',
+    ].map { |line| line + "\n" }.join)
+  end
 end
