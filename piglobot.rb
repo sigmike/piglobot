@@ -74,20 +74,23 @@ class Piglobot::Wiki
     @wiki = MediaWiki::Wiki.new("http://fr.wikipedia.org/w", "Piglobot", File.read("password"))
   end
   
-  def post(article, text, comment)
-    article = @wiki.article(article)
+  def post(article_name, text, comment)
+    article = @wiki.article(article_name)
     article.text = text
+    Piglobot::Tools.log("Post [[#{article_name}]] : #{comment}")
     article.submit(comment)
   end
 
-  def get(article)
-    article = @wiki.article(article)
+  def get(article_name)
+    article = @wiki.article(article_name)
+    Piglobot::Tools.log("Get [[#{article_name}]]")
     article.text
   end
   
-  def append(article, text, comment)
-    article = @wiki.article(article)
+  def append(article_name, text, comment)
+    article = @wiki.article(article_name)
     article.text += text
+    Piglobot::Tools.log("Append [[#{article_name}]] : #{comment}")
     article.submit(comment)
   end
   
@@ -452,6 +455,11 @@ module Piglobot::Tools
     end
     wiki = "<source lang=\"ruby\">\n" + wiki + '<' + "/source>\n"
     wiki
+  end
+  
+  def log(text)
+    time = Time.now.strftime("%Y-%m-%d %H:%M:%S")
+    Kernel.puts "#{time}: #{text}"
   end
 end
 

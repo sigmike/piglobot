@@ -379,12 +379,14 @@ describe Piglobot::Wiki do
     @mediawiki.should_receive(:article).with("Article name").once.and_return(@article)
     @article.should_receive(:text=).with("article content")
     @article.should_receive(:submit).with("comment")
+    Piglobot::Tools.should_receive(:log).with("Post [[Article name]] : comment")
     @wiki.post "Article name", "article content", "comment"
   end
   
   it "should get text" do
     @mediawiki.should_receive(:article).with("Article name").once.and_return(@article)
     @article.should_receive(:text).with().and_return("content")
+    Piglobot::Tools.should_receive(:log).with("Get [[Article name]]")
     @wiki.get("Article name").should == "content"
   end
   
@@ -393,6 +395,7 @@ describe Piglobot::Wiki do
     @article.should_receive(:text).with().and_return("content")
     @article.should_receive(:text=).with("contentnew text")
     @article.should_receive(:submit).with("append comment")
+    Piglobot::Tools.should_receive(:log).with("Append [[Article name]] : append comment")
     @wiki.append("Article name", "new text", "append comment")
   end
   
@@ -499,5 +502,13 @@ describe Piglobot::Tools do
       "end",
       '<' + '/source>',
     ].map { |line| line + "\n" }.join)
+  end
+  
+  it "should puts on log" do
+    time = mock("time")
+    Time.should_receive(:now).with().and_return(time)
+    time.should_receive(:strftime).with("%Y-%m-%d %H:%M:%S").and_return("time string")
+    Kernel.should_receive(:puts).with("time string: text")
+    Piglobot::Tools.log("text")
   end
 end
