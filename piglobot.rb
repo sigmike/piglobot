@@ -376,7 +376,7 @@ class Piglobot
     
     def spec_to_wiki(spec)
       wiki = spec.dup
-      wiki.gsub! /describe (.+) do/ do |line|
+      wiki.gsub! /^describe (.+) do/ do |line|
         match = $1
         case match
         when /(.+), ["'](.+)["']/

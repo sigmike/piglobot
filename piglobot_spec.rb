@@ -430,4 +430,15 @@ describe Piglobot::Tools do
       '<' + '/source>',
     ].map { |line| line + "\n" }.join)
   end
+  
+  it "shouldn't split spec if describe is not at the beginning of the line" do
+    result = Piglobot::Tools.spec_to_wiki([
+      " describe FooBar do",
+    ].map { |line| line + "\n" }.join)
+    result.should == ([
+      '<source lang="ruby">',
+      ' describe FooBar do',
+      '<' + '/source>',
+    ].map { |line| line + "\n" }.join)
+  end
 end
