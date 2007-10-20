@@ -322,14 +322,16 @@ describe Piglobot::Dump do
   end
   
   it "should publish spec" do
-    Piglobot::Tools.should_receive(:spec_to_wiki).with(File.read("piglobot_spec.rb")).and_return("result")
+    File.should_receive(:read).with("piglobot_spec.rb").and_return("file content")
+    Piglobot::Tools.should_receive(:spec_to_wiki).with("file content").and_return("result")
     @wiki.should_receive(:post).with("Utilisateur:Piglobot/Spec", "result", "comment")
     @dump.publish_spec("comment")
   end
 
   it "should publish code" do
-    text = "<source lang=\"ruby\">\n" + File.read("piglobot.rb") + "<" + "/source>"
-    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Code", text, "comment")
+    File.should_receive(:read).with("piglobot.rb").and_return("file content")
+    Piglobot::Tools.should_receive(:code_to_wiki).with("file content").and_return("result")
+    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Code", "result", "comment")
     @dump.publish_code("comment")
   end
   

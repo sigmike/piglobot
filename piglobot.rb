@@ -65,7 +65,8 @@ class Piglobot
     end
   
     def publish_code(comment)
-      publish("Code", File.read("piglobot.rb"), comment)
+      text = File.read("piglobot.rb")
+      @wiki.post("Utilisateur:Piglobot/Code", Piglobot::Tools.code_to_wiki(text), comment)
     end
     
     attr_accessor :data
