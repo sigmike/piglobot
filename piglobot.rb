@@ -361,6 +361,9 @@ class Piglobot
     end
   end
   
+  class Disabled < RuntimeError
+  end
+  
   def initialize
     @wiki = Wiki.new
     @dump = Dump.new(@wiki)
@@ -396,9 +399,15 @@ class Piglobot
     end
     @dump.save_data(data)
   end
+  
+  def check
+    text = @wiki.get("Utilisateur:Piglobot/Arrêt d'urgence")
+    raise Disabled, text if text =~ /stop/im
+  end
 end
 
 if __FILE__ == $0
   bot = Piglobot.new
+  bot.check
   bot.run
 end

@@ -146,6 +146,31 @@ describe Piglobot do
     @bot.run
   end
   
+  [
+    "STOP",
+    "stop",
+    "Stop",
+    "fooStOpbar",
+    "\nStop!\nsnul",
+  ].each do |text|
+    it "should raise an error on check when #{text.inspect} is on disable page" do
+      @wiki.should_receive(:get).with("Utilisateur:Piglobot/Arrêt d'urgence").and_return(text)
+      lambda { @bot.check }.should raise_error(Piglobot::Disabled, text)
+    end
+  end
+  
+  [
+    "STO",
+    "foo",
+    "S t o p",
+    "ST\nOP",
+  ].each do |text|
+    it "should not raise an error on check when #{text.inspect} is on disable page" do
+      @wiki.should_receive(:get).with("Utilisateur:Piglobot/Arrêt d'urgence").and_return(text)
+      lambda { @bot.check }.should_not raise_error
+    end
+  end
+  
 end
 
 describe Piglobot::Editor do
