@@ -131,8 +131,6 @@ describe Piglobot do
     @editor.should_receive(:write_infobox).with(infobox).and_return("result")
     comment = "Application automatique des [[Aide:Infobox|conventions]] dans [[Modèle:Infobox Logiciel|l'infobox Logiciel]]"
     @wiki.should_receive(:post).with("Article 1", "result", comment)
-    text = "[[Article 1]], ~~~~~ : #{comment}"
-    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
     @bot.run
   end
@@ -141,7 +139,7 @@ describe Piglobot do
     @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["Article 1", "Article 2"]})
     @wiki.should_receive(:get).with("Article 1").and_return("foo")
     @editor.should_receive(:parse_infobox).with("foo").and_return(nil)
-    text = "[[Article 1]], ~~~~~ : Infobox Logiciel non trouvée dans l'article"
+    text = "~~~~~, [[Article 1]] : Infobox Logiciel non trouvée dans l'article"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
     @bot.run
@@ -156,7 +154,7 @@ describe Piglobot do
   ].each do |namespace|
     it "should skip articles in namespace #{namespace}" do
       @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["#{namespace}:Article 1", "Article 2"]})
-      text = "[[#{namespace}:Article 1]], ~~~~~ : Article ignoré car il n'est pas dans le bon espace de nom"
+      text = "~~~~~, [[#{namespace}:Article 1]] : Article ignoré car il n'est pas dans le bon espace de nom"
       @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
       @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
       @bot.run

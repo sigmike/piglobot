@@ -386,7 +386,7 @@ class Piglobot
         article = articles.shift
         if article =~ /:/
           comment = "Article ignoré car il n'est pas dans le bon espace de nom"
-          text = "[[#{article}]], ~~~~~ : #{comment}"
+          text = "~~~~~, [[#{article}]] : #{comment}"
           @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
         else
           text = @wiki.get(article)
@@ -397,10 +397,8 @@ class Piglobot
             @wiki.post(article,
               result,
               comment)
-            text = "[[#{article}]], ~~~~~ : #{comment}"
-            @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
           else
-            text = "[[#{article}]], ~~~~~ : Infobox Logiciel non trouvée dans l'article"
+            text = "~~~~~, [[#{article}]] : Infobox Logiciel non trouvée dans l'article"
             @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
           end
         end
