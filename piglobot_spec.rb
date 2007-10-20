@@ -126,13 +126,11 @@ describe Piglobot do
   it "should send infobox links to InfoboxEditor" do
     @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["Article 1", "Article 2"]})
     @wiki.should_receive(:get).with("Article 1").and_return("foo")
-    comment = "Texte initial de l'article [[Article 1]]"
-    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Bac à sable", "foo", comment)
     infobox = mock("infobox")
     @editor.should_receive(:parse_infobox).with("foo").and_return(infobox)
     @editor.should_receive(:write_infobox).with(infobox).and_return("result")
     comment = "Application automatique des [[Aide:Infobox|conventions]] dans [[Modèle:Infobox Logiciel|l'infobox Logiciel]]"
-    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Bac à sable", "result", comment)
+    @wiki.should_receive(:post).with("Article 1", "result", comment)
     text = "[[Article 1]], ~~~~~ : #{comment}"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
@@ -148,7 +146,23 @@ describe Piglobot do
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
     @bot.run
   end
-
+  
+  [
+    "Foo",
+    "Bob",
+    "Utilisateur",
+    "Modèle",
+    "Aide",
+  ].each do |namespace|
+    it "should skip articles in namespace #{namespace}" do
+      @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["#{namespace}:Article 1", "Article 2"]})
+      text = "[[#{namespace}:Article 1]], ~~~~~ : Article ignoré car il n'est pas dans le bon espace de nom"
+      @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
+      @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
+      @bot.run
+    end
+  end
+  
   it "should get infobox links when list is empty" do
     @dump.should_receive(:load_data).and_return({"Infobox Logiciel" => [], "Foo" => "Bar"})
     @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["A", "B"])

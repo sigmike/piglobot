@@ -384,22 +384,25 @@ class Piglobot
       articles = data["Infobox Logiciel"]
       if articles and !articles.empty?
         article = articles.shift
-        text = @wiki.get(article)
-        box = @editor.parse_infobox(text)
-        if box
-          result = @editor.write_infobox(box)
-          @wiki.post("Utilisateur:Piglobot/Bac à sable",
-            text,
-            "Texte initial de l'article [[#{article}]]")
-          comment = "Application automatique des [[Aide:Infobox|conventions]] dans [[Modèle:Infobox Logiciel|l'infobox Logiciel]]"
-          @wiki.post("Utilisateur:Piglobot/Bac à sable",
-            result,
-            comment)
+        if article =~ /:/
+          comment = "Article ignoré car il n'est pas dans le bon espace de nom"
           text = "[[#{article}]], ~~~~~ : #{comment}"
           @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
         else
-          text = "[[#{article}]], ~~~~~ : Infobox Logiciel non trouvée dans l'article"
-          @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+          text = @wiki.get(article)
+          box = @editor.parse_infobox(text)
+          if box
+            result = @editor.write_infobox(box)
+            comment = "Application automatique des [[Aide:Infobox|conventions]] dans [[Modèle:Infobox Logiciel|l'infobox Logiciel]]"
+            @wiki.post(article,
+              result,
+              comment)
+            text = "[[#{article}]], ~~~~~ : #{comment}"
+            @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+          else
+            text = "[[#{article}]], ~~~~~ : Infobox Logiciel non trouvée dans l'article"
+            @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+          end
         end
       else
         data["Infobox Logiciel"] = @wiki.links("Modèle:Infobox Logiciel")
