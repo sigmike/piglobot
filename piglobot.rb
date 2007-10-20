@@ -60,7 +60,8 @@ class Piglobot
     end
     
     def publish_spec(comment)
-      publish("Spec", File.read("piglobot_spec.rb"), comment)
+      text = File.read("piglobot_spec.rb")
+      @wiki.post("Utilisateur:Piglobot/Spec", Piglobot::Tools.spec_to_wiki(text), comment)
     end
   
     def publish_code(comment)
@@ -368,6 +369,32 @@ class Piglobot
   end
   
   class Disabled < RuntimeError
+  end
+  
+  module Tools
+    module_function
+    
+    def spec_to_wiki(spec)
+      wiki = spec.dup
+      wiki.gsub! /describe (.+) do/ do |line|
+        match = $1
+        case match
+        when /(.+), ["'](.+)["']/
+          title = "#$1#$2"
+        when /["'](.+)["']/
+          title = $1
+        else
+          title = match
+        end
+        result = '<' + "/source>\n"
+        result << "== #{title} ==\n"
+        result << "<source lang=\"ruby\">\n"
+        result << line
+        result
+      end
+      wiki = "<source lang=\"ruby\">\n" + wiki + '<' + "/source>\n"
+      wiki
+    end
   end
   
   def initialize

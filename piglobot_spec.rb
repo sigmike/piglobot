@@ -25,8 +25,8 @@ describe Piglobot::Dump do
   end
   
   it "should publish spec" do
-    text = "<source lang=\"ruby\">\n" + File.read("piglobot_spec.rb") + "<" + "/source>"
-    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Spec", text, "comment")
+    Piglobot::Tools.should_receive(:spec_to_wiki).with(File.read("piglobot_spec.rb")).and_return("result")
+    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Spec", "result", "comment")
     @dump.publish_spec("comment")
   end
 
@@ -192,7 +192,6 @@ describe Piglobot do
       lambda { @bot.check }.should_not raise_error
     end
   end
-  
 end
 
 describe Piglobot::Editor do
@@ -381,5 +380,54 @@ describe Piglobot::Editor do
     @infobox[:parameters] = [["type", "foo ([[open source]])"]]
     @editor.write_infobox(@infobox).should ==
       "{{Infobox Logiciel\n| type = foo\n}}"
+  end
+end
+
+describe Piglobot::Tools do
+  it "should convert spec to wiki" do
+    result = Piglobot::Tools.spec_to_wiki([
+      "foo",
+      "describe FooBar do",
+      "  bar",
+      "end",
+      'describe FooBar, " with baz" do',
+      '  foo',
+      'end',
+      "describe FooBar, ' with baz2' do",
+      '  foo',
+      'end',
+      "describe 'baz' do",
+      "  baz",
+      "end",
+    ].map { |line| line + "\n" }.join)
+    result.should == ([
+      '<source lang="ruby">',
+      'foo',
+      '<' + '/source>',
+      '== FooBar ==',
+      '<source lang="ruby">',
+      'describe FooBar do',
+      "  bar",
+      "end",
+      '<' + '/source>',
+      '== FooBar with baz ==',
+      '<source lang="ruby">',
+      'describe FooBar, " with baz" do',
+      '  foo',
+      'end',
+      '<' + '/source>',
+      '== FooBar with baz2 ==',
+      '<source lang="ruby">',
+      "describe FooBar, ' with baz2' do",
+      '  foo',
+      'end',
+      '<' + '/source>',
+      '== baz ==',
+      '<source lang="ruby">',
+      "describe 'baz' do",
+      "  baz",
+      "end",
+      '<' + '/source>',
+    ].map { |line| line + "\n" }.join)
   end
 end
