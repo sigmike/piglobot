@@ -102,11 +102,6 @@ class Piglobot::Dump
     @wiki = wiki
   end
   
-  def publish(name, text, comment, lang = "ruby")
-    text = "<source lang=\"#{lang}\">\n#{text}</source" + ">"
-    article = @wiki.post("Utilisateur:Piglobot/#{name}", text, comment)
-  end
-  
   def publish_spec(comment)
     text = File.read("piglobot_spec.rb")
     @wiki.post("Utilisateur:Piglobot/Spec", Piglobot::Tools.spec_to_wiki(text), comment)
@@ -117,19 +112,18 @@ class Piglobot::Dump
     @wiki.post("Utilisateur:Piglobot/Code", Piglobot::Tools.code_to_wiki(text), comment)
   end
   
-  attr_accessor :data
   def load_data
-    text = @wiki.get("Utilisateur:Piglobot/Data")
-    result = text.scan(/<source lang="text">(.*)<\/source>/m)
-    if result.first and result.first.first
-      @data = YAML.load(result.first.first)
-    else
-      @data = nil
+    begin
+      YAML.load File.read("data.yaml")
+    rescue Errno::ENOENT
+      nil
     end
   end
 
   def save_data data
-    publish("Data", data.to_yaml, "Sauvegarde", "text")
+    File.open("data.yaml", "w") do |f|
+      f.write data.to_yaml
+    end
   end
 end
 

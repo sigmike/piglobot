@@ -249,6 +249,13 @@ describe Piglobot::Editor, " parsing Infobox Logiciel" do
     ]
     @editor.parse_infobox(text)[:parameters].should == @infobox[:parameters]
   end
+
+  it "should parse limewire.sample" do
+    text = File.read("limewire.sample")
+    box = @editor.parse_infobox(text)
+    box.should_not == nil
+    @editor.write_infobox(box).should_not == text
+  end
 end
 
 describe Piglobot::Editor, " writing Infobox Logiciel" do
@@ -337,21 +344,21 @@ describe Piglobot::Dump do
   
   it "should load data" do
     data = "foo"
-    text = "<source lang=\"text\">\n" + data.to_yaml + "</source" + ">"
-    @wiki.should_receive(:get).with("Utilisateur:Piglobot/Data").once.and_return(text)
+    File.should_receive(:read).with("data.yaml").and_return(data.to_yaml)
     @dump.load_data.should == data
   end
 
   it "should save data" do
     data = "bar"
     text = "<source lang=\"text\">\n" + data.to_yaml + "</source" + ">"
-    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Data", text, "Sauvegarde").once
+    file = mock("file")
+    File.should_receive(:open).with("data.yaml", "w").and_yield(file)
+    file.should_receive(:write).with(data.to_yaml)
     @dump.save_data(data)
   end
   
   it "should load nil when no data" do
-    text = "\n"
-    @wiki.should_receive(:get).with("Utilisateur:Piglobot/Data").once.and_return(text)
+    File.should_receive(:read).with("data.yaml").and_raise(Errno::ENOENT)
     @dump.load_data.should == nil
   end
 end
