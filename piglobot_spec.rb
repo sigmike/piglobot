@@ -474,6 +474,12 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
     @editor.write_infobox(@infobox).should ==
       "{{Infobox Logiciel\n| foo = foo\n| = bar\n| baz\n}}"
   end
+  
+  it "should remove values like {{{latest preview date|}}}" do
+    @infobox[:parameters] = [["foo", "{{{foo bar|}}}"], ["bar", "{{{bar}}}"], ["baz", "foo {{{bar|}}}"]]
+    @editor.write_infobox(@infobox).should ==
+      "{{Infobox Logiciel\n| foo = \n| bar = {{{bar}}}\n| baz = foo {{{bar|}}}\n}}"
+  end
 end
 
 describe Piglobot::Dump do

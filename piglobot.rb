@@ -481,6 +481,7 @@ class Piglobot::Editor
           value = $1
         end
         value = "" if value == "?"
+        value = "" if value =~ /\A\{\{\{.+\|\}\}\}\Z/
         if name.nil?
           "| #{value}\n"
         elsif name.empty?
