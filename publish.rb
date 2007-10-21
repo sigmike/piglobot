@@ -1,5 +1,7 @@
 require 'piglobot'
 
+system "./spec" or raise "Spec failed"
+
 comment = ARGV[0] || ""
 
 wiki = Piglobot::Wiki.new
