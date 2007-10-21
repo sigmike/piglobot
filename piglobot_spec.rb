@@ -29,17 +29,17 @@ describe Piglobot do
     @bot = Piglobot.new
   end
   
-  it "should initialize data on first run" do
+  it "should initialize data on first process" do
     @dump.should_receive(:load_data).and_return(nil)
     @dump.should_receive(:save_data).with({})
-    @bot.run
+    @bot.process
   end
   
-  it "should get infobox links on second run" do
+  it "should get infobox links on second process" do
     @dump.should_receive(:load_data).and_return({})
     @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["Foo", "Bar"])
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Foo", "Bar"]})
-    @bot.run
+    @bot.process
   end
   
   it "should send infobox links to InfoboxEditor" do
@@ -51,7 +51,7 @@ describe Piglobot do
     comment = "Application automatique des [[Aide:Infobox|conventions]] dans [[Modèle:Infobox Logiciel|l'infobox Logiciel]]"
     @wiki.should_receive(:post).with("Article 1", "result", comment)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
-    @bot.run
+    @bot.process
   end
   
   it "should not write infobox if none found" do
@@ -61,7 +61,7 @@ describe Piglobot do
     text = "~~~~~, [[Article 1]] : Infobox Logiciel non trouvée dans l'article"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
-    @bot.run
+    @bot.process
   end
   
   [
@@ -76,7 +76,7 @@ describe Piglobot do
       text = "~~~~~, [[#{namespace}:Article 1]] : Article ignoré car il n'est pas dans le bon espace de nom"
       @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
       @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
-      @bot.run
+      @bot.process
     end
   end
   
@@ -84,7 +84,7 @@ describe Piglobot do
     @dump.should_receive(:load_data).and_return({"Infobox Logiciel" => [], "Foo" => "Bar"})
     @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["A", "B"])
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["A", "B"], "Foo" => "Bar"})
-    @bot.run
+    @bot.process
   end
   
   [
@@ -96,7 +96,7 @@ describe Piglobot do
   ].each do |text|
     it "should raise an error on check when #{text.inspect} is on disable page" do
       @wiki.should_receive(:get).with("Utilisateur:Piglobot/Arrêt d'urgence").and_return(text)
-      lambda { @bot.check }.should raise_error(Piglobot::Disabled, text)
+      @bot.check.should == false
     end
   end
   
@@ -108,8 +108,80 @@ describe Piglobot do
   ].each do |text|
     it "should not raise an error on check when #{text.inspect} is on disable page" do
       @wiki.should_receive(:get).with("Utilisateur:Piglobot/Arrêt d'urgence").and_return(text)
-      lambda { @bot.check }.should_not raise_error
+      @bot.check.should == true
     end
+  end
+  
+  it "should sleep 60 seconds on sleep" do
+    log_done = false
+    Piglobot::Tools.should_receive(:log).with("Sleep 60 seconds").once {
+      log_done = true
+    }
+    Kernel.should_receive(:sleep).ordered.with(60).once {
+      log_done.should == true
+    }
+    @bot.sleep
+  end
+  
+  it "should log error" do
+    e = AnyError.new("error message")
+    text = "~~~~~: error message (AnyError)"
+    e.should_receive(:backtrace).and_return(["backtrace 1", "backtrace 2"])
+    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
+    Piglobot::Tools.should_receive(:log).with("error message (AnyError)\nbacktrace 1\nbacktrace 2").once
+    @bot.log_error(e)
+  end
+  
+  it "should check, process and sleep on step" do
+    @bot.should_receive(:check).with().once.and_return(true)
+    @bot.should_receive(:process).with().once
+    @bot.should_receive(:sleep).with().once
+    @bot.step
+  end
+  
+  it "should not process if check failed" do
+    @bot.should_receive(:check).with().once.and_return(false)
+    @bot.should_receive(:sleep).with().once
+    @bot.step
+  end
+  
+  class AnyError < Exception; end
+  it "should log exceptions during process" do
+    @bot.should_receive(:check).with().once.and_return(true)
+    e = AnyError.new
+    @bot.should_receive(:process).with().once.and_raise(e)
+    @bot.should_receive(:log_error).with(e).once
+    @bot.should_receive(:sleep).with().once
+    @bot.step
+  end
+  
+  it "should abort on Interrupt during process" do
+    @bot.should_receive(:check).with().once.and_return(true)
+    @bot.should_receive(:process).with().once.and_raise(Interrupt)
+    lambda { @bot.step }.should raise_error(Interrupt)
+  end
+  
+  it "should abort on Interrupt during check" do
+    @bot.should_receive(:check).with().once.and_raise(Interrupt)
+    lambda { @bot.step }.should raise_error(Interrupt)
+  end
+  
+  it "should abort on Interrupt during sleep" do
+    @bot.should_receive(:check).with().once.and_return(true)
+    @bot.should_receive(:process).with().once
+    @bot.should_receive(:sleep).with().once.and_raise(Interrupt)
+    lambda { @bot.step }.should raise_error(Interrupt)
+  end
+  
+  it "should step continously until Interrupt on run" do
+    bot = mock("bot")
+    Piglobot.should_receive(:new).with().and_return(bot)
+    step = 0
+    bot.should_receive(:step).with().exactly(3).and_return {
+      step += 1
+      raise Interrupt if step == 3
+    }
+    lambda { Piglobot.run }.should raise_error(Interrupt)
   end
 end
 
@@ -505,11 +577,17 @@ describe Piglobot::Tools do
     ].map { |line| line + "\n" }.join)
   end
   
-  it "should puts on log" do
+  it "should use Kernel.puts and append to piglobot.log on log" do
     time = mock("time")
     Time.should_receive(:now).with().and_return(time)
     time.should_receive(:strftime).with("%Y-%m-%d %H:%M:%S").and_return("time string")
-    Kernel.should_receive(:puts).with("time string: text")
+    log_line = "time string: text"
+    Kernel.should_receive(:puts).with(log_line)
+    
+    f = mock("file")
+    File.should_receive(:open).with("piglobot.log", "a").and_yield(f)
+    f.should_receive(:puts).with(log_line).once
+    
     Piglobot::Tools.log("text")
   end
 end

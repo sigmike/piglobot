@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 =begin
     Copyright (c) 2007 by Piglop
     This file is part of Piglobot.
@@ -30,7 +32,7 @@ class Piglobot
     @editor = Editor.new(@wiki)
   end
   
-  def run
+  def process
     data = @dump.load_data
     if data.nil?
       data = {}
@@ -65,7 +67,42 @@ class Piglobot
   
   def check
     text = @wiki.get("Utilisateur:Piglobot/Arrêt d'urgence")
-    raise Disabled, text if text =~ /stop/im
+    if text =~ /stop/im
+      false
+    else
+      true
+    end
+  end
+  
+  def sleep
+    Tools.log("Sleep 60 seconds")
+    Kernel.sleep(60)
+  end
+  
+  def log_error(e)
+    Tools.log("#{e.message} (#{e.class})\n" + e.backtrace.join("\n"))
+    text = "~~~~~: #{e.message} (#{e.class})"
+    @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+  end
+  
+  def step
+    if check
+      begin
+        process
+      rescue Interrupt
+        raise
+      rescue Exception => e
+        log_error(e)
+      end
+    end
+    sleep
+  end
+  
+  def self.run
+    bot = new
+    loop do
+      bot.step
+    end
   end
 end
 
@@ -460,12 +497,14 @@ module Piglobot::Tools
   
   def log(text)
     time = Time.now.strftime("%Y-%m-%d %H:%M:%S")
-    Kernel.puts "#{time}: #{text}"
+    line = "#{time}: #{text}"
+    Kernel.puts line
+    File.open("piglobot.log", "a") { |f|
+      f.puts line
+    }
   end
 end
 
 if __FILE__ == $0
-  bot = Piglobot.new
-  bot.check
-  bot.run
+  Piglobot.run
 end
