@@ -147,6 +147,17 @@ describe Piglobot do
     @bot.sleep
   end
   
+  it "should sleep 10 minutes on long_sleep" do
+    log_done = false
+    Piglobot::Tools.should_receive(:log).with("Sleep 10 minutes").once {
+      log_done = true
+    }
+    Kernel.should_receive(:sleep).ordered.with(10*60).once {
+      log_done.should == true
+    }
+    @bot.long_sleep
+  end
+  
   it "should log error" do
     e = AnyError.new("error message")
     text = "~~~~~: error message (AnyError)"
@@ -166,6 +177,19 @@ describe Piglobot do
   it "should not process if check failed" do
     @bot.should_receive(:check).with().once.and_return(false)
     @bot.should_receive(:sleep).with().once
+    @bot.step
+  end
+  
+  it "should long_sleep on Internal Server Error during check" do
+    @bot.should_receive(:check).with().once.and_raise(MediaWiki::InternalServerError)
+    @bot.should_receive(:long_sleep).with().once
+    @bot.step
+  end
+  
+  it "should long_sleep on Internal Server Error during process" do
+    @bot.should_receive(:check).with().once.and_return(true)
+    @bot.should_receive(:process).with().once.and_raise(MediaWiki::InternalServerError)
+    @bot.should_receive(:long_sleep).with().once
     @bot.step
   end
   

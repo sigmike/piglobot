@@ -12,6 +12,9 @@ module MediaWiki
   #
   # All interaction with MiniBrowser is normally done by
   # MediaWiki::Wiki.
+  
+  class InternalServerError < Exception; end
+  
   class MiniBrowser
     ##
     # Initialize a MiniBrowser instance
@@ -70,6 +73,8 @@ module MediaWiki
               MediaWiki::logger.debug("Redirecting to #{response['Location']}")
               retries -= 1
               url = response['Location']
+            when Net::HTTPInternalServerError then 
+              raise InternalServerError, response.body
             else
               raise "Unknown Response: #{response.inspect}"
           end

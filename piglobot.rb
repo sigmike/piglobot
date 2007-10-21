@@ -90,6 +90,11 @@ class Piglobot
     Kernel.sleep(60)
   end
   
+  def long_sleep
+    Tools.log("Sleep 10 minutes")
+    Kernel.sleep(10*60)
+  end
+  
   def log_error(e)
     Tools.log("#{e.message} (#{e.class})\n" + e.backtrace.join("\n"))
     text = "~~~~~: #{e.message} (#{e.class})"
@@ -97,16 +102,20 @@ class Piglobot
   end
   
   def step
-    if check
-      begin
-        process
-      rescue Interrupt
-        raise
-      rescue Exception => e
-        log_error(e)
+    begin
+      if check
+        begin
+          process
+        rescue Interrupt, MediaWiki::InternalServerError
+          raise
+        rescue Exception => e
+          log_error(e)
+        end
       end
+      sleep
+    rescue MediaWiki::InternalServerError
+      long_sleep
     end
-    sleep
   end
   
   def self.run
