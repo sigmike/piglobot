@@ -428,7 +428,12 @@ class Piglobot::Editor
         if values.size == 2
           values
         else
-          nil
+          param = param.strip
+          if param.empty?
+            nil
+          else
+            ["", param.strip]
+          end
         end
       }.compact
       parameters.each do |name, value|
@@ -464,8 +469,11 @@ class Piglobot::Editor
           value = $1
         end
         value = "" if value == "?"
-        [name, value]
-        "| #{name} = #{value}\n"
+        if name.empty?
+          "| #{value}\n"
+        else
+          "| #{name} = #{value}\n"
+        end
       }.join
     end
     "#{box[:before]}{{Infobox Logiciel#{args}}}#{box[:after]}"

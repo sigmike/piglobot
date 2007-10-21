@@ -369,6 +369,12 @@ describe Piglobot::Editor, " parsing Infobox Logiciel" do
     text = "{{Infobox Logiciel |\nname = foo \n |\nimage = <!-- comment --> | <!-- a --> = b\n}}"
     lambda { @editor.parse_infobox(text) }.should_not raise_error
   end
+  
+  it "should keep unnammed parameters" do
+    text = "{{Infobox Logiciel |\nname = foo |\nbar | baz |\n}}"
+    @infobox[:parameters] = [["name", "foo"], ["", "bar"], ["", "baz"]]
+    @editor.parse_infobox(text).should == @infobox
+  end
 end
 
 describe Piglobot::Editor, " writing Infobox Logiciel" do
@@ -438,6 +444,12 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
     @infobox[:parameters] = [["foo", "?"], ["bar", "uh?"], ["baz", "??"]]
     @editor.write_infobox(@infobox).should ==
       "{{Infobox Logiciel\n| foo = \n| bar = uh?\n| baz = ??\n}}"
+  end
+  
+  it "should write unnammed parameters" do
+    @infobox[:parameters] = [["foo", "foo"], ["", "bar"], ["", "baz"]]
+    @editor.write_infobox(@infobox).should ==
+      "{{Infobox Logiciel\n| foo = foo\n| bar\n| baz\n}}"
   end
 end
 
