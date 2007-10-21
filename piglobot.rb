@@ -432,7 +432,7 @@ class Piglobot::Editor
           if param.empty?
             nil
           else
-            ["", param.strip]
+            [nil, param.strip]
           end
         end
       }.compact
@@ -469,8 +469,10 @@ class Piglobot::Editor
           value = $1
         end
         value = "" if value == "?"
-        if name.empty?
+        if name.nil?
           "| #{value}\n"
+        elsif name.empty?
+          "| = #{value}\n"
         else
           "| #{name} = #{value}\n"
         end
