@@ -448,6 +448,7 @@ class Piglobot::Editor
         if name == "type" and value =~ /(.+) \(\[\[open source\]\]\)$/
           value = $1
         end
+        value = "" if value == "?"
         [name, value]
         "| #{name} = #{value}\n"
       }.join
