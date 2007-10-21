@@ -484,6 +484,10 @@ class Piglobot::Editor
         value = "" if value == "??"
         value = "" if value == "-"
         value = "" if value =~ /\A\{\{\{.+\|\}\}\}\Z/
+        firefox_text = "<!-- Ne pas changer la capture d'écran, sauf grand changement. Et utilisez la page d'accueil de Wikipédia pour la capture, pas la page de Firefox. Prenez une capture à une taille « normale » (de 800*600 à 1024*780), désactiver les extensions et prenez le thème par défaut. -->"
+        if value =~ /(.*)#{Regexp.escape(firefox_text)}(.*)/
+          value = $1 + $2
+        end
         if name.nil?
           "| #{value}\n"
         elsif name.empty?

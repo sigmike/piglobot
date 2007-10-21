@@ -458,6 +458,12 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
   end
   
   it "should remove [[open source]] from type" do
+    @infobox[:parameters] = [["type", "foo ([[open source]])"]]
+    @editor.write_infobox(@infobox).should ==
+      "{{Infobox Logiciel\n| type = foo\n}}"
+  end
+  
+  it "should remove [[open source]] and spaces from type" do
     @infobox[:parameters] = [["type", "foo   ([[open source]])"]]
     @editor.write_infobox(@infobox).should ==
       "{{Infobox Logiciel\n| type = foo\n}}"
@@ -485,6 +491,12 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
     @infobox[:parameters] = [["foo", "{{{foo bar|}}}"], ["bar", "{{{bar}}}"], ["baz", "foo {{{bar|}}}"]]
     @editor.write_infobox(@infobox).should ==
       "{{Infobox Logiciel\n| foo = \n| bar = {{{bar}}}\n| baz = foo {{{bar|}}}\n}}"
+  end
+  
+  it "should remove notice about firefox screenshot" do
+    @infobox[:parameters] = [["image", "foo <!-- Ne pas changer la capture d'écran, sauf grand changement. Et utilisez la page d'accueil de Wikipédia pour la capture, pas la page de Firefox. Prenez une capture à une taille « normale » (de 800*600 à 1024*780), désactiver les extensions et prenez le thème par défaut. -->bar"]]
+    @editor.write_infobox(@infobox).should ==
+      "{{Infobox Logiciel\n| image = foo bar\n}}"
   end
 end
 
