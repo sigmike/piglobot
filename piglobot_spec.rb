@@ -394,10 +394,10 @@ describe Piglobot::Editor, " parsing Infobox Logiciel" do
     lambda { @editor.parse_infobox(text) }.should_not raise_error
   end
   
-  it "should keep unnammed parameters" do
-    text = "{{Infobox Logiciel |\nname = foo |\n=bar | baz |\n}}"
-    @infobox[:parameters] = [["name", "foo"], ["", "bar"], [nil, "baz"]]
-    @editor.parse_infobox(text).should == @infobox
+  it "should raise an error when an parameter has no name" do
+    text = "{{Infobox Logiciel |\nname = foo \n |\n bar | a = b\n}}"
+    lambda { @editor.parse_infobox(text) }.should raise_error(Piglobot::ErrorPrevention,
+      "L'infobox contient un paramètre sans nom")
   end
 end
 

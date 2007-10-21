@@ -449,6 +449,9 @@ class Piglobot::Editor
         if (name =~ /<!--/ and name !~ /-->/) or (value =~ /<!--/ and value !~ /-->/)
           raise Piglobot::ErrorPrevention, "L'infobox contient un commentaire qui dépasse un paramètre"
         end
+        if name.nil? or name.empty?
+          raise Piglobot::ErrorPrevention, "L'infobox contient un paramètre sans nom"
+        end
       end
       {
         :before => before,
