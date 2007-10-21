@@ -477,10 +477,12 @@ class Piglobot::Editor
         when "site_web" then "site web"
         else name
         end
-        if name == "type" and value =~ /(.+) \(\[\[open source\]\]\)$/
+        if name == "type" and value =~ /(.+?) +\(\[\[open source\]\]\)$/
           value = $1
         end
         value = "" if value == "?"
+        value = "" if value == "??"
+        value = "" if value == "-"
         value = "" if value =~ /\A\{\{\{.+\|\}\}\}\Z/
         if name.nil?
           "| #{value}\n"

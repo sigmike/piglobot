@@ -458,15 +458,21 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
   end
   
   it "should remove [[open source]] from type" do
-    @infobox[:parameters] = [["type", "foo ([[open source]])"]]
+    @infobox[:parameters] = [["type", "foo   ([[open source]])"]]
     @editor.write_infobox(@infobox).should ==
       "{{Infobox Logiciel\n| type = foo\n}}"
   end
   
-  it "should remove values with only '?'" do
-    @infobox[:parameters] = [["foo", "?"], ["bar", "uh?"], ["baz", "??"]]
-    @editor.write_infobox(@infobox).should ==
-      "{{Infobox Logiciel\n| foo = \n| bar = uh?\n| baz = ??\n}}"
+  [
+    "?",
+    "??",
+    "-",
+  ].each do |text|
+    it "should remove values containing only #{text.inspect}" do
+      @infobox[:parameters] = [["foo", text], ["bar", "uh?"], ["baz", "--"]]
+      @editor.write_infobox(@infobox).should ==
+        "{{Infobox Logiciel\n| foo = \n| bar = uh?\n| baz = --\n}}"
+    end
   end
   
   it "should write unnammed parameters" do
