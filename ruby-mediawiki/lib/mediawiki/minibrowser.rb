@@ -52,7 +52,7 @@ module MediaWiki
     # result:: [String] Document
     def get_content(url)
       retries = 10
-      puts "get #{url}" if $VERBOSE
+
       @http.start { |http|
         loop {
           raise "too many redirects" if retries < 1
@@ -62,7 +62,6 @@ module MediaWiki
                                               'Cookie' => cookies})
           request.basic_auth(@url.user, @url.password) if @url.user
           response = http.request(request)
-          puts "response: #{response}" if $VERBOSE
 
           case response 
             when Net::HTTPSuccess, Net::HTTPNotFound then 
@@ -86,7 +85,6 @@ module MediaWiki
     # data:: [Hash] POST data
     # result:: [String] Document
     def post_content(url, data)
-      puts "post #{url}: #{data.inspect}" if $VERBOSE
       post_data = data.collect { | key, value | "#{CGI::escape(key.to_s)}=#{CGI::escape(value.to_s)}" }.join('&')
       response = nil
 
@@ -97,7 +95,6 @@ module MediaWiki
         request.basic_auth(@url.user, @url.password) if @url.user
         response = http.request(request, post_data)
       }
-      puts "response: #{response}" if $VERBOSE
 
       case response 
         when Net::HTTPSuccess 

@@ -131,8 +131,6 @@ module MediaWiki
           @text = doc.elements['//textarea'].text
           @read_only = true
         else
-          #File.open("tmp.html", "w") { |f| f.puts doc }
-          #system "mozilla-firefox tmp.html"
           raise NoEditFormFound, "Error while parsing result, no edit form found"
         end
       end
@@ -199,12 +197,25 @@ module MediaWiki
     end
 
     ##
+    # "what links here" url for this article
+    def what_links_here_url(count = nil)
+      case @wiki.language
+      when "de"
+        page = "Spezial:Whatlinkshere"
+      else
+        page = "Special:Whatlinkshere"
+      end
+      url = @wiki.article_url("#{page}/#{full_name}")
+      url << "&limit=#{count}" if count
+    end
+    
+
+    ##
     # What articles link to this article?
     # result:: [Array] of [String] Article names
     def what_links_here(count = nil)
       res = []
-      url = @wiki.article_url("Special:Whatlinkshere/#{full_name}")
-      url << "&limit=#{count}" if count
+      url = what_links_here_url(count)
       links = to_rexml(@wiki.browser.get_content(url))
       links.each_element('//div[@id="bodyContent"]//ul/li/a') { |a|
         res << a.attributes['title']
@@ -214,8 +225,7 @@ module MediaWiki
     
     def fast_what_links_here(count = nil)
       res = []
-      url = @wiki.article_url("Special:Whatlinkshere/#{full_name}")
-      url << "&limit=#{count}" if count
+      url = what_links_here_url(count)
       content = @wiki.browser.get_content(url)
       content.scan(%r{<li><a href=".+?" title="(.+?)">.+?</a>.+?</li>}).flatten.map { |title|
         REXML::Text.unnormalize(title)
