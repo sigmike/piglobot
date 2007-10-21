@@ -76,6 +76,17 @@ describe Piglobot do
     @bot.process
   end
   
+  it "should log parsing error" do
+    @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["Article 1", "Article 2"]})
+    @wiki.should_receive(:get).with("Article 1").and_return("foo")
+    infobox = mock("infobox")
+    @editor.should_receive(:parse_infobox).with("foo").and_raise(Piglobot::ErrorPrevention.new("error message"))
+    text = "~~~~~, [[Article 1]] : error message (Piglobot::ErrorPrevention)"
+    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
+    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
+    @bot.process
+  end
+  
   [
     "Foo",
     "Bob",
@@ -340,6 +351,23 @@ describe Piglobot::Editor, " parsing Infobox Logiciel" do
     box = @editor.parse_infobox(text)
     box.should_not == nil
     @editor.write_infobox(box).should_not == text
+  end
+  
+  it "should raise an error when an html comment is over parameters (name => name)" do
+    text = "{{Infobox Logiciel |\nname = foo \n |\n <!-- image = | --> a = b\n}}"
+    lambda { @editor.parse_infobox(text) }.should raise_error(Piglobot::ErrorPrevention,
+      "L'infobox contient un commentaire qui dépasse un paramètre")
+  end
+
+  it "should raise an error when an html comment is over parameters (value => value)" do
+    text = "{{Infobox Logiciel |\nname = foo \n<!-- |\nimage = --> | a = b\n}}"
+    lambda { @editor.parse_infobox(text) }.should raise_error(Piglobot::ErrorPrevention,
+      "L'infobox contient un commentaire qui dépasse un paramètre")
+  end
+
+  it "should not raise an error when an html comment is only in value" do
+    text = "{{Infobox Logiciel |\nname = foo \n |\nimage = <!-- comment --> | <!-- a --> = b\n}}"
+    lambda { @editor.parse_infobox(text) }.should_not raise_error
   end
 end
 

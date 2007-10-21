@@ -23,8 +23,8 @@ require 'yaml'
 require 'mediawiki'
 
 class Piglobot
-  class Disabled < RuntimeError
-  end
+  class Disabled < RuntimeError; end
+  class ErrorPrevention < RuntimeError; end
 
   def initialize
     @wiki = Wiki.new
@@ -46,20 +46,25 @@ class Piglobot
           @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
         else
           text = @wiki.get(article)
-          box = @editor.parse_infobox(text)
-          if box
-            result = @editor.write_infobox(box)
-            if result != text
-              comment = "Application automatique des [[Aide:Infobox|conventions]] dans [[Modèle:Infobox Logiciel|l'infobox Logiciel]]"
-              @wiki.post(article,
-                result,
-                comment)
+          begin
+            box = @editor.parse_infobox(text)
+            if box
+              result = @editor.write_infobox(box)
+              if result != text
+                comment = "Application automatique des [[Aide:Infobox|conventions]] dans [[Modèle:Infobox Logiciel|l'infobox Logiciel]]"
+                @wiki.post(article,
+                  result,
+                  comment)
+              else
+                text = "~~~~~, [[#{article}]] : Aucun changement nécessaire dans l'Infobox Logiciel"
+                @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+              end
             else
-              text = "~~~~~, [[#{article}]] : Aucun changement nécessaire dans l'Infobox Logiciel"
+              text = "~~~~~, [[#{article}]] : Infobox Logiciel non trouvée dans l'article"
               @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
             end
-          else
-            text = "~~~~~, [[#{article}]] : Infobox Logiciel non trouvée dans l'article"
+          rescue => e
+            text = "~~~~~, [[#{article}]] : #{e.message} (#{e.class})"
             @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
           end
         end
@@ -426,6 +431,11 @@ class Piglobot::Editor
           nil
         end
       }.compact
+      parameters.each do |name, value|
+        if (name =~ /<!--/ and name !~ /-->/) or (value =~ /<!--/ and value !~ /-->/)
+          raise Piglobot::ErrorPrevention, "L'infobox contient un commentaire qui dépasse un paramètre"
+        end
+      end
       {
         :before => before,
         :after => after,
