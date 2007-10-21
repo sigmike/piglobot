@@ -68,6 +68,7 @@ class Piglobot
   def check
     text = @wiki.get("Utilisateur:Piglobot/Arrêt d'urgence")
     if text =~ /stop/im
+      Tools.log("Arrêt d'urgence : #{text}")
       false
     else
       true
@@ -115,7 +116,7 @@ class Piglobot::Wiki
   def post(article_name, text, comment)
     article = @wiki.article(article_name)
     article.text = text
-    Piglobot::Tools.log("Post [[#{article_name}]] : #{comment}")
+    Piglobot::Tools.log("Post [[#{article_name}]] (#{comment})")
     article.submit(comment)
   end
 
@@ -128,7 +129,7 @@ class Piglobot::Wiki
   def append(article_name, text, comment)
     article = @wiki.article(article_name)
     article.text += text
-    Piglobot::Tools.log("Append [[#{article_name}]] : #{comment}")
+    Piglobot::Tools.log("Append [[#{article_name}]] (#{comment})")
     article.submit(comment)
   end
   

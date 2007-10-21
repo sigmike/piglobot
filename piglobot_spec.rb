@@ -94,8 +94,9 @@ describe Piglobot do
     "fooStOpbar",
     "\nStop!\nsnul",
   ].each do |text|
-    it "should raise an error on check when #{text.inspect} is on disable page" do
+    it "should return false and log on check when #{text.inspect} is on disable page" do
       @wiki.should_receive(:get).with("Utilisateur:Piglobot/Arrêt d'urgence").and_return(text)
+      Piglobot::Tools.should_receive(:log).with("Arrêt d'urgence : #{text}").once
       @bot.check.should == false
     end
   end
@@ -106,7 +107,7 @@ describe Piglobot do
     "S t o p",
     "ST\nOP",
   ].each do |text|
-    it "should not raise an error on check when #{text.inspect} is on disable page" do
+    it "should return true on check when #{text.inspect} is on disable page" do
       @wiki.should_receive(:get).with("Utilisateur:Piglobot/Arrêt d'urgence").and_return(text)
       @bot.check.should == true
     end
@@ -452,7 +453,7 @@ describe Piglobot::Wiki do
     @mediawiki.should_receive(:article).with("Article name").once.and_return(@article)
     @article.should_receive(:text=).with("article content")
     @article.should_receive(:submit).with("comment")
-    Piglobot::Tools.should_receive(:log).with("Post [[Article name]] : comment")
+    Piglobot::Tools.should_receive(:log).with("Post [[Article name]] (comment)")
     @wiki.post "Article name", "article content", "comment"
   end
   
@@ -468,7 +469,7 @@ describe Piglobot::Wiki do
     @article.should_receive(:text).with().and_return("content")
     @article.should_receive(:text=).with("contentnew text")
     @article.should_receive(:submit).with("append comment")
-    Piglobot::Tools.should_receive(:log).with("Append [[Article name]] : append comment")
+    Piglobot::Tools.should_receive(:log).with("Append [[Article name]] (append comment)")
     @wiki.append("Article name", "new text", "append comment")
   end
   
