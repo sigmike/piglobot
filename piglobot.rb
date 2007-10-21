@@ -49,10 +49,15 @@ class Piglobot
           box = @editor.parse_infobox(text)
           if box
             result = @editor.write_infobox(box)
-            comment = "Application automatique des [[Aide:Infobox|conventions]] dans [[Modèle:Infobox Logiciel|l'infobox Logiciel]]"
-            @wiki.post(article,
-              result,
-              comment)
+            if result != text
+              comment = "Application automatique des [[Aide:Infobox|conventions]] dans [[Modèle:Infobox Logiciel|l'infobox Logiciel]]"
+              @wiki.post(article,
+                result,
+                comment)
+            else
+              text = "~~~~~, [[#{article}]] : Aucun changement nécessaire dans l'Infobox Logiciel"
+              @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+            end
           else
             text = "~~~~~, [[#{article}]] : Infobox Logiciel non trouvée dans l'article"
             @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)

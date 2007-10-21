@@ -64,6 +64,18 @@ describe Piglobot do
     @bot.process
   end
   
+  it "should not write infobox if nothing changed" do
+    @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["Article 1", "Article 2"]})
+    @wiki.should_receive(:get).with("Article 1").and_return("foo")
+    infobox = mock("infobox")
+    @editor.should_receive(:parse_infobox).with("foo").and_return(infobox)
+    @editor.should_receive(:write_infobox).with(infobox).and_return("foo")
+    text = "~~~~~, [[Article 1]] : Aucun changement nécessaire dans l'Infobox Logiciel"
+    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
+    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
+    @bot.process
+  end
+  
   [
     "Foo",
     "Bob",
