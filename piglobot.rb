@@ -424,9 +424,9 @@ class Piglobot::Editor
     t = @templates.find { |template|
       title = template[0]["title"]
       title == "Infobox Logiciel" or
-        title == "Logiciel simple" or
-        title == "Logiciel_simple" or
-        title == "Logiciel"
+        title == "Logiciel simple" or title == "logiciel simple" or
+        title == "Logiciel_simple" or title == "logiciel_simple" or
+        title == "Logiciel" or title == "logiciel"
     }
     if t
       parameters = t.first["parts"] || []

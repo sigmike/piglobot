@@ -333,20 +333,19 @@ describe Piglobot::Editor, " parsing Infobox Logiciel" do
     @editor.parse_infobox(text).should == @infobox
   end
   
-  it "should parse Logicel simple" do
-    text = "{{Logiciel simple | bob = mock }}"
-    @infobox[:parameters] = [["bob", "mock"]]
-    @editor.parse_infobox(text).should == @infobox
-  end
-  
-  it "should parse Logicel_simple" do
-    text = "{{Logiciel_simple}}"
-    @editor.parse_infobox(text).should == @infobox
-  end
-  
-  it "should parse Logicel" do
-    text = "{{Logiciel}}"
-    @editor.parse_infobox(text).should == @infobox
+  [
+    "Logiciel simple",
+    "logiciel simple",
+    "Logiciel_simple",
+    "logiciel_simple",
+    "Logiciel",
+    "logiciel",
+  ].each do |template|
+    it "should parse infobox using template #{template.inspect}" do
+      text = "{{#{template} | bob = mock }}"
+      @infobox[:parameters] = [["bob", "mock"]]
+      @editor.parse_infobox(text).should == @infobox
+    end
   end
   
   it "should parse mono.sample" do
