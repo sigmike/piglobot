@@ -621,10 +621,11 @@ describe Piglobot::Wiki do
   
   it "should use fast_what_links_here on links" do
     name = Object.new
-    links = Object.new
+    links = ["Foo", "Bar", "Foo:Bar", "Hello:Bob", "Baz"]
+    expected_links = links - ["Foo:Bar", "Hello:Bob"]
     @mediawiki.should_receive(:article).with(name).once.and_return(@article)
     @article.should_receive(:fast_what_links_here).with(5000).and_return(links)
-    @wiki.links(name).should == links
+    @wiki.links(name).should == expected_links
   end
 end
 
