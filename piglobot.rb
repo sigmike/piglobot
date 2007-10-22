@@ -51,7 +51,7 @@ class Piglobot
             if box
               result = @editor.write_infobox(box)
               if result != text
-                comment = "Application automatique des [[Aide:Infobox|conventions]] dans [[Modèle:Infobox Logiciel|l'infobox Logiciel]]"
+                comment = "[[Utilisateur:Piglobot#Infobox Logiciel|Correction automatique]] de l'[[Modèle:Infobox Logiciel|Infobox Logiciel]]"
                 @wiki.post(article,
                   result,
                   comment)

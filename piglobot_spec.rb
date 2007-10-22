@@ -48,7 +48,7 @@ describe Piglobot do
     infobox = mock("infobox")
     @editor.should_receive(:parse_infobox).with("foo").and_return(infobox)
     @editor.should_receive(:write_infobox).with(infobox).and_return("result")
-    comment = "Application automatique des [[Aide:Infobox|conventions]] dans [[Modèle:Infobox Logiciel|l'infobox Logiciel]]"
+    comment = "[[Utilisateur:Piglobot#Infobox Logiciel|Correction automatique]] de l'[[Modèle:Infobox Logiciel|Infobox Logiciel]]"
     @wiki.should_receive(:post).with("Article 1", "result", comment)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
     @bot.process
