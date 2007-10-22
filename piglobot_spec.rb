@@ -623,7 +623,7 @@ describe Piglobot::Wiki do
     name = Object.new
     links = Object.new
     @mediawiki.should_receive(:article).with(name).once.and_return(@article)
-    @article.should_receive(:fast_what_links_here).with(1000).and_return(links)
+    @article.should_receive(:fast_what_links_here).with(5000).and_return(links)
     @wiki.links(name).should == links
   end
 end

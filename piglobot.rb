@@ -154,7 +154,7 @@ class Piglobot::Wiki
   
   def links(name)
     article = @wiki.article(name)
-    article.fast_what_links_here(1000)
+    article.fast_what_links_here(5000)
   end
 end
 
