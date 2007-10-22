@@ -488,7 +488,7 @@ class Piglobot::Editor
         if value =~ /(.*)#{Regexp.escape(firefox_text)}(.*)/
           value = $1 + $2
         end
-        if value =~ /\A\[\[(.+) (.+)\]\] \[\[(\d{4})\]\]\Z/ or
+        if value =~ /\A\[\[(.+) (.+)\]\],? \[\[(\d{4})\]\]\Z/ or
           value =~ /\A(.+) (.+) (\d{4})\Z/ or
           value =~ /\A(.+) (.+) \[\[(\d{4})\]\]\Z/
           day = $1
