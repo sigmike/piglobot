@@ -56,8 +56,8 @@ class Piglobot
                   result,
                   comment)
               else
-                text = "~~~~~, [[#{article}]] : Aucun changement nécessaire dans l'Infobox Logiciel"
-                @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+                text = "[[#{article}]] : Aucun changement nécessaire dans l'Infobox Logiciel"
+                Piglobot::Tools.log(text)
               end
             else
               text = "~~~~~, [[#{article}]] : Infobox Logiciel non trouvée dans l'article"

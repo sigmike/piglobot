@@ -70,8 +70,8 @@ describe Piglobot do
     infobox = mock("infobox")
     @editor.should_receive(:parse_infobox).with("foo").and_return(infobox)
     @editor.should_receive(:write_infobox).with(infobox).and_return("foo")
-    text = "~~~~~, [[Article 1]] : Aucun changement nécessaire dans l'Infobox Logiciel"
-    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
+    text = "[[Article 1]] : Aucun changement nécessaire dans l'Infobox Logiciel"
+    Piglobot::Tools.should_receive(:log).with(text).once
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
     @bot.process
   end
