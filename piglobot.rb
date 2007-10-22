@@ -488,6 +488,20 @@ class Piglobot::Editor
         if value =~ /(.*)#{Regexp.escape(firefox_text)}(.*)/
           value = $1 + $2
         end
+        if value =~ /\A\[\[(.+) (.+)\]\] \[\[(\d{4})\]\]\Z/ or
+          value =~ /\A(.+) (.+) (\d{4})\Z/ or
+          value =~ /\A(.+) (.+) \[\[(\d{4})\]\]\Z/
+          day = $1
+          month = $2
+          year = $3
+          if ((day =~ /\A\d+\Z/ and day.size <= 2) or day == "1er") and
+            %w(janvier février mars avril mai juin juillet août septembre
+            octobre novembre décembre).include? month
+            day = "1" if day == "1er"
+            day.sub! /\A0+/, ""
+            value = "{{Date|#{day}|#{month}|#{year}}}"
+          end
+        end
         if name.nil?
           "| #{value}\n"
         elsif name.empty?

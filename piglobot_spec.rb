@@ -498,6 +498,43 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
     @editor.write_infobox(@infobox).should ==
       "{{Infobox Logiciel\n| image = foo bar\n}}"
   end
+  
+  %w(janvier février mars avril mai juin
+     juillet août septembre octobre novembre décembre).each do |month|
+    it "should rewrite simple date on month #{month.inspect}" do
+      @infobox[:parameters] = [
+        ["a", "[[1er #{month}]] [[1998]]"],
+        ["b", "[[18 #{month}]] [[2005]]"],
+        ["c", "[[31 #{month}]] [[2036]]"],
+        ["d", "[[04 #{month}]] [[1950]]"],
+        ["e", "a[[04 #{month}]] [[1950]]"],
+        ["f", "[[04 #{month}]] [[1950]]b"],
+        ["g", "04 #{month} 1950"],
+        ["h", "04 #{month}? 1950"],
+        ["i", "le 04 #{month} 1950"],
+        ["j", "[[04 fevrier]] [[1950]]"],
+        ["k", "[[004 #{month}]] [[1950]]"],
+        ["l", "[[4 #{month}]] [[19510]]"],
+        ["m", "4 #{month} [[1951]]"],
+      ]
+      @editor.write_infobox(@infobox).should ==
+        "{{Infobox Logiciel\n" +
+          "| a = {{Date|1|#{month}|1998}}\n" +
+          "| b = {{Date|18|#{month}|2005}}\n" +
+          "| c = {{Date|31|#{month}|2036}}\n" +
+          "| d = {{Date|4|#{month}|1950}}\n" +
+          "| e = a[[04 #{month}]] [[1950]]\n" +
+          "| f = [[04 #{month}]] [[1950]]b\n" +
+          "| g = {{Date|4|#{month}|1950}}\n" +
+          "| h = 04 #{month}? 1950\n" +
+          "| i = le 04 #{month} 1950\n" +
+          "| j = [[04 fevrier]] [[1950]]\n" +
+          "| k = [[004 #{month}]] [[1950]]\n" +
+          "| l = [[4 #{month}]] [[19510]]\n" +
+          "| m = {{Date|4|#{month}|1951}}\n" +
+          "}}"
+    end
+  end
 end
 
 describe Piglobot::Dump do
