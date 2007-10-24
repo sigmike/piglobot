@@ -1,12 +1,21 @@
-##
-# =Ruby-MediaWiki - manipulate MediaWiki pages from Ruby.
-#
-# Please note that documents spit out by MediaWiki *must* be valid
-# XHTML (or XML)!
-#
-# You may not want to use MediaWiki::Wiki directly but let MediaWiki.dotfile
-# create your instance. This gives you the power of the dotfile
-# infrastructure. See sample apps and <tt>mediawikirc.sample</tt>.
+=begin
+    This file is part of Ruby-MediaWiki.
+
+    Ruby-MediaWiki is free software: you can redistribute it and/or
+    modify it under the terms of the GNU General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    Ruby-MediaWiki is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Ruby-MediaWiki.  If not, see
+    <http://www.gnu.org/licenses/>.
+=end
+
 
 require 'uri'
 require 'logger'
@@ -28,7 +37,19 @@ require 'mediawiki/specialpage'
 require 'mediawiki/category'
 require 'mediawiki/minibrowser'
 
+##
+# =Ruby-MediaWiki - manipulate MediaWiki pages from Ruby.
+#
+# Please note that documents spit out by MediaWiki *must* be valid
+# XHTML (or XML)!
+#
+# You may not want to use MediaWiki::Wiki directly but let MediaWiki.dotfile
+# create your instance. This gives you the power of the dotfile
+# infrastructure. See sample apps and <tt>mediawikirc.sample</tt>.
 module MediaWiki
+  ##
+  # There's no need for any language attribute, the "Special:" prefix
+  # works in any MediaWiki, regardless of localization settings.
   class Wiki
     ##
     # The MiniBrowser instance used by this Wiki.
@@ -41,20 +62,13 @@ module MediaWiki
     # to Wiki#initialize
     attr_reader :url
     
-    
-    ##
-    # The language of the wiki (used for special pages)
-    # Supported: "fr", "de"
-    # Default: "de"
-    attr_accessor :language
-
     ##
     # Initialize a new Wiki instance.
     # url:: [String] URL-Path to index.php (without index.php), may containt <tt>user:password</tt> combination.
     # user:: [String] If not nil, log in with that MediaWiki username (see Wiki#login)
     # password:: [String] If not nil, log in with that MediaWiki password (see Wiki#login)
     # loglevel:: [Integer] Loglevel, default is to log all messages >= Logger::WARN = 2
-    def initialize(url, user = nil, password = nil, loglevel = Logger::WARN, language = "de")
+    def initialize(url, user = nil, password = nil, loglevel = Logger::WARN)
       if ENV['MEDIAWIKI_DEBUG']
         MediaWiki::logger.level = Logger::DEBUG
       else 
