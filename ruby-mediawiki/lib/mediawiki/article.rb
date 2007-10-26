@@ -54,6 +54,7 @@ module MediaWiki
       @xhtml_cached = false
       @wp_edittoken = nil
       @wp_edittime = nil
+      @wp_starttime = nil
 
       reload if load_text
     end
@@ -131,13 +132,14 @@ module MediaWiki
       doc = to_rexml( html )
       # does not work for MediaWiki 1.4.x and is always the same name you ask for under 1.5.x
       # @name = doc.elements['//span[@class="editHelp"]/a'].attributes['title']
-      if form = doc.elements['//form[@name="editform"]']
+      if form = doc.elements['//form'] and form.attributes["name"] == "editform"
         # we got an editable article
-        @text = form.elements['textarea[@name="wpTextbox1"]'].text
+        @text = form.elements['textarea'].text
         begin
           form.each_element('input') { |e|
             @wp_edittoken = e.attributes['value'] if e.attributes['name'] == 'wpEditToken'
             @wp_edittime = e.attributes['value'] if e.attributes['name'] == 'wpEdittime'
+            @wp_starttime = e.attributes['value'] if e.attributes['name'] == 'wpStarttime'
           }
           @read_only = false
         rescue NoMethodError
@@ -167,6 +169,7 @@ module MediaWiki
       data = {'wpTextbox1' => @text, 'wpSummary' => summary, 'wpSave' => 1, 'wpEditToken' => @wp_edittoken, 'wpEdittime' => @wp_edittime}
       data['wpMinoredit'] = 1 if minor_edit
       data['wpWatchthis'] = 'on' if watch_this
+      data['wpStarttime'] = @wp_starttime
       begin
         parse @wiki.browser.post_content("#{@wiki.article_url(full_name, @section)}&action=submit", data)
       rescue NoEditFormFound

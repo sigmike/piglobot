@@ -122,6 +122,7 @@ module MediaWiki
       case response 
         when Net::HTTPSuccess 
         then
+          raise "Edit form present on saved page. Post failed" if response.body =~ /<textarea/
           begin
             add_cookie( response.get_fields('Set-Cookie') ) if response['Set-Cookie']
           rescue NoMethodError

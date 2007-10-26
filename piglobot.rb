@@ -129,7 +129,6 @@ end
 class Piglobot::Wiki
   def initialize
     @wiki = MediaWiki::Wiki.new("http://fr.wikipedia.org/w", "Piglobot", File.read("password"))
-    @wiki.language = "fr"
   end
   
   def post(article_name, text, comment)

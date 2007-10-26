@@ -590,7 +590,6 @@ describe Piglobot::Wiki do
       "Piglobot",
       File.read("password").strip
     ).and_return(@mediawiki)
-    @mediawiki.should_receive(:language=).with("fr")
     @article = mock("article")
     @wiki = Piglobot::Wiki.new
   end
