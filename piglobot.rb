@@ -489,15 +489,23 @@ class Piglobot::Editor
         if value =~ /(.*)#{Regexp.escape(firefox_text)}(.*)/
           value = $1 + $2
         end
-        if value =~ /\A\[\[(.+) (.+)\]\],? \[\[(\d{4})\]\]\Z/ or
+        if value =~ /\A\[\[(.+) \(mois\)\|.+\]\] \[\[(\d{4})\]\]\Z/ or
+          value =~ /\A\[\[(.+) (.+)\]\],? \[\[(\d{4})\]\]\Z/ or
           value =~ /\A(.+) (.+) (\d{4})\Z/ or
           value =~ /\A(.+) \[\[(.+) \(mois\)\|.+\]\] \[\[(\d{4})\]\]\Z/ or
           value =~ /\A(.+) \[\[(.+)\]\] \[\[(\d{4})\]\]\Z/ or
-          value =~ /\A(.+) (.+) \[\[(\d{4})\]\]\Z/
-          day = $1
-          month = $2
-          year = $3
-          if ((day =~ /\A\d+\Z/ and day.size <= 2) or day == "1er") and
+          value =~ /\A(.+) (.+) \[\[(\d{4})\]\]\Z/ or
+          value =~ /\A\[\[(.+)\]\] \[\[(\d{4})\]\]\Z/
+          if $3
+            day = $1
+            month = $2
+            year = $3
+          else
+            day = ""
+            month = $1
+            year = $2
+          end
+          if ((day =~ /\A\d+\Z/ and day.size <= 2) or day == "1er" or day.empty?) and
             %w(janvier février mars avril mai juin juillet août septembre
             octobre novembre décembre).map { |m|
               [m, m.capitalize]

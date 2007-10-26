@@ -522,6 +522,8 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
         ["o", "[[18 #{month}]] foo [[2005]]"],
         ["p", "01 [[#{month}]] [[2005]]"],
         ["q", "07 [[#{month} (mois)|#{month}]] [[2005]]"],
+        ["r", "[[#{month}]] [[2003]]"],
+        ["s", "[[#{month} (mois)|#{month}]] [[2003]]"],
       ]
       @editor.write_infobox(@infobox).should ==
         "{{Infobox Logiciel\n" +
@@ -542,6 +544,8 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
           "| o = [[18 #{month}]] foo [[2005]]\n" +
           "| p = {{Date|1|#{month}|2005}}\n" +
           "| q = {{Date|7|#{month}|2005}}\n" +
+          "| r = {{Date||#{month}|2003}}\n" +
+          "| s = {{Date||#{month}|2003}}\n" +
           "}}"
     end
   end
