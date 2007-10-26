@@ -537,28 +537,29 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
         ["s", "[[#{month} (mois)|#{month}]] [[2003]]"],
         ["t", "{{1er #{month}}} [[2007]]"],
       ]
+      emonth = month.downcase
       @editor.write_infobox(@infobox).should ==
         "{{Infobox Logiciel\n" +
-          "| a = {{Date|1|#{month}|1998}}\n" +
-          "| b = {{Date|18|#{month}|2005}}\n" +
-          "| c = {{Date|31|#{month}|2036}}\n" +
-          "| d = {{Date|4|#{month}|1950}}\n" +
+          "| a = {{Date|1|#{emonth}|1998}}\n" +
+          "| b = {{Date|18|#{emonth}|2005}}\n" +
+          "| c = {{Date|31|#{emonth}|2036}}\n" +
+          "| d = {{Date|4|#{emonth}|1950}}\n" +
           "| e = a[[04 #{month}]] [[1950]]\n" +
           "| f = [[04 #{month}]] [[1950]]b\n" +
-          "| g = {{Date|4|#{month}|1950}}\n" +
+          "| g = {{Date|4|#{emonth}|1950}}\n" +
           "| h = 04 #{month}? 1950\n" +
           "| i = le 04 #{month} 1950\n" +
           "| j = [[04 fevrier]] [[1950]]\n" +
           "| k = [[004 #{month}]] [[1950]]\n" +
           "| l = [[4 #{month}]] [[19510]]\n" +
-          "| m = {{Date|4|#{month}|1951}}\n" +
-          "| n = {{Date|18|#{month}|2005}}\n" +
+          "| m = {{Date|4|#{emonth}|1951}}\n" +
+          "| n = {{Date|18|#{emonth}|2005}}\n" +
           "| o = [[18 #{month}]] foo [[2005]]\n" +
-          "| p = {{Date|1|#{month}|2005}}\n" +
-          "| q = {{Date|7|#{month}|2005}}\n" +
-          "| r = {{Date||#{month}|2003}}\n" +
-          "| s = {{Date||#{month}|2003}}\n" +
-          "| t = {{Date|1|#{month}|2007}}\n" +
+          "| p = {{Date|1|#{emonth}|2005}}\n" +
+          "| q = {{Date|7|#{emonth}|2005}}\n" +
+          "| r = {{Date||#{emonth}|2003}}\n" +
+          "| s = {{Date||#{emonth}|2003}}\n" +
+          "| t = {{Date|1|#{emonth}|2007}}\n" +
           "}}"
     end
   end
