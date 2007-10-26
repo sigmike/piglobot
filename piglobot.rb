@@ -491,6 +491,7 @@ class Piglobot::Editor
         end
         if value =~ /\A\[\[(.+) (.+)\]\],? \[\[(\d{4})\]\]\Z/ or
           value =~ /\A(.+) (.+) (\d{4})\Z/ or
+          value =~ /\A(.+) \[\[(.+)\]\] \[\[(\d{4})\]\]\Z/ or
           value =~ /\A(.+) (.+) \[\[(\d{4})\]\]\Z/
           day = $1
           month = $2
