@@ -77,7 +77,6 @@ module MediaWiki
       
       @url = URI.parse( url.match(/\/$/) ? url : url + '/' )
       @browser = MiniBrowser.new(@url)
-      @language = language
 
       login( user, password ) if user and password
     end
