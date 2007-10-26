@@ -486,10 +486,20 @@ class Piglobot::Editor
         value = "" if value == "-"
         value = "" if value =~ /\A\{\{\{.+\|\}\}\}\Z/
         firefox_text = "<!-- Ne pas changer la capture d'écran, sauf grand changement. Et utilisez la page d'accueil de Wikipédia pour la capture, pas la page de Firefox. Prenez une capture à une taille « normale » (de 800*600 à 1024*780), désactiver les extensions et prenez le thème par défaut. -->"
-        if value =~ /(.*)#{Regexp.escape(firefox_text)}(.*)/
+        if value =~ /\A(.*)#{Regexp.escape(firefox_text)}(.*)\Z/
           value = $1 + $2
         end
+        firefox_text = "<!-- 
+                             * Ne pas changer la capture d'écran, sauf grand changement.
+                             * Utiliser la page d'accueil de Wikipédia pour la capture, pas la page de Firefox.
+                             * Prendre une capture à une taille « normale » (de 800*600 à 1024*780).
+                             * Désactiver les extensions et prendre le thème par défaut.
+                             -->"
+        if value =~ /\A#{Regexp.escape(firefox_text)}(.*)\Z/
+          value = $1
+        end
         if value =~ /\A\[\[(.+) \(mois\)\|.+\]\] \[\[(\d{4})\]\]\Z/ or
+          value =~ /\A\{\{(1er) (.+)\}\} \[\[(\d{4})\]\]\Z/ or
           value =~ /\A\[\[(.+) (.+)\]\],? \[\[(\d{4})\]\]\Z/ or
           value =~ /\A(.+) (.+) (\d{4})\Z/ or
           value =~ /\A(.+) \[\[(.+) \(mois\)\|.+\]\] \[\[(\d{4})\]\]\Z/ or

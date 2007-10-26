@@ -499,6 +499,17 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       "{{Infobox Logiciel\n| image = foo bar\n}}"
   end
   
+  it "should remove notice about firefox screenshot with newline and spaces" do
+    @infobox[:parameters] = [["image", "<!-- 
+                             * Ne pas changer la capture d'écran, sauf grand changement.
+                             * Utiliser la page d'accueil de Wikipédia pour la capture, pas la page de Firefox.
+                             * Prendre une capture à une taille « normale » (de 800*600 à 1024*780).
+                             * Désactiver les extensions et prendre le thème par défaut.
+                             -->bar"]]
+    @editor.write_infobox(@infobox).should ==
+      "{{Infobox Logiciel\n| image = bar\n}}"
+  end
+  
   %w(janvier février mars avril mai juin
      juillet août septembre octobre novembre décembre).map { |month|
       [month, month.capitalize]
@@ -524,6 +535,7 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
         ["q", "07 [[#{month} (mois)|#{month}]] [[2005]]"],
         ["r", "[[#{month}]] [[2003]]"],
         ["s", "[[#{month} (mois)|#{month}]] [[2003]]"],
+        ["t", "{{1er #{month}}} [[2007]]"],
       ]
       @editor.write_infobox(@infobox).should ==
         "{{Infobox Logiciel\n" +
@@ -546,6 +558,7 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
           "| q = {{Date|7|#{month}|2005}}\n" +
           "| r = {{Date||#{month}|2003}}\n" +
           "| s = {{Date||#{month}|2003}}\n" +
+          "| t = {{Date|1|#{month}|2007}}\n" +
           "}}"
     end
   end
