@@ -497,7 +497,9 @@ class Piglobot::Editor
           year = $3
           if ((day =~ /\A\d+\Z/ and day.size <= 2) or day == "1er") and
             %w(janvier février mars avril mai juin juillet août septembre
-            octobre novembre décembre).include? month
+            octobre novembre décembre).map { |m|
+              [m, m.capitalize]
+            }.flatten.include? month
             day = "1" if day == "1er"
             day.sub! /\A0+/, ""
             value = "{{Date|#{day}|#{month}|#{year}}}"

@@ -500,7 +500,9 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
   end
   
   %w(janvier février mars avril mai juin
-     juillet août septembre octobre novembre décembre).each do |month|
+     juillet août septembre octobre novembre décembre).map { |month|
+      [month, month.capitalize]
+    }.flatten.each do |month|
     it "should rewrite simple date on month #{month.inspect}" do
       @infobox[:parameters] = [
         ["a", "[[1er #{month}]] [[1998]]"],
