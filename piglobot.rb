@@ -75,7 +75,7 @@ class Piglobot
     @dump.save_data(data)
   end
   
-  def check
+  def safety_check
     text = @wiki.get("Utilisateur:Piglobot/Arrêt d'urgence")
     if text =~ /stop/im
       Tools.log("Arrêt d'urgence : #{text}")
@@ -103,7 +103,7 @@ class Piglobot
   
   def step
     begin
-      if check
+      if safety_check
         begin
           process
         rescue Interrupt, MediaWiki::InternalServerError

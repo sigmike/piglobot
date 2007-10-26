@@ -117,10 +117,10 @@ describe Piglobot do
     "fooStOpbar",
     "\nStop!\nsnul",
   ].each do |text|
-    it "should return false and log on check when #{text.inspect} is on disable page" do
+    it "should return false and log on safety_check when #{text.inspect} is on disable page" do
       @wiki.should_receive(:get).with("Utilisateur:Piglobot/Arrêt d'urgence").and_return(text)
       Piglobot::Tools.should_receive(:log).with("Arrêt d'urgence : #{text}").once
-      @bot.check.should == false
+      @bot.safety_check.should == false
     end
   end
   
@@ -130,9 +130,9 @@ describe Piglobot do
     "S t o p",
     "ST\nOP",
   ].each do |text|
-    it "should return true on check when #{text.inspect} is on disable page" do
+    it "should return true on safety_check when #{text.inspect} is on disable page" do
       @wiki.should_receive(:get).with("Utilisateur:Piglobot/Arrêt d'urgence").and_return(text)
-      @bot.check.should == true
+      @bot.safety_check.should == true
     end
   end
   
@@ -167,27 +167,27 @@ describe Piglobot do
     @bot.log_error(e)
   end
   
-  it "should check, process and sleep on step" do
-    @bot.should_receive(:check).with().once.and_return(true)
+  it "should safety_check, process and sleep on step" do
+    @bot.should_receive(:safety_check).with().once.and_return(true)
     @bot.should_receive(:process).with().once
     @bot.should_receive(:sleep).with().once
     @bot.step
   end
   
-  it "should not process if check failed" do
-    @bot.should_receive(:check).with().once.and_return(false)
+  it "should not process if safety_check failed" do
+    @bot.should_receive(:safety_check).with().once.and_return(false)
     @bot.should_receive(:sleep).with().once
     @bot.step
   end
   
-  it "should long_sleep on Internal Server Error during check" do
-    @bot.should_receive(:check).with().once.and_raise(MediaWiki::InternalServerError)
+  it "should long_sleep on Internal Server Error during safety_check" do
+    @bot.should_receive(:safety_check).with().once.and_raise(MediaWiki::InternalServerError)
     @bot.should_receive(:long_sleep).with().once
     @bot.step
   end
   
   it "should long_sleep on Internal Server Error during process" do
-    @bot.should_receive(:check).with().once.and_return(true)
+    @bot.should_receive(:safety_check).with().once.and_return(true)
     @bot.should_receive(:process).with().once.and_raise(MediaWiki::InternalServerError)
     @bot.should_receive(:long_sleep).with().once
     @bot.step
@@ -195,7 +195,7 @@ describe Piglobot do
   
   class AnyError < Exception; end
   it "should log exceptions during process" do
-    @bot.should_receive(:check).with().once.and_return(true)
+    @bot.should_receive(:safety_check).with().once.and_return(true)
     e = AnyError.new
     @bot.should_receive(:process).with().once.and_raise(e)
     @bot.should_receive(:log_error).with(e).once
@@ -204,20 +204,20 @@ describe Piglobot do
   end
   
   it "should abort on Interrupt during process" do
-    @bot.should_receive(:check).with().once.and_return(true)
-    @bot.should_receive(:process).with().once.and_raise(Interrupt)
+    @bot.should_receive(:safety_check).with().once.and_return(true)
+    @bot.should_receive(:process).with().once.and_raise(Interrupt.new("interrupt"))
     lambda { @bot.step }.should raise_error(Interrupt)
   end
   
-  it "should abort on Interrupt during check" do
-    @bot.should_receive(:check).with().once.and_raise(Interrupt)
+  it "should abort on Interrupt during safety_check" do
+    @bot.should_receive(:safety_check).with().once.and_raise(Interrupt.new("interrupt"))
     lambda { @bot.step }.should raise_error(Interrupt)
   end
   
   it "should abort on Interrupt during sleep" do
-    @bot.should_receive(:check).with().once.and_return(true)
+    @bot.should_receive(:safety_check).with().once.and_return(true)
     @bot.should_receive(:process).with().once
-    @bot.should_receive(:sleep).with().once.and_raise(Interrupt)
+    @bot.should_receive(:sleep).with().once.and_raise(Interrupt.new("interrupt"))
     lambda { @bot.step }.should raise_error(Interrupt)
   end
   
@@ -227,7 +227,7 @@ describe Piglobot do
     step = 0
     bot.should_receive(:step).with().exactly(3).and_return {
       step += 1
-      raise Interrupt if step == 3
+      raise Interrupt.new("interrupt") if step == 3
     }
     lambda { Piglobot.run }.should raise_error(Interrupt)
   end
