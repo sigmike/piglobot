@@ -32,14 +32,14 @@ describe Piglobot do
   it "should initialize data on first process" do
     @dump.should_receive(:load_data).and_return(nil)
     @dump.should_receive(:save_data).with({})
-    @bot.process
+    @bot.process.should == false
   end
   
   it "should get infobox links on second process" do
     @dump.should_receive(:load_data).and_return({})
     @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["Foo", "Bar"])
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Foo", "Bar"]})
-    @bot.process
+    @bot.process.should == false
   end
   
   it "should send infobox links to InfoboxEditor" do
@@ -51,7 +51,7 @@ describe Piglobot do
     comment = "[[Utilisateur:Piglobot#Infobox Logiciel|Correction automatique]] de l'[[Modèle:Infobox Logiciel|Infobox Logiciel]]"
     @wiki.should_receive(:post).with("Article 1", "result", comment)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
-    @bot.process
+    @bot.process.should == true
   end
   
   it "should not write infobox if none found" do
@@ -61,7 +61,7 @@ describe Piglobot do
     text = "~~~~~, [[Article 1]] : Infobox Logiciel non trouvée dans l'article"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
-    @bot.process
+    @bot.process.should == true
   end
   
   it "should not write infobox if nothing changed" do
@@ -73,7 +73,7 @@ describe Piglobot do
     text = "[[Article 1]] : Aucun changement nécessaire dans l'Infobox Logiciel"
     Piglobot::Tools.should_receive(:log).with(text).once
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
-    @bot.process
+    @bot.process.should == false
   end
   
   it "should log parsing error" do
@@ -84,7 +84,7 @@ describe Piglobot do
     text = "~~~~~, [[Article 1]] : error message (Piglobot::ErrorPrevention)"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
-    @bot.process
+    @bot.process.should == true
   end
   
   [
@@ -96,10 +96,10 @@ describe Piglobot do
   ].each do |namespace|
     it "should skip articles in namespace #{namespace}" do
       @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["#{namespace}:Article 1", "Article 2"]})
-      text = "~~~~~, [[#{namespace}:Article 1]] : Article ignoré car il n'est pas dans le bon espace de nom"
-      @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
+      text = "[[#{namespace}:Article 1]] : Article ignoré car il n'est pas dans le bon espace de nom"
+      Piglobot::Tools.should_receive(:log).with(text).once
       @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
-      @bot.process
+      @bot.process.should == false
     end
   end
   
@@ -107,7 +107,7 @@ describe Piglobot do
     @dump.should_receive(:load_data).and_return({"Infobox Logiciel" => [], "Foo" => "Bar"})
     @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["A", "B"])
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["A", "B"], "Foo" => "Bar"})
-    @bot.process
+    @bot.process.should == false
   end
   
   [
@@ -158,6 +158,17 @@ describe Piglobot do
     @bot.long_sleep
   end
   
+  it "should sleep 10 seconds on short_sleep" do
+    log_done = false
+    Piglobot::Tools.should_receive(:log).with("Sleep 10 seconds").once {
+      log_done = true
+    }
+    Kernel.should_receive(:sleep).ordered.with(10).once {
+      log_done.should == true
+    }
+    @bot.short_sleep
+  end
+  
   it "should log error" do
     e = AnyError.new("error message")
     text = "~~~~~: error message (AnyError)"
@@ -169,8 +180,15 @@ describe Piglobot do
   
   it "should safety_check, process and sleep on step" do
     @bot.should_receive(:safety_check).with().once.and_return(true)
-    @bot.should_receive(:process).with().once
+    @bot.should_receive(:process).with().once.and_return(true)
     @bot.should_receive(:sleep).with().once
+    @bot.step
+  end
+  
+  it "should short_sleep if process returned false" do
+    @bot.should_receive(:safety_check).with().once.and_return(true)
+    @bot.should_receive(:process).with().once.and_return(false)
+    @bot.should_receive(:short_sleep).with().once
     @bot.step
   end
   
@@ -216,7 +234,7 @@ describe Piglobot do
   
   it "should abort on Interrupt during sleep" do
     @bot.should_receive(:safety_check).with().once.and_return(true)
-    @bot.should_receive(:process).with().once
+    @bot.should_receive(:process).with().once.and_return(true)
     @bot.should_receive(:sleep).with().once.and_raise(Interrupt.new("interrupt"))
     lambda { @bot.step }.should raise_error(Interrupt)
   end

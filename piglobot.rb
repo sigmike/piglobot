@@ -33,6 +33,7 @@ class Piglobot
   end
   
   def process
+    changes = false
     data = @dump.load_data
     if data.nil?
       data = {}
@@ -42,8 +43,8 @@ class Piglobot
         article = articles.shift
         if article =~ /:/
           comment = "Article ignoré car il n'est pas dans le bon espace de nom"
-          text = "~~~~~, [[#{article}]] : #{comment}"
-          @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+          text = "[[#{article}]] : #{comment}"
+          Piglobot::Tools.log(text)
         else
           text = @wiki.get(article)
           begin
@@ -55,6 +56,7 @@ class Piglobot
                 @wiki.post(article,
                   result,
                   comment)
+                changes = true
               else
                 text = "[[#{article}]] : Aucun changement nécessaire dans l'Infobox Logiciel"
                 Piglobot::Tools.log(text)
@@ -62,10 +64,12 @@ class Piglobot
             else
               text = "~~~~~, [[#{article}]] : Infobox Logiciel non trouvée dans l'article"
               @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+              changes = true
             end
           rescue => e
             text = "~~~~~, [[#{article}]] : #{e.message} (#{e.class})"
             @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+            changes = true
           end
         end
       else
@@ -73,6 +77,7 @@ class Piglobot
       end
     end
     @dump.save_data(data)
+    changes
   end
   
   def safety_check
@@ -95,6 +100,11 @@ class Piglobot
     Kernel.sleep(10*60)
   end
   
+  def short_sleep
+    Tools.log("Sleep 10 seconds")
+    Kernel.sleep(10)
+  end
+  
   def log_error(e)
     Tools.log("#{e.message} (#{e.class})\n" + e.backtrace.join("\n"))
     text = "~~~~~: #{e.message} (#{e.class})"
@@ -102,17 +112,22 @@ class Piglobot
   end
   
   def step
+    changes = true
     begin
       if safety_check
         begin
-          process
+          changes = process
         rescue Interrupt, MediaWiki::InternalServerError
           raise
         rescue Exception => e
           log_error(e)
         end
       end
-      sleep
+      if changes
+        sleep
+      else
+        short_sleep
+      end
     rescue MediaWiki::InternalServerError
       long_sleep
     end
