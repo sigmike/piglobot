@@ -557,8 +557,8 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
           "| o = [[18 #{month}]] foo [[2005]]\n" +
           "| p = {{Date|1|#{emonth}|2005}}\n" +
           "| q = {{Date|7|#{emonth}|2005}}\n" +
-          "| r = {{Date||#{emonth}|2003}}\n" +
-          "| s = {{Date||#{emonth}|2003}}\n" +
+          "| r = [[#{month}]] [[2003]]\n" +
+          "| s = [[#{month} (mois)|#{month}]] [[2003]]\n" +
           "| t = {{Date|1|#{emonth}|2007}}\n" +
           "}}"
     end

@@ -498,14 +498,12 @@ class Piglobot::Editor
         if value =~ /\A#{Regexp.escape(firefox_text)}(.*)\Z/
           value = $1
         end
-        if value =~ /\A\[\[(.+) \(mois\)\|.+\]\] \[\[(\d{4})\]\]\Z/ or
-          value =~ /\A\{\{(1er) (.+)\}\} \[\[(\d{4})\]\]\Z/ or
+        if value =~ /\A\{\{(1er) (.+)\}\} \[\[(\d{4})\]\]\Z/ or
           value =~ /\A\[\[(.+) (.+)\]\],? \[\[(\d{4})\]\]\Z/ or
           value =~ /\A(.+) (.+) (\d{4})\Z/ or
           value =~ /\A(.+) \[\[(.+) \(mois\)\|.+\]\] \[\[(\d{4})\]\]\Z/ or
           value =~ /\A(.+) \[\[(.+)\]\] \[\[(\d{4})\]\]\Z/ or
-          value =~ /\A(.+) (.+) \[\[(\d{4})\]\]\Z/ or
-          value =~ /\A\[\[(.+)\]\] \[\[(\d{4})\]\]\Z/
+          value =~ /\A(.+) (.+) \[\[(\d{4})\]\]\Z/
           if $3
             day = $1
             month = $2
