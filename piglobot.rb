@@ -73,7 +73,10 @@ class Piglobot
           end
         end
       else
-        data["Infobox Logiciel"] = @wiki.links("Modèle:Infobox Logiciel")
+        articles = @wiki.links("Modèle:Infobox Logiciel")
+        data["Infobox Logiciel"] = articles
+        text = "~~~~~ : Récupéré #{articles.size} articles à traiter"
+        @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
       end
     end
     @dump.save_data(data)
