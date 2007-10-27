@@ -18,7 +18,7 @@
 
 require 'piglobot'
 
-describe Piglobot do
+describe Piglobot, :shared => true do
   before do
     @wiki = mock("wiki")
     @dump = mock("dump")
@@ -35,7 +35,71 @@ describe Piglobot do
     @bot.process.should == false
   end
   
-  it "should get infobox links on second process" do
+  it "should fail when job is nil" do
+    @bot.job = nil
+    @dump.should_receive(:load_data).and_return({})
+    lambda { @bot.process }.should raise_error(RuntimeError, "Invalid job: nil")
+  end
+
+  it "should fail when job is invalid" do
+    @bot.job = "Foo"
+    @dump.should_receive(:load_data).and_return({})
+    lambda { @bot.process }.should raise_error(RuntimeError, "Invalid job: \"Foo\"")
+  end
+end
+
+describe Piglobot, " running" do
+  it "should list jobs" do
+    Piglobot.jobs.should == ["Infobox Logiciel", "Homonymes"]
+  end
+  
+  it "should step continously until Interrupt on run" do
+    bot = mock("bot")
+    Piglobot.should_receive(:new).with().and_return(bot)
+    bot.should_receive(:job=).with("foo")
+    step = 0
+    bot.should_receive(:step).with().exactly(3).and_return {
+      step += 1
+      raise Interrupt.new("interrupt") if step == 3
+    }
+    lambda { Piglobot.run("foo") }.should raise_error(Interrupt)
+  end
+end
+
+describe Piglobot, " working on homonyms" do
+  it_should_behave_like "Piglobot"
+
+  before do
+    @bot.job = "Homonymes"
+  end
+  
+  it "should store links to Chine and keep Infobox Logiciel" do
+    @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["Foo", "Bar", "Baz"]})
+    @wiki.should_receive(:links, "Chine").and_return(["a", "b", "c"])
+    Piglobot::Tools.should_receive(:log).with("3 liens vers la page d'homonymie [[Chine]]")
+    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Foo", "Bar", "Baz"], "Homonymes" => { "Chine" => {"Last" => ["a", "b", "c"] }}})
+    @bot.process.should == false
+  end
+  
+  it "should find new links" do
+    @dump.should_receive(:load_data).and_return({"Homonymes" => 
+      { "Chine" => {"Last" => ["a", "b", "c"] }}
+    })
+    @wiki.should_receive(:links, "Chine").and_return(["a", "b", "d", "c"])
+    Piglobot::Tools.should_receive(:log).with("1 nouveau lien vers la page d'homonymie [[Chine]]")
+    @dump.should_receive(:save_data).with({"Homonymes" => { "Chine" => {"Last" => ["a", "b", "d", "c"], "New" => ["d"] }}})
+    @bot.process.should == false
+  end
+end
+
+describe Piglobot, " working on Infobox Logiciel" do
+  it_should_behave_like "Piglobot"
+  
+  before do
+    @bot.job = "Infobox Logiciel"
+  end
+  
+  it "should get infobox links when data is empty" do
     @dump.should_receive(:load_data).and_return({})
     @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["Foo", "Bar", "Baz"])
     text = "~~~~~ : Récupéré 3 articles à traiter"
@@ -235,17 +299,6 @@ describe Piglobot do
     @bot.should_receive(:process).with().once.and_return(true)
     @bot.should_receive(:sleep).with().once.and_raise(Interrupt.new("interrupt"))
     lambda { @bot.step }.should raise_error(Interrupt)
-  end
-  
-  it "should step continously until Interrupt on run" do
-    bot = mock("bot")
-    Piglobot.should_receive(:new).with().and_return(bot)
-    step = 0
-    bot.should_receive(:step).with().exactly(3).and_return {
-      step += 1
-      raise Interrupt.new("interrupt") if step == 3
-    }
-    lambda { Piglobot.run }.should raise_error(Interrupt)
   end
 end
 

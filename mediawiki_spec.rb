@@ -14,10 +14,11 @@ describe REXML do
     form.attributes["name"].should == "editform"
   end
   
-  # disabled : fails on gutsy
-  # it "should find edit form with name in xpath" do
-  #   @doc.elements['//form[@name="editform"]'].should_not == nil
-  # end
+  it "should find edit form with name in xpath" do
+    pending "not working on buggy REXML on Gutsy" do
+      @doc.elements['//form[@name="editform"]'].should_not == nil
+    end
+  end
 end
 
 describe MediaWiki, " logging in" do
@@ -61,7 +62,7 @@ describe MediaWiki::Wiki, " on real wikipedia" do
     article.text = new_text
     article.submit("Test de ruby-mediawiki")
     article = @wiki.article("Utilisateur:Piglobot/Bac à sable")
-    article.text.strip.should == new_text
+    article.text.strip.should == new_text.strip
   end
 end
 

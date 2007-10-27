@@ -32,52 +32,97 @@ class Piglobot
     @editor = Editor.new(@wiki)
   end
   
+  attr_accessor :job
+  
+  def Piglobot.jobs
+    [
+      "Infobox Logiciel",
+      "Homonymes",
+    ]
+  end
+  
+  def process_infobox(data)
+    changes = false
+    articles = data["Infobox Logiciel"]
+    if articles and !articles.empty?
+      article = articles.shift
+      if article =~ /:/
+        comment = "Article ignoré car il n'est pas dans le bon espace de nom"
+        text = "[[#{article}]] : #{comment}"
+        Piglobot::Tools.log(text)
+      else
+        text = @wiki.get(article)
+        begin
+          box = @editor.parse_infobox(text)
+          if box
+            result = @editor.write_infobox(box)
+            if result != text
+              comment = "[[Utilisateur:Piglobot#Infobox Logiciel|Correction automatique]] de l'[[Modèle:Infobox Logiciel|Infobox Logiciel]]"
+              @wiki.post(article,
+                result,
+                comment)
+              changes = true
+            else
+              text = "[[#{article}]] : Aucun changement nécessaire dans l'Infobox Logiciel"
+              Piglobot::Tools.log(text)
+            end
+          else
+            text = "~~~~~, [[#{article}]] : Infobox Logiciel non trouvée dans l'article"
+            @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+            changes = true
+          end
+        rescue => e
+          text = "~~~~~, [[#{article}]] : #{e.message} (#{e.class})"
+          @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+          changes = true
+        end
+      end
+    else
+      articles = @wiki.links("Modèle:Infobox Logiciel")
+      articles.delete_if { |name| name =~ /:/ and name !~ /::/ }
+      data["Infobox Logiciel"] = articles
+      text = "~~~~~ : Récupéré #{articles.size} articles à traiter"
+      @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+    end
+    changes
+  end
+  
+  def process_homonyms(data)
+    changes = false
+    data["Homonymes"] ||= {}
+    china = data["Homonymes"]["Chine"] || {}
+    china = {} if china.is_a?(Array)
+    last = china["Last"] || {}
+    new = china["New"] || nil
+    
+    if last.empty?
+      last = @wiki.links("Chine")
+      Piglobot::Tools.log("#{last.size} liens vers la page d'homonymie [[Chine]]")
+    else
+      current = @wiki.links("Chine")
+      new = current - last
+      last = current
+      Piglobot::Tools.log("#{new.size} nouveau lien vers la page d'homonymie [[Chine]]")
+    end
+    china["Last"] = last
+    china["New"] = new if new
+    data["Homonymes"]["Chine"] = china
+    changes
+  end
+  
   def process
     changes = false
     data = @dump.load_data
     if data.nil?
       data = {}
     else
-      articles = data["Infobox Logiciel"]
-      if articles and !articles.empty?
-        article = articles.shift
-        if article =~ /:/
-          comment = "Article ignoré car il n'est pas dans le bon espace de nom"
-          text = "[[#{article}]] : #{comment}"
-          Piglobot::Tools.log(text)
-        else
-          text = @wiki.get(article)
-          begin
-            box = @editor.parse_infobox(text)
-            if box
-              result = @editor.write_infobox(box)
-              if result != text
-                comment = "[[Utilisateur:Piglobot#Infobox Logiciel|Correction automatique]] de l'[[Modèle:Infobox Logiciel|Infobox Logiciel]]"
-                @wiki.post(article,
-                  result,
-                  comment)
-                changes = true
-              else
-                text = "[[#{article}]] : Aucun changement nécessaire dans l'Infobox Logiciel"
-                Piglobot::Tools.log(text)
-              end
-            else
-              text = "~~~~~, [[#{article}]] : Infobox Logiciel non trouvée dans l'article"
-              @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
-              changes = true
-            end
-          rescue => e
-            text = "~~~~~, [[#{article}]] : #{e.message} (#{e.class})"
-            @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
-            changes = true
-          end
-        end
+      case @job
+      when "Infobox Logiciel"
+        changes = process_infobox(data)
+      when "Homonymes"
+        changes = process_homonyms(data)
       else
-        articles = @wiki.links("Modèle:Infobox Logiciel")
-        articles.delete_if { |name| name =~ /:/ and name !~ /::/ }
-        data["Infobox Logiciel"] = articles
-        text = "~~~~~ : Récupéré #{articles.size} articles à traiter"
-        @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+        raise "Invalid job: #{@job.inspect}"
       end
     end
     @dump.save_data(data)
@@ -137,8 +182,9 @@ class Piglobot
     end
   end
   
-  def self.run
+  def self.run(job)
     bot = new
+    bot.job = job
     loop do
       bot.step
     end
@@ -625,5 +671,11 @@ module Piglobot::Tools
 end
 
 if __FILE__ == $0
-  Piglobot.run
+  job = ARGV.shift
+  if job.nil?
+    puts "usage: #$0 <job>"
+    puts "Jobs: #{Piglobot.jobs.join(', ')}"
+    exit 1
+  end
+  Piglobot.run(job)
 end
