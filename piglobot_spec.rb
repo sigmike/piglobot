@@ -89,28 +89,22 @@ describe Piglobot do
     @bot.process.should == true
   end
   
-  [
-    "Foo",
-    "Bob",
-    "Utilisateur",
-    "Modèle",
-    "Aide",
-  ].each do |namespace|
-    it "should skip articles in namespace #{namespace}" do
-      @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["#{namespace}:Article 1", "Article 2"]})
-      text = "[[#{namespace}:Article 1]] : Article ignoré car il n'est pas dans le bon espace de nom"
-      Piglobot::Tools.should_receive(:log).with(text).once
-      @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
-      @bot.process.should == false
-    end
-  end
-  
   it "should get infobox links when list is empty" do
     @dump.should_receive(:load_data).and_return({"Infobox Logiciel" => [], "Foo" => "Bar"})
     @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["A", "B"])
     text = "~~~~~ : Récupéré 2 articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["A", "B"], "Foo" => "Bar"})
+    @bot.process.should == false
+  end
+  
+  it "should ignore links in namespace" do
+    @dump.should_receive(:load_data).and_return({"Infobox Logiciel" => [], "Foo" => "Bar"})
+    @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["A", "B", "C:D", "E:F", "G::H", "I:J"])
+    expected = ["A", "B", "G::H"]
+    text = "~~~~~ : Récupéré #{expected.size} articles à traiter"
+    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
+    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => expected, "Foo" => "Bar"})
     @bot.process.should == false
   end
   
@@ -667,7 +661,7 @@ describe Piglobot::Wiki do
   it "should use fast_what_links_here on links" do
     name = Object.new
     links = ["Foo", "Bar", "Foo:Bar", "Hello:Bob", "Baz"]
-    expected_links = links - ["Foo:Bar", "Hello:Bob"]
+    expected_links = links
     @mediawiki.should_receive(:article).with(name).once.and_return(@article)
     @article.should_receive(:fast_what_links_here).with(5000).and_return(links)
     @wiki.links(name).should == expected_links

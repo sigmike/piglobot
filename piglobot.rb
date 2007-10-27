@@ -74,6 +74,7 @@ class Piglobot
         end
       else
         articles = @wiki.links("Modèle:Infobox Logiciel")
+        articles.delete_if { |name| name =~ /:/ and name !~ /::/ }
         data["Infobox Logiciel"] = articles
         text = "~~~~~ : Récupéré #{articles.size} articles à traiter"
         @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
@@ -171,9 +172,7 @@ class Piglobot::Wiki
   
   def links(name)
     article = @wiki.article(name)
-    article.fast_what_links_here(5000).select { |link|
-      link !~ /:/
-    }
+    article.fast_what_links_here(5000)
   end
 end
 
