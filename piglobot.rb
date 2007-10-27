@@ -444,7 +444,9 @@ class Piglobot::Editor
       title == "Infobox Logiciel" or
         title == "Logiciel simple" or title == "logiciel simple" or
         title == "Logiciel_simple" or title == "logiciel_simple" or
-        title == "Logiciel" or title == "logiciel"
+        title == "Logiciel" or title == "logiciel" or
+        title == "Infobox Software" or title == "infobox Software" or
+        title == "Infobox_Software" or title == "infobox_Software"
     }
     if t
       parameters = t.first["parts"] || []
@@ -493,6 +495,20 @@ class Piglobot::Editor
         when "date_de_version_avancée" then "date de version avancée"
         when "os" then "environnement"
         when "site_web" then "site web"
+        when "name" then "nom"
+        when "screenshot" then "image"
+        when "caption" then "description"
+        when "developer" then "développeur"
+        when "latest release version" then "dernière version"
+        when "latest release date" then "date de dernière version"
+        when "latest preview version" then "dernière version avancée"
+        when "latest preview date" then "date de dernière version avancée"
+        when "platform" then "environnement"
+        when "operating system" then "environnement"
+        when "language" then "langue"
+        when "genre" then "type"
+        when "license" then "licence"
+        when "website" then "site web"
         else name
         end
         if name == "type" and value =~ /(.+?) +\(\[\[open source\]\]\)$/

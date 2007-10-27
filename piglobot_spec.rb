@@ -338,14 +338,14 @@ describe Piglobot::Editor, " parsing Infobox Logiciel" do
   end
   
   it "should parse parameters with new lines" do
-    text = "{{Infobox Logiciel | name = foo\n\n  bar\n | foo = bar }}"
-    @infobox[:parameters] = [["name", "foo\n\n  bar"], ["foo", "bar"]]
+    text = "{{Infobox Logiciel | nom = foo\n\n  bar\n | foo = bar }}"
+    @infobox[:parameters] = [["nom", "foo\n\n  bar"], ["foo", "bar"]]
     @editor.parse_infobox(text).should == @infobox
   end
   
   it "should parse parameters with weird new lines" do
-    text = "{{Infobox Logiciel |\nname = foo |\nimage = |\n}}"
-    @infobox[:parameters] = [["name", "foo"], ["image", ""]]
+    text = "{{Infobox Logiciel |\nnom = foo |\nimage = |\n}}"
+    @infobox[:parameters] = [["nom", "foo"], ["image", ""]]
     @editor.parse_infobox(text).should == @infobox
   end
   
@@ -393,26 +393,38 @@ describe Piglobot::Editor, " parsing Infobox Logiciel" do
   end
   
   it "should raise an error when an html comment is over parameters (name => name)" do
-    text = "{{Infobox Logiciel |\nname = foo \n |\n <!-- image = | --> a = b\n}}"
+    text = "{{Infobox Logiciel |\nnom = foo \n |\n <!-- image = | --> a = b\n}}"
     lambda { @editor.parse_infobox(text) }.should raise_error(Piglobot::ErrorPrevention,
       "L'infobox contient un commentaire qui dépasse un paramètre")
   end
 
   it "should raise an error when an html comment is over parameters (value => value)" do
-    text = "{{Infobox Logiciel |\nname = foo \n<!-- |\nimage = --> | a = b\n}}"
+    text = "{{Infobox Logiciel |\nnom = foo \n<!-- |\nimage = --> | a = b\n}}"
     lambda { @editor.parse_infobox(text) }.should raise_error(Piglobot::ErrorPrevention,
       "L'infobox contient un commentaire qui dépasse un paramètre")
   end
 
   it "should not raise an error when an html comment is only in value" do
-    text = "{{Infobox Logiciel |\nname = foo \n |\nimage = <!-- comment --> | <!-- a --> = b\n}}"
+    text = "{{Infobox Logiciel |\nnom= foo \n |\nimage = <!-- comment --> | <!-- a --> = b\n}}"
     lambda { @editor.parse_infobox(text) }.should_not raise_error
   end
   
   it "should raise an error when an parameter has no name" do
-    text = "{{Infobox Logiciel |\nname = foo \n |\n bar | a = b\n}}"
+    text = "{{Infobox Logiciel |\nnom = foo \n |\n bar | a = b\n}}"
     lambda { @editor.parse_infobox(text) }.should raise_error(Piglobot::ErrorPrevention,
       "L'infobox contient un paramètre sans nom")
+  end
+  
+  it "should parse infobox_software" do
+    text = "{{Infobox_Software |\nname = foo |\nscreenshot = bar|\n}}"
+    @infobox[:parameters] = [["name", "foo"], ["screenshot", "bar"]]
+    @editor.parse_infobox(text).should == @infobox
+  end
+
+  it "should parse infobox software" do
+    text = "{{Infobox Software |\nname = foo |\nscreenshot = bar|\n}}"
+    @infobox[:parameters] = [["name", "foo"], ["screenshot", "bar"]]
+    @editor.parse_infobox(text).should == @infobox
   end
 end
 
@@ -438,15 +450,15 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
   end
   
   it "should write infobox with parameters" do
-    @infobox[:parameters] = [["name", "value"], ["other name", "other value"]]
+    @infobox[:parameters] = [["nom", "value"], ["other name", "other value"]]
     @editor.write_infobox(@infobox).should ==
-      "{{Infobox Logiciel\n| name = value\n| other name = other value\n}}"
+      "{{Infobox Logiciel\n| nom = value\n| other name = other value\n}}"
   end
   
   it "should write infobox with new lines in parameter" do
-    @infobox[:parameters] = [["name", "first line\n  second line\nthird line"]]
+    @infobox[:parameters] = [["nom", "first line\n  second line\nthird line"]]
     @editor.write_infobox(@infobox).should ==
-      "{{Infobox Logiciel\n| name = first line\n  second line\nthird line\n}}"
+      "{{Infobox Logiciel\n| nom = first line\n  second line\nthird line\n}}"
   end
   
   it "should rename parameters on write" do
@@ -577,6 +589,29 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
           "| s = [[#{month} (mois)|#{month}]] [[2003]]\n" +
           "| t = {{Date|1|#{emonth}|2007}}\n" +
           "}}"
+    end
+  end
+  
+  {
+    "name" => "nom",
+    "screenshot" => "image",
+    "caption" => "description",
+    "developer" => "développeur",
+    "latest release version" => "dernière version",
+    "latest release date" => "date de dernière version",
+    "latest preview version" => "dernière version avancée",
+    "latest preview date" => "date de dernière version avancée",
+    "platform" => "environnement",
+    "operating system" => "environnement",
+    "language" => "langue",
+    "genre" => "type",
+    "license" => "licence",
+    "website" => "site web",
+  }.each do |en, fr|
+    it "should translate #{en} to #{fr}" do
+      @infobox[:parameters] = [[en, "value"]]
+      @editor.write_infobox(@infobox).should ==
+        "{{Infobox Logiciel\n| #{fr} = value\n}}"
     end
   end
 end
