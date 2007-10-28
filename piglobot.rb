@@ -100,9 +100,13 @@ class Piglobot
       Piglobot::Tools.log("#{last.size} liens vers la page d'homonymie [[Chine]]")
     else
       current = @wiki.links("Chine")
-      new = current - last
+      current_new = current - last
       last = current
-      Piglobot::Tools.log("#{new.size} nouveau lien vers la page d'homonymie [[Chine]]")
+      unless current_new.empty?
+        Piglobot::Tools.log("#{current_new.size} nouveau lien vers la page d'homonymie [[Chine]]")
+      end
+      new ||= []
+      new += current_new
     end
     china["Last"] = last
     china["New"] = new if new

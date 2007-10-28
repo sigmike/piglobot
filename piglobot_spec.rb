@@ -90,6 +90,16 @@ describe Piglobot, " working on homonyms" do
     @dump.should_receive(:save_data).with({"Homonymes" => { "Chine" => {"Last" => ["a", "b", "d", "c"], "New" => ["d"] }}})
     @bot.process.should == false
   end
+  
+  it "should keep new links" do
+    @dump.should_receive(:load_data).and_return({"Homonymes" => 
+      { "Chine" => {"Last" => ["a", "b"], "New" => ["b"] }}
+    })
+    @wiki.should_receive(:links, "Chine").and_return(["a", "b"])
+    Piglobot::Tools.should_not_receive(:log)
+    @dump.should_receive(:save_data).with({"Homonymes" => { "Chine" => {"Last" => ["a", "b"], "New" => ["b"] }}})
+    @bot.process
+  end
 end
 
 describe Piglobot, " working on Infobox Logiciel" do
