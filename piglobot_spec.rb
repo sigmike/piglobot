@@ -77,13 +77,13 @@ describe Piglobot, " working on homonyms" do
     @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["Foo", "Bar", "Baz"]})
     @wiki.should_receive(:links, "Chine").and_return(["a", "b", "c"])
     Piglobot::Tools.should_receive(:log).with("3 liens vers la page d'homonymie [[Chine]]")
-    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Foo", "Bar", "Baz"], "Homonymes" => { "Chine" => {"Last" => ["a", "b", "c"] }}})
+    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Foo", "Bar", "Baz"], "Homonymes" => { "Chine" => {"Last" => ["a", "b", "c"], "New" => [] }}})
     @bot.process.should == false
   end
   
   it "should find new links" do
     @dump.should_receive(:load_data).and_return({"Homonymes" => 
-      { "Chine" => {"Last" => ["a", "b", "c"] }}
+      { "Chine" => {"Last" => ["a", "b", "c"], "New" => [] }}
     })
     @wiki.should_receive(:links, "Chine").and_return(["a", "b", "d", "c"])
     Piglobot::Tools.should_receive(:log).with("1 nouveau lien vers la page d'homonymie [[Chine]]")
@@ -98,6 +98,16 @@ describe Piglobot, " working on homonyms" do
     @wiki.should_receive(:links, "Chine").and_return(["a", "b"])
     Piglobot::Tools.should_not_receive(:log)
     @dump.should_receive(:save_data).with({"Homonymes" => { "Chine" => {"Last" => ["a", "b"], "New" => ["b"] }}})
+    @bot.process
+  end
+  
+  it "should ignore removed pending links" do
+    @dump.should_receive(:load_data).and_return({"Homonymes" => 
+      { "Chine" => {"Last" => ["a", "b"], "New" => ["b"] }}
+    })
+    @wiki.should_receive(:links, "Chine").and_return(["a"])
+    Piglobot::Tools.should_receive(:log).with("Le lien vers [[Chine]] dans [[b]] a été supprimé avant d'être traité")
+    @dump.should_receive(:save_data).with({"Homonymes" => { "Chine" => {"Last" => ["a"], "New" => [] }}})
     @bot.process
   end
 end

@@ -93,19 +93,28 @@ class Piglobot
     china = data["Homonymes"]["Chine"] || {}
     china = {} if china.is_a?(Array)
     last = china["Last"] || {}
-    new = china["New"] || nil
+    new = china["New"] || []
     
     if last.empty?
       last = @wiki.links("Chine")
       Piglobot::Tools.log("#{last.size} liens vers la page d'homonymie [[Chine]]")
     else
       current = @wiki.links("Chine")
+      
+      new.delete_if do |old_new|
+        if current.include? old_new
+          false
+        else
+          Piglobot::Tools.log("Le lien vers [[Chine]] dans [[#{old_new}]] a été supprimé avant d'être traité")
+          true
+        end
+      end
+      
       current_new = current - last
       last = current
       unless current_new.empty?
         Piglobot::Tools.log("#{current_new.size} nouveau lien vers la page d'homonymie [[Chine]]")
       end
-      new ||= []
       new += current_new
     end
     china["Last"] = last
