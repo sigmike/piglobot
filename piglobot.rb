@@ -112,8 +112,8 @@ class Piglobot
       
       current_new = current - last
       last = current
-      unless current_new.empty?
-        Piglobot::Tools.log("#{current_new.size} nouveau lien vers la page d'homonymie [[Chine]]")
+      current_new.each do |new_name|
+        Piglobot::Tools.log("Un lien vers [[Chine]] a été ajouté dans [[#{new_name}]]")
       end
       new += current_new
     end
@@ -231,6 +231,7 @@ class Piglobot::Wiki
   
   def links(name)
     article = @wiki.article(name)
+    Piglobot::Tools.log("What links to [[#{name}]]")
     article.fast_what_links_here(5000)
   end
 end

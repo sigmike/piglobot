@@ -85,9 +85,10 @@ describe Piglobot, " working on homonyms" do
     @dump.should_receive(:load_data).and_return({"Homonymes" => 
       { "Chine" => {"Last" => ["a", "b", "c"], "New" => [] }}
     })
-    @wiki.should_receive(:links, "Chine").and_return(["a", "b", "d", "c"])
-    Piglobot::Tools.should_receive(:log).with("1 nouveau lien vers la page d'homonymie [[Chine]]")
-    @dump.should_receive(:save_data).with({"Homonymes" => { "Chine" => {"Last" => ["a", "b", "d", "c"], "New" => ["d"] }}})
+    @wiki.should_receive(:links, "Chine").and_return(["a", "b", "d", "c", "e"])
+    Piglobot::Tools.should_receive(:log).with("Un lien vers [[Chine]] a été ajouté dans [[d]]")
+    Piglobot::Tools.should_receive(:log).with("Un lien vers [[Chine]] a été ajouté dans [[e]]")
+    @dump.should_receive(:save_data).with({"Homonymes" => { "Chine" => {"Last" => ["a", "b", "d", "c", "e"], "New" => ["d", "e"] }}})
     @bot.process.should == false
   end
   
@@ -772,9 +773,10 @@ describe Piglobot::Wiki do
   end
   
   it "should use fast_what_links_here on links" do
-    name = Object.new
+    name = "Article name"
     links = ["Foo", "Bar", "Foo:Bar", "Hello:Bob", "Baz"]
     expected_links = links
+    Piglobot::Tools.should_receive(:log).with("What links to [[Article name]]")
     @mediawiki.should_receive(:article).with(name).once.and_return(@article)
     @article.should_receive(:fast_what_links_here).with(5000).and_return(links)
     @wiki.links(name).should == expected_links
