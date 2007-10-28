@@ -178,7 +178,6 @@ module MediaWiki
         # a new wpEditToken and wpEdittime
         reload
         return
-      rescue Net::HTTPInternalServerError
       end
 
       unless @wp_edittoken.to_s == '' and @wp_edittime.to_s == ''

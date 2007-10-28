@@ -164,7 +164,53 @@ module MediaWiki
       uri.to_s
     end
 
+    def history(name, count)
+      url_name = CGI::escape(name.gsub(' ', '_'))
+      oldid_url = "#{@url.path}index.php?title=#{url_name}"
+      content = @browser.get_content("#{@url.path}index.php?title=#{url_name}&limit=#{count}&action=history")
+      doc = REXML::Document.new(content)
+      result = []
+      doc.each_element("//li") do |li|
+        oldid = nil
+        date = nil
+        author = nil
+        comment = nil
+        li.each_element("a") do |a|
+          href = a.attributes["href"]
+          if href !~ /diff=/ and href =~ /\oldid=(\d+)/
+            oldid = $1
+            date = a.text
+            break
+          end
+        end
+    
+        if oldid
+          li.each_element("span") do |span|
+            case span.attributes["class"]
+            when "history-user"
+              span.each_element("a") do |a|
+                author = a.text
+                break
+              end
+            when "comment"
+              comment = span.to_a.join.sub(/\A\((.*)\Z\)/, "\\1")
+            end
+          end
+          result << [oldid, author] # date, comment
+        end
+      end
+      result
+    end
+    
+    def old_text(name, oldid)
+      url_name = CGI::escape(name.gsub(' ', '_'))
+      content = @browser.get_content("#{@url.path}index.php?title=#{url_name}&action=edit&oldid=#{oldid}")
+      doc = REXML::Document.new(content)
+      if form = doc.elements['//form'] and form.attributes["name"] == "editform"
+        # we got an editable article
+        form.elements['textarea'].text
+      end
+    end
   end
-
 end
 
