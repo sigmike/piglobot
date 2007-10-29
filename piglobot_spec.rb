@@ -535,30 +535,6 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       "{{Infobox Logiciel\n| nom = first line\n  second line\nthird line\n}}"
   end
   
-  it "should rename parameters on write" do
-    @infobox[:parameters] = [
-      ["dernière_version", "1"],
-      ["date_de_dernière_version", "2"],
-      ["version_avancée", "3"],
-      ["date_de_version_avancée", "4"],
-      ["os", "5"],
-      ["site_web", "6"],
-      ["other", "7"],
-    ]
-    @editor.write_infobox(@infobox).should ==
-      "{{Infobox Logiciel\n" + [
-        ["dernière version", "1"],
-        ["date de dernière version", "2"],
-        ["version avancée", "3"],
-        ["date de version avancée", "4"],
-        ["environnement", "5"],
-        ["site web", "6"],
-        ["other", "7"],
-      ].map { |name, value|
-        "| #{name} = #{value}\n"
-      }.join + "}}"
-  end
-  
   it "should remove [[open source]] from type" do
     @infobox[:parameters] = [["type", "foo ([[open source]])"]]
     @editor.write_infobox(@infobox).should ==
@@ -645,7 +621,7 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
     end
   end
   
-  it "should call rewrite_date" do
+  it "should call rewrite_date with all values and replace with result" do
     @infobox[:parameters] = [
       ["foo", "bar"],
       ["baz", "baz2"],
@@ -656,32 +632,45 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       "{{Infobox Logiciel\n| foo = 1\n| baz = baz2\n}}"
   end
   
-  {
-    "name" => "nom",
-    "screenshot" => "image",
-    "caption" => "description",
-    "developer" => "développeur",
-    "latest release version" => "dernière version",
-    "latest release date" => "date de dernière version",
-    "latest preview version" => "dernière version avancée",
-    "latest preview date" => "date de dernière version avancée",
-    "latest_release_version" => "dernière version",
-    "latest_release_date" => "date de dernière version",
-    "latest_preview_version" => "dernière version avancée",
-    "latest_preview_date" => "date de dernière version avancée",
-    "platform" => "environnement",
-    "operating system" => "environnement",
-    "operating_system" => "environnement",
-    "language" => "langue",
-    "genre" => "type",
-    "license" => "licence",
-    "website" => "site web",
-  }.each do |en, fr|
-    it "should translate #{en} to #{fr}" do
-      @infobox[:parameters] = [[en, "value"]]
-      @editor.write_infobox(@infobox).should ==
-        "{{Infobox Logiciel\n| #{fr} = value\n}}"
+  it "should call rename_parameters with name_changes" do
+    @infobox[:parameters] = [["foo", "foo"], ["bar baz", "value"]]
+    @editor.name_changes = { "foo" => "new foo", "bar baz" => "bob" }
+    @editor.should_receive(:rename_parameters) do |parameters, changes|
+      changes.should == @editor.name_changes
+      parameters.replace [["foo", "bar"]]
     end
+    @editor.write_infobox(@infobox).should ==
+      "{{Infobox Logiciel\n| foo = bar\n}}"
+  end
+  
+  it "should have default name_changes" do
+    @editor.name_changes.should == {
+      "dernière_version" => "dernière version",
+      "date_de_dernière_version" => "date de dernière version",
+      "version_avancée" => "version avancée",
+      "date_de_version_avancée" => "date de version avancée",
+      "os" => "environnement",
+      "site_web" => "site web",
+      "name" => "nom",
+      "screenshot" => "image",
+      "caption" => "description",
+      "developer" => "développeur",
+      "latest release version" => "dernière version",
+      "latest release date" => "date de dernière version",
+      "latest preview version" => "dernière version avancée",
+      "latest preview date" => "date de dernière version avancée",
+      "latest_release_version" => "dernière version",
+      "latest_release_date" => "date de dernière version",
+      "latest_preview_version" => "dernière version avancée",
+      "latest_preview_date" => "date de dernière version avancée",
+      "platform" => "environnement",
+      "operating system" => "environnement",
+      "operating_system" => "environnement",
+      "language" => "langue",
+      "genre" => "type",
+      "license" => "licence",
+      "website" => "site web",
+    }
   end
 end
 

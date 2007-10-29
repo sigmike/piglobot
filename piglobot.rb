@@ -539,6 +539,8 @@ class Piglobot::TemplateParser
 end
 
 class Piglobot::Editor
+  attr_accessor :name_changes, :template_names, :template_name
+
   def initialize(wiki)
     @wiki = wiki
   
