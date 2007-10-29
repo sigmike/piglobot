@@ -44,6 +44,7 @@ class Piglobot
   def process_infobox(data)
     changes = false
     articles = data["Infobox Logiciel"]
+
     if articles and !articles.empty?
       article = articles.shift
       if article =~ /:/
@@ -276,6 +277,18 @@ class Piglobot::Editor
     @wiki = wiki
   end
   
+  def parse_infobox(text)
+    titles = ["Infobox Logiciel",
+      "Logiciel simple", "logiciel simple",
+      "Logiciel_simple", "logiciel_simple",
+      "Logiciel", "logiciel",
+      "Infobox Software", "infobox Software",
+      "Infobox_Software", "infobox_Software",
+    ]
+
+    find_template(text, titles)
+  end
+  
   def replace_callback(text, callbacks)
     openingBraceStack = [] # this array will hold a stack of parentheses which are not closed yet
     lastOpeningBrace = -1  # last not closed parentheses
@@ -492,7 +505,7 @@ class Piglobot::Editor
   def argSubstitution(args, before, after)
   end
   
-  def parse_infobox(text)
+  def find_template(text, titles)
     @max_include_size = 4096
     @output_type = OT_MSG
     @arg_stack = []
@@ -501,12 +514,7 @@ class Piglobot::Editor
     replace_variables(text)
     t = @templates.find { |template|
       title = template[0]["title"]
-      title == "Infobox Logiciel" or
-        title == "Logiciel simple" or title == "logiciel simple" or
-        title == "Logiciel_simple" or title == "logiciel_simple" or
-        title == "Logiciel" or title == "logiciel" or
-        title == "Infobox Software" or title == "infobox Software" or
-        title == "Infobox_Software" or title == "infobox_Software"
+      titles.include? title
     }
     if t
       parameters = t.first["parts"] || []
