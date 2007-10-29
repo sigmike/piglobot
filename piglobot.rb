@@ -573,11 +573,11 @@ class Piglobot::Editor
     }
   
     @template_names = ["Infobox Logiciel",
-      "Logiciel simple", "logiciel simple",
-      "Logiciel_simple", "logiciel_simple",
-      "Logiciel", "logiciel",
-      "Infobox Software", "infobox Software",
-      "Infobox_Software", "infobox_Software",
+      "Logiciel simple",
+      "Logiciel_simple",
+      "Logiciel",
+      "Infobox Software",
+      "Infobox_Software",
     ]
     
     @template_name = "Infobox Logiciel"
@@ -585,7 +585,9 @@ class Piglobot::Editor
   
   def parse_infobox(text)
     parser = Piglobot::TemplateParser.new
-    parser.template_names = @template_names
+    parser.template_names = @template_names.map { |name|
+      [name, name[0].chr.swapcase + name[1..-1]]
+    }.flatten
     parser.find_template(text)
   end
   

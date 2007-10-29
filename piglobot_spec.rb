@@ -424,18 +424,49 @@ describe Piglobot::Editor, " parsing Infobox Logiciel" do
   end
   
   [
-    "Logiciel simple",
-    "logiciel simple",
-    "Logiciel_simple",
-    "logiciel_simple",
-    "Logiciel",
-    "logiciel",
-  ].each do |template|
-    it "should parse infobox using template #{template.inspect}" do
+    ["Logiciel simple", ["Logiciel simple"]],
+    ["logiciel simple", ["Logiciel simple"]],
+    ["foo", ["foo", "bar"]],
+    ["foo", ["bar", "foo"]],
+    ["f", ["f"]],
+    ["f", ["F"]],
+    ["foo", ["Foo"]],
+    ["Foo", ["foo"]],
+  ].each do |template, template_names|
+    it "should find #{template.inspect} using template_names #{template_names.inspect}" do
+      @editor.template_names = template_names
       text = "{{#{template} | bob = mock }}"
       @infobox[:parameters] = [["bob", "mock"]]
       @editor.parse_infobox(text).should == @infobox
     end
+  end
+  
+  [
+    ["Logiciel Simple", ["Logiciel simple"]],
+    ["foo", ["bar"]],
+    ["foo", ["bar", "baz"]],
+    ["foo", ["fooo"]],
+    ["foo", ["fo"]],
+    ["foo", ["foO"]],
+    ["foO", ["foo"]],
+  ].each do |template, template_names|
+    it "should not find #{template.inspect} using template_names #{template_names.inspect}" do
+      @editor.template_names = template_names
+      text = "{{#{template} | bob = mock }}"
+      @infobox[:parameters] = [["bob", "mock"]]
+      @editor.parse_infobox(text).should == nil
+    end
+  end
+  
+  it "should have default template_names" do
+    @editor.template_names.should == [
+      "Infobox Logiciel",
+      "Logiciel simple",
+      "Logiciel_simple",
+      "Logiciel",
+      "Infobox Software",
+      "Infobox_Software",
+    ]
   end
   
   it "should parse mono.sample" do
@@ -671,6 +702,19 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       "license" => "licence",
       "website" => "site web",
     }
+  end
+  
+  it "should use template_name" do
+    @infobox[:parameters] = [
+      ["foo", "bar"],
+    ]
+    @editor.template_name = "foo"
+    @editor.write_infobox(@infobox).should ==
+      "{{foo\n| foo = bar\n}}"
+  end
+  
+  it "should have a default template_name" do
+    @editor.template_name.should == "Infobox Logiciel"
   end
 end
 
