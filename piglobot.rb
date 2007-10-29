@@ -539,7 +539,7 @@ class Piglobot::TemplateParser
 end
 
 class Piglobot::Editor
-  attr_accessor :name_changes, :template_names, :template_name
+  attr_accessor :name_changes, :template_names, :template_name, :filters
 
   def initialize(wiki)
     @wiki = wiki
@@ -581,6 +581,14 @@ class Piglobot::Editor
     ]
     
     @template_name = "Infobox Logiciel"
+  
+    @filters = [
+      :rename_parameters,
+      :remove_open_source,
+      :remove_almost_empty,
+      :remove_firefox,
+      :rewrite_dates,
+    ]
   end
   
   def parse_infobox(text)
@@ -591,7 +599,8 @@ class Piglobot::Editor
     parser.find_template(text)
   end
   
-  def rename_parameters(parameters, changes)
+  def rename_parameters(parameters)
+    changes = @name_changes
     parameters.map! { |name, value|
       if changes.has_key? name
         name = changes[name]
@@ -657,18 +666,25 @@ class Piglobot::Editor
     gsub_value(parameters, "image", /\A#{Regexp.escape(firefox_text)}(.*)\Z/, '\1')
   end
   
+  def remove_open_source(parameters)
+    gsub_value(parameters, "type", /(.+?) +\(\[\[open source\]\]\)$/, '\1')
+  end
+  
+  def remove_almost_empty(parameters)
+    gsub_value(parameters, :any, /\A\?\??\Z/, "")
+    gsub_value(parameters, :any, /\A-\Z/, "")
+    gsub_value(parameters, :any, /\A\{\{\{.+\|\}\}\}\Z/, "")
+  end
+  
   def write_infobox(box)
     if box[:parameters].empty?
       args = ""
     else
       parameters = box[:parameters]
-      rename_parameters(parameters, @name_changes)
-      gsub_value(parameters, "type", /(.+?) +\(\[\[open source\]\]\)$/, '\1')
-      gsub_value(parameters, :any, /\A\?\??\Z/, "")
-      gsub_value(parameters, :any, /\A-\Z/, "")
-      gsub_value(parameters, :any, /\A\{\{\{.+\|\}\}\}\Z/, "")
-      remove_firefox(parameters)
-      rewrite_dates(parameters)
+      
+      @filters.each do |method|
+        send(method, parameters)
+      end
       
       args = "\n" + parameters.map { |name, value|
         if name.nil?

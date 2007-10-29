@@ -567,15 +567,15 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
   end
   
   it "should remove [[open source]] from type" do
-    @infobox[:parameters] = [["type", "foo ([[open source]])"]]
-    @editor.write_infobox(@infobox).should ==
-      "{{Infobox Logiciel\n| type = foo\n}}"
+    params = [["type", "foo ([[open source]])"]]
+    @editor.remove_open_source(params)
+    params.should == [["type", "foo"]]
   end
   
   it "should remove [[open source]] and spaces from type" do
-    @infobox[:parameters] = [["type", "foo   ([[open source]])"]]
-    @editor.write_infobox(@infobox).should ==
-      "{{Infobox Logiciel\n| type = foo\n}}"
+    params = [["type", "foo   ([[open source]])"]]
+    @editor.remove_open_source(params)
+    params.should == [["type", "foo"]]
   end
   
   [
@@ -584,9 +584,9 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
     "-",
   ].each do |text|
     it "should remove values containing only #{text.inspect}" do
-      @infobox[:parameters] = [["foo", text], ["bar", "uh?"], ["baz", "--"]]
-      @editor.write_infobox(@infobox).should ==
-        "{{Infobox Logiciel\n| foo = \n| bar = uh?\n| baz = --\n}}"
+      params = [["foo", text], ["bar", "uh?"], ["baz", "--"]]
+      @editor.remove_almost_empty(params)
+      params.should == [["foo", ""], ["bar", "uh?"], ["baz", "--"]]
     end
   end
   
@@ -597,26 +597,26 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
   end
   
   it "should remove values like {{{latest preview date|}}}" do
-    @infobox[:parameters] = [["foo", "{{{foo bar|}}}"], ["bar", "{{{bar}}}"], ["baz", "foo {{{bar|}}}"]]
-    @editor.write_infobox(@infobox).should ==
-      "{{Infobox Logiciel\n| foo = \n| bar = {{{bar}}}\n| baz = foo {{{bar|}}}\n}}"
+    params = [["foo", "{{{foo bar|}}}"], ["bar", "{{{bar}}}"], ["baz", "foo {{{bar|}}}"]]
+    @editor.remove_almost_empty(params)
+    params.should == [["foo", ""], ["bar", "{{{bar}}}"], ["baz", "foo {{{bar|}}}"]]
   end
   
   it "should remove notice about firefox screenshot" do
-    @infobox[:parameters] = [["image", "foo <!-- Ne pas changer la capture d'écran, sauf grand changement. Et utilisez la page d'accueil de Wikipédia pour la capture, pas la page de Firefox. Prenez une capture à une taille « normale » (de 800*600 à 1024*780), désactiver les extensions et prenez le thème par défaut. -->bar"]]
-    @editor.write_infobox(@infobox).should ==
-      "{{Infobox Logiciel\n| image = foo bar\n}}"
+    params = [["image", "foo <!-- Ne pas changer la capture d'écran, sauf grand changement. Et utilisez la page d'accueil de Wikipédia pour la capture, pas la page de Firefox. Prenez une capture à une taille « normale » (de 800*600 à 1024*780), désactiver les extensions et prenez le thème par défaut. -->bar"]]
+    @editor.remove_firefox(params)
+    params.should == [["image", "foo bar"]]
   end
   
   it "should remove notice about firefox screenshot with newline and spaces" do
-    @infobox[:parameters] = [["image", "<!-- 
+    params = [["image", "<!-- 
                              * Ne pas changer la capture d'écran, sauf grand changement.
                              * Utiliser la page d'accueil de Wikipédia pour la capture, pas la page de Firefox.
                              * Prendre une capture à une taille « normale » (de 800*600 à 1024*780).
                              * Désactiver les extensions et prendre le thème par défaut.
                              -->bar"]]
-    @editor.write_infobox(@infobox).should ==
-      "{{Infobox Logiciel\n| image = bar\n}}"
+    @editor.remove_firefox(params)
+    params.should == [["image", "bar"]]
   end
   
   %w(janvier février mars avril mai juin
@@ -652,26 +652,47 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
     end
   end
   
+  it "should apply filters" do
+    params = [["foo", "bar"]]
+    @editor.should_receive(:fake_filter).with(params) do |parameters|
+      parameters.replace [["a", "b"]]
+    end
+    
+    @editor.filters = [:fake_filter]
+    @infobox[:parameters] = params
+    @editor.write_infobox(@infobox).should ==
+      "{{Infobox Logiciel\n| a = b\n}}"
+  end
+  
+  it "should have default filters" do
+    @editor.filters.should == [
+      :rename_parameters,
+      :remove_open_source,
+      :remove_almost_empty,
+      :remove_firefox,
+      :rewrite_dates,
+    ]
+  end
+  
   it "should call rewrite_date with all values and replace with result" do
-    @infobox[:parameters] = [
+    params = [
       ["foo", "bar"],
       ["baz", "baz2"],
     ]
     @editor.should_receive(:rewrite_date).with("bar").and_return("1")
     @editor.should_receive(:rewrite_date).with("baz2").and_return("baz2")
-    @editor.write_infobox(@infobox).should ==
-      "{{Infobox Logiciel\n| foo = 1\n| baz = baz2\n}}"
+    @editor.rewrite_dates(params)
+    params.should == [
+      ["foo", "1"],
+      ["baz", "baz2"],
+    ]
   end
   
-  it "should call rename_parameters with name_changes" do
-    @infobox[:parameters] = [["foo", "foo"], ["bar baz", "value"]]
+  it "should rename_parameters with name_changes" do
+    params = [["foo", "foo"], ["bar baz", "value"]]
     @editor.name_changes = { "foo" => "new foo", "bar baz" => "bob" }
-    @editor.should_receive(:rename_parameters) do |parameters, changes|
-      changes.should == @editor.name_changes
-      parameters.replace [["foo", "bar"]]
-    end
-    @editor.write_infobox(@infobox).should ==
-      "{{Infobox Logiciel\n| foo = bar\n}}"
+    @editor.rename_parameters(params)
+    params.should == [["new foo", "foo"], ["bob", "value"]]
   end
   
   it "should have default name_changes" do
