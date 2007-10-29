@@ -612,13 +612,46 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       "{{Infobox Logiciel\n| image = bar\n}}"
   end
   
+  %w(janvier février mars avril mai juin
+     juillet août septembre octobre novembre décembre).map { |month|
+      [month, month.capitalize]
+  }.flatten.each do |month|
+    emonth = month.downcase
+    {
+      "[[1er #{month}]] [[1998]]" => "{{Date|1|#{emonth}|1998}}",
+      "[[18 #{month}]] [[2005]]" => "{{Date|18|#{emonth}|2005}}",
+      "[[31 #{month}]] [[2036]]" => "{{Date|31|#{emonth}|2036}}",
+      "[[04 #{month}]] [[1950]]" => "{{Date|4|#{emonth}|1950}}",
+      "a[[04 #{month}]] [[1950]]" => "a[[04 #{month}]] [[1950]]",
+      "[[04 #{month}]] [[1950]]b" => "[[04 #{month}]] [[1950]]b",
+      "04 #{month} 1950" => "{{Date|4|#{emonth}|1950}}",
+      "04 #{month}? 1950" => "04 #{month}? 1950",
+      "le 04 #{month} 1950" => "le 04 #{month} 1950",
+      "[[04 fevrier]] [[1950]]" => "[[04 fevrier]] [[1950]]",
+      "[[004 #{month}]] [[1950]]" => "[[004 #{month}]] [[1950]]",
+      "[[4 #{month}]] [[19510]]" => "[[4 #{month}]] [[19510]]",
+      "4 #{month} [[1951]]" => "{{Date|4|#{emonth}|1951}}",
+      "[[18 #{month}]], [[2005]]" => "{{Date|18|#{emonth}|2005}}",
+      "[[18 #{month}]] foo [[2005]]" => "[[18 #{month}]] foo [[2005]]",
+      "01 [[#{month}]] [[2005]]" => "{{Date|1|#{emonth}|2005}}",
+      "07 [[#{month} (mois)|#{month}]] [[2005]]" => "{{Date|7|#{emonth}|2005}}",
+      "[[#{month}]] [[2003]]" => "[[#{month}]] [[2003]]",
+      "[[#{month} (mois)|#{month}]] [[2003]]" => "[[#{month} (mois)|#{month}]] [[2003]]",
+      "{{1er #{month}}} [[2007]]" => "{{Date|1|#{emonth}|2007}}",
+    }.each do |text, result|
+      it "should rewrite_date #{text.inspect} to #{result.inspect}" do
+        @editor.rewrite_date(text).should == result
+      end
+    end
+  end
+  
   it "should call rewrite_date" do
     @infobox[:parameters] = [
       ["foo", "bar"],
       ["baz", "baz2"],
     ]
-    Piglobot::Tools.should_receive(:rewrite_date).with("bar").and_return("1")
-    Piglobot::Tools.should_receive(:rewrite_date).with("baz2").and_return("baz2")
+    @editor.should_receive(:rewrite_date).with("bar").and_return("1")
+    @editor.should_receive(:rewrite_date).with("baz2").and_return("baz2")
     @editor.write_infobox(@infobox).should ==
       "{{Infobox Logiciel\n| foo = 1\n| baz = baz2\n}}"
   end
@@ -848,38 +881,5 @@ describe Piglobot::Tools do
     f.should_receive(:puts).with(log_line).once
     
     Piglobot::Tools.log("text")
-  end
-  
-  %w(janvier février mars avril mai juin
-     juillet août septembre octobre novembre décembre).map { |month|
-      [month, month.capitalize]
-  }.flatten.each do |month|
-    emonth = month.downcase
-    {
-      "[[1er #{month}]] [[1998]]" => "{{Date|1|#{emonth}|1998}}",
-      "[[18 #{month}]] [[2005]]" => "{{Date|18|#{emonth}|2005}}",
-      "[[31 #{month}]] [[2036]]" => "{{Date|31|#{emonth}|2036}}",
-      "[[04 #{month}]] [[1950]]" => "{{Date|4|#{emonth}|1950}}",
-      "a[[04 #{month}]] [[1950]]" => "a[[04 #{month}]] [[1950]]",
-      "[[04 #{month}]] [[1950]]b" => "[[04 #{month}]] [[1950]]b",
-      "04 #{month} 1950" => "{{Date|4|#{emonth}|1950}}",
-      "04 #{month}? 1950" => "04 #{month}? 1950",
-      "le 04 #{month} 1950" => "le 04 #{month} 1950",
-      "[[04 fevrier]] [[1950]]" => "[[04 fevrier]] [[1950]]",
-      "[[004 #{month}]] [[1950]]" => "[[004 #{month}]] [[1950]]",
-      "[[4 #{month}]] [[19510]]" => "[[4 #{month}]] [[19510]]",
-      "4 #{month} [[1951]]" => "{{Date|4|#{emonth}|1951}}",
-      "[[18 #{month}]], [[2005]]" => "{{Date|18|#{emonth}|2005}}",
-      "[[18 #{month}]] foo [[2005]]" => "[[18 #{month}]] foo [[2005]]",
-      "01 [[#{month}]] [[2005]]" => "{{Date|1|#{emonth}|2005}}",
-      "07 [[#{month} (mois)|#{month}]] [[2005]]" => "{{Date|7|#{emonth}|2005}}",
-      "[[#{month}]] [[2003]]" => "[[#{month}]] [[2003]]",
-      "[[#{month} (mois)|#{month}]] [[2003]]" => "[[#{month} (mois)|#{month}]] [[2003]]",
-      "{{1er #{month}}} [[2007]]" => "{{Date|1|#{emonth}|2007}}",
-    }.each do |text, result|
-      it "should rewrite_date #{text.inspect} to #{result.inspect}" do
-        Piglobot::Tools.rewrite_date(text).should == result
-      end
-    end
   end
 end

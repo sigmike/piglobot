@@ -605,9 +605,38 @@ class Piglobot::Editor
     }
   end
   
+  def rewrite_date(value)
+    if value =~ /\A\{\{(1er) (.+)\}\} \[\[(\d{4})\]\]\Z/ or
+      value =~ /\A\[\[(.+) (.+)\]\],? \[\[(\d{4})\]\]\Z/ or
+      value =~ /\A(.+) (.+) (\d{4})\Z/ or
+      value =~ /\A(.+) \[\[(.+) \(mois\)\|.+\]\] \[\[(\d{4})\]\]\Z/ or
+      value =~ /\A(.+) \[\[(.+)\]\] \[\[(\d{4})\]\]\Z/ or
+      value =~ /\A(.+) (.+) \[\[(\d{4})\]\]\Z/
+      if $3
+        day = $1
+        month = $2
+        year = $3
+      else
+        day = ""
+        month = $1
+        year = $2
+      end
+      if ((day =~ /\A\d+\Z/ and day.size <= 2) or day == "1er" or day.empty?) and
+        %w(janvier février mars avril mai juin juillet août septembre
+        octobre novembre décembre).map { |m|
+          [m, m.capitalize]
+        }.flatten.include? month
+        day = "1" if day == "1er"
+        day.sub! /\A0+/, ""
+        value = "{{Date|#{day}|#{month.downcase}|#{year}}}"
+      end
+    end
+    value
+  end
+  
   def rewrite_dates(parameters)
     parameters.map! { |name, value|
-      value = Piglobot::Tools.rewrite_date(value)
+      value = rewrite_date(value)
       [name, value]
     }
   end
@@ -698,35 +727,6 @@ module Piglobot::Tools
     File.open("piglobot.log", "a") { |f|
       f.puts line
     }
-  end
-  
-  def rewrite_date(value)
-    if value =~ /\A\{\{(1er) (.+)\}\} \[\[(\d{4})\]\]\Z/ or
-      value =~ /\A\[\[(.+) (.+)\]\],? \[\[(\d{4})\]\]\Z/ or
-      value =~ /\A(.+) (.+) (\d{4})\Z/ or
-      value =~ /\A(.+) \[\[(.+) \(mois\)\|.+\]\] \[\[(\d{4})\]\]\Z/ or
-      value =~ /\A(.+) \[\[(.+)\]\] \[\[(\d{4})\]\]\Z/ or
-      value =~ /\A(.+) (.+) \[\[(\d{4})\]\]\Z/
-      if $3
-        day = $1
-        month = $2
-        year = $3
-      else
-        day = ""
-        month = $1
-        year = $2
-      end
-      if ((day =~ /\A\d+\Z/ and day.size <= 2) or day == "1er" or day.empty?) and
-        %w(janvier février mars avril mai juin juillet août septembre
-        octobre novembre décembre).map { |m|
-          [m, m.capitalize]
-        }.flatten.include? month
-        day = "1" if day == "1er"
-        day.sub! /\A0+/, ""
-        value = "{{Date|#{day}|#{month.downcase}|#{year}}}"
-      end
-    end
-    value
   end
 end
 
