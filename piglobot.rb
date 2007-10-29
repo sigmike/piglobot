@@ -267,27 +267,13 @@ class Piglobot::Dump
   end
 end
 
-class Piglobot::Editor
+class Piglobot::TemplateParser
   # Code ported from http://svn.wikimedia.org/svnroot/mediawiki/trunk/phase3/includes/Parser.php
   # on revision 26849
   
+  attr_accessor :template_names
+  
   OT_MSG = 1
-  
-  def initialize(wiki)
-    @wiki = wiki
-  end
-  
-  def parse_infobox(text)
-    titles = ["Infobox Logiciel",
-      "Logiciel simple", "logiciel simple",
-      "Logiciel_simple", "logiciel_simple",
-      "Logiciel", "logiciel",
-      "Infobox Software", "infobox Software",
-      "Infobox_Software", "infobox_Software",
-    ]
-
-    find_template(text, titles)
-  end
   
   def replace_callback(text, callbacks)
     openingBraceStack = [] # this array will hold a stack of parentheses which are not closed yet
@@ -505,7 +491,7 @@ class Piglobot::Editor
   def argSubstitution(args, before, after)
   end
   
-  def find_template(text, titles)
+  def find_template(text)
     @max_include_size = 4096
     @output_type = OT_MSG
     @arg_stack = []
@@ -514,7 +500,7 @@ class Piglobot::Editor
     replace_variables(text)
     t = @templates.find { |template|
       title = template[0]["title"]
-      titles.include? title
+      @template_names.include? title
     }
     if t
       parameters = t.first["parts"] || []
@@ -550,85 +536,108 @@ class Piglobot::Editor
       nil
     end
   end
+end
+
+class Piglobot::Editor
+  def initialize(wiki)
+    @wiki = wiki
   
-  def write_infobox(box)
-    if box[:parameters].empty?
-      args = ""
-    else
-      args = "\n" + box[:parameters].map { |name, value|
-        name = case name
-        when "dernière_version" then "dernière version"
-        when "date_de_dernière_version" then "date de dernière version"
-        when "version_avancée" then "version avancée"
-        when "date_de_version_avancée" then "date de version avancée"
-        when "os" then "environnement"
-        when "site_web" then "site web"
-        when "name" then "nom"
-        when "screenshot" then "image"
-        when "caption" then "description"
-        when "developer" then "développeur"
-        when "latest release version" then "dernière version"
-        when "latest release date" then "date de dernière version"
-        when "latest preview version" then "dernière version avancée"
-        when "latest preview date" then "date de dernière version avancée"
-        when "latest_release_version" then "dernière version"
-        when "latest_release_date" then "date de dernière version"
-        when "latest_preview_version" then "dernière version avancée"
-        when "latest_preview_date" then "date de dernière version avancée"
-        when "platform" then "environnement"
-        when "operating system" then "environnement"
-        when "operating_system" then "environnement"
-        when "language" then "langue"
-        when "genre" then "type"
-        when "license" then "licence"
-        when "website" then "site web"
-        else name
-        end
-        if name == "type" and value =~ /(.+?) +\(\[\[open source\]\]\)$/
-          value = $1
-        end
-        value = "" if value == "?"
-        value = "" if value == "??"
-        value = "" if value == "-"
-        value = "" if value =~ /\A\{\{\{.+\|\}\}\}\Z/
-        firefox_text = "<!-- Ne pas changer la capture d'écran, sauf grand changement. Et utilisez la page d'accueil de Wikipédia pour la capture, pas la page de Firefox. Prenez une capture à une taille « normale » (de 800*600 à 1024*780), désactiver les extensions et prenez le thème par défaut. -->"
-        if value =~ /\A(.*)#{Regexp.escape(firefox_text)}(.*)\Z/
-          value = $1 + $2
-        end
-        firefox_text = "<!-- 
+    @name_changes = {
+      "dernière_version" => "dernière version",
+      "date_de_dernière_version" => "date de dernière version",
+      "version_avancée" => "version avancée",
+      "date_de_version_avancée" => "date de version avancée",
+      "os" => "environnement",
+      "site_web" => "site web",
+      "name" => "nom",
+      "screenshot" => "image",
+      "caption" => "description",
+      "developer" => "développeur",
+      "latest release version" => "dernière version",
+      "latest release date" => "date de dernière version",
+      "latest preview version" => "dernière version avancée",
+      "latest preview date" => "date de dernière version avancée",
+      "latest_release_version" => "dernière version",
+      "latest_release_date" => "date de dernière version",
+      "latest_preview_version" => "dernière version avancée",
+      "latest_preview_date" => "date de dernière version avancée",
+      "platform" => "environnement",
+      "operating system" => "environnement",
+      "operating_system" => "environnement",
+      "language" => "langue",
+      "genre" => "type",
+      "license" => "licence",
+      "website" => "site web",
+    }
+  
+    @template_names = ["Infobox Logiciel",
+      "Logiciel simple", "logiciel simple",
+      "Logiciel_simple", "logiciel_simple",
+      "Logiciel", "logiciel",
+      "Infobox Software", "infobox Software",
+      "Infobox_Software", "infobox_Software",
+    ]
+    
+    @template_name = "Infobox Logiciel"
+  end
+  
+  def parse_infobox(text)
+    parser = Piglobot::TemplateParser.new
+    parser.template_names = @template_names
+    parser.find_template(text)
+  end
+  
+  def rename_parameters(parameters, changes)
+    parameters.map! { |name, value|
+      if changes.has_key? name
+        name = changes[name]
+      end
+      [name, value]
+    }
+  end
+  
+  def gsub_value(parameters, param_name, regexp, replacement)
+    parameters.map! { |name, value|
+      if param_name == :any or name == param_name
+        value = value.gsub regexp, replacement
+      end
+      [name, value]
+    }
+  end
+  
+  def rewrite_dates(parameters)
+    parameters.map! { |name, value|
+      value = Piglobot::Tools.rewrite_date(value)
+      [name, value]
+    }
+  end
+  
+  def remove_firefox(parameters)
+    firefox_text = "<!-- Ne pas changer la capture d'écran, sauf grand changement. Et utilisez la page d'accueil de Wikipédia pour la capture, pas la page de Firefox. Prenez une capture à une taille « normale » (de 800*600 à 1024*780), désactiver les extensions et prenez le thème par défaut. -->"
+    gsub_value(parameters, "image", /\A(.*)#{Regexp.escape(firefox_text)}(.*)\Z/, '\1\2')
+    firefox_text = "<!-- 
                              * Ne pas changer la capture d'écran, sauf grand changement.
                              * Utiliser la page d'accueil de Wikipédia pour la capture, pas la page de Firefox.
                              * Prendre une capture à une taille « normale » (de 800*600 à 1024*780).
                              * Désactiver les extensions et prendre le thème par défaut.
                              -->"
-        if value =~ /\A#{Regexp.escape(firefox_text)}(.*)\Z/
-          value = $1
-        end
-        if value =~ /\A\{\{(1er) (.+)\}\} \[\[(\d{4})\]\]\Z/ or
-          value =~ /\A\[\[(.+) (.+)\]\],? \[\[(\d{4})\]\]\Z/ or
-          value =~ /\A(.+) (.+) (\d{4})\Z/ or
-          value =~ /\A(.+) \[\[(.+) \(mois\)\|.+\]\] \[\[(\d{4})\]\]\Z/ or
-          value =~ /\A(.+) \[\[(.+)\]\] \[\[(\d{4})\]\]\Z/ or
-          value =~ /\A(.+) (.+) \[\[(\d{4})\]\]\Z/
-          if $3
-            day = $1
-            month = $2
-            year = $3
-          else
-            day = ""
-            month = $1
-            year = $2
-          end
-          if ((day =~ /\A\d+\Z/ and day.size <= 2) or day == "1er" or day.empty?) and
-            %w(janvier février mars avril mai juin juillet août septembre
-            octobre novembre décembre).map { |m|
-              [m, m.capitalize]
-            }.flatten.include? month
-            day = "1" if day == "1er"
-            day.sub! /\A0+/, ""
-            value = "{{Date|#{day}|#{month.downcase}|#{year}}}"
-          end
-        end
+    gsub_value(parameters, "image", /\A#{Regexp.escape(firefox_text)}(.*)\Z/, '\1')
+  end
+  
+  def write_infobox(box)
+    if box[:parameters].empty?
+      args = ""
+    else
+      parameters = box[:parameters]
+      rename_parameters(parameters, @name_changes)
+      gsub_value(parameters, "type", /(.+?) +\(\[\[open source\]\]\)$/, '\1')
+      gsub_value(parameters, :any, /\A\?\??\Z/, "")
+      gsub_value(parameters, :any, /\A-\Z/, "")
+      gsub_value(parameters, :any, /\A\{\{\{.+\|\}\}\}\Z/, "")
+      remove_firefox(parameters)
+      rewrite_dates(parameters)
+      
+      args = "\n" + parameters.map { |name, value|
         if name.nil?
           "| #{value}\n"
         elsif name.empty?
@@ -638,7 +647,7 @@ class Piglobot::Editor
         end
       }.join
     end
-    "#{box[:before]}{{Infobox Logiciel#{args}}}#{box[:after]}"
+    "#{box[:before]}{{#{@template_name}#{args}}}#{box[:after]}"
   end
 end
 
@@ -689,6 +698,35 @@ module Piglobot::Tools
     File.open("piglobot.log", "a") { |f|
       f.puts line
     }
+  end
+  
+  def rewrite_date(value)
+    if value =~ /\A\{\{(1er) (.+)\}\} \[\[(\d{4})\]\]\Z/ or
+      value =~ /\A\[\[(.+) (.+)\]\],? \[\[(\d{4})\]\]\Z/ or
+      value =~ /\A(.+) (.+) (\d{4})\Z/ or
+      value =~ /\A(.+) \[\[(.+) \(mois\)\|.+\]\] \[\[(\d{4})\]\]\Z/ or
+      value =~ /\A(.+) \[\[(.+)\]\] \[\[(\d{4})\]\]\Z/ or
+      value =~ /\A(.+) (.+) \[\[(\d{4})\]\]\Z/
+      if $3
+        day = $1
+        month = $2
+        year = $3
+      else
+        day = ""
+        month = $1
+        year = $2
+      end
+      if ((day =~ /\A\d+\Z/ and day.size <= 2) or day == "1er" or day.empty?) and
+        %w(janvier février mars avril mai juin juillet août septembre
+        octobre novembre décembre).map { |m|
+          [m, m.capitalize]
+        }.flatten.include? month
+        day = "1" if day == "1er"
+        day.sub! /\A0+/, ""
+        value = "{{Date|#{day}|#{month.downcase}|#{year}}}"
+      end
+    end
+    value
   end
 end
 
