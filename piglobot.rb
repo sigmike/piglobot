@@ -208,18 +208,16 @@ class Piglobot
 end
 
 class Piglobot::Editor
-  attr_accessor :name_changes, :template_names, :template_name, :filters
+  attr_accessor :name_changes, :template_names, :template_name, :filters, :removable_parameters
 
   def initialize(wiki)
     @wiki = wiki
   
     @name_changes = {}
-  
     @template_names = []
-    
     @template_name = nil
-  
     @filters = []
+    @removable_parameters = []
   end
   
   def setup(action = nil)
@@ -277,6 +275,7 @@ class Piglobot::Editor
       }
       @filters = [
         :rename_parameters,
+        :remove_parameters,
         :rewrite_dates,
       ]
       @template_name = "Infobox Aire protégée"
@@ -297,6 +296,7 @@ class Piglobot::Editor
         "web_site" => "site web",
         "comments" => "remarque",
       }
+      @removable_parameters = ["back_color", "label"]
     else
       @template_names = []
     end
@@ -317,6 +317,12 @@ class Piglobot::Editor
         name = changes[name]
       end
       [name, value]
+    }
+  end
+  
+  def remove_parameters(params)
+    params.delete_if { |name, value|
+      @removable_parameters.include? name
     }
   end
   

@@ -382,6 +382,7 @@ describe Piglobot::Editor, " with default values", :shared => true do
     @filters = []
     @template_name = nil
     @name_changes = {}
+    @removable_parameters = []
   end
   
   it "should have template_names" do
@@ -398,6 +399,10 @@ describe Piglobot::Editor, " with default values", :shared => true do
   
   it "should have name_changes" do
     @editor.name_changes.should == @name_changes
+  end
+
+  it "should have removable_parameters" do
+    @editor.removable_parameters.should == @removable_parameters
   end
 end
 
@@ -467,6 +472,7 @@ describe Piglobot::Editor, " working on Infobox Aire protégée" do
     ]
     @filters = [
       :rename_parameters,
+      :remove_parameters,
       :rewrite_dates,
     ]
     @template_name = "Infobox Aire protégée"
@@ -487,9 +493,8 @@ describe Piglobot::Editor, " working on Infobox Aire protégée" do
       "web_site" => "site web",
       "comments" => "remarque",
     }
+    @removable_parameters = ["back_color", "label"]
 =begin
-    * supprimer back_color
-    * supprimer label
     * image => carte (seulement sur aire, et pas Aire)
     * lat_degrees, lat_minutes, lat_seconds, lat_direction, long_degrees, long_minutes, long_seconds, long_direction => coordonnées = {{coord|lat_degrees|lat_minutes|lat_seconds|lat_direction|long_degrees|long_minutes|long_seconds|long_direction}}
 =end
@@ -873,6 +878,13 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
   
   it "should have a default template_name" do
     @editor.template_name.should == "Infobox Logiciel"
+  end
+  
+  it "should remove parameters" do
+    @editor.removable_parameters = ["foo", "baz", "bob"]
+    params = [["foo", "bar"], ["bar", "baz"], ["baz", ""]]
+    @editor.remove_parameters(params)
+    params.should == [["bar", "baz"]]
   end
 end
 
