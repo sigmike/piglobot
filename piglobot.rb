@@ -213,45 +213,13 @@ class Piglobot::Editor
   def initialize(wiki)
     @wiki = wiki
   
-    @name_changes = {
-      "dernière_version" => "dernière version",
-      "date_de_dernière_version" => "date de dernière version",
-      "version_avancée" => "version avancée",
-      "date_de_version_avancée" => "date de version avancée",
-      "os" => "environnement",
-      "site_web" => "site web",
-      "name" => "nom",
-      "screenshot" => "image",
-      "caption" => "description",
-      "developer" => "développeur",
-      "latest release version" => "dernière version",
-      "latest release date" => "date de dernière version",
-      "latest preview version" => "dernière version avancée",
-      "latest preview date" => "date de dernière version avancée",
-      "latest_release_version" => "dernière version",
-      "latest_release_date" => "date de dernière version",
-      "latest_preview_version" => "dernière version avancée",
-      "latest_preview_date" => "date de dernière version avancée",
-      "platform" => "environnement",
-      "operating system" => "environnement",
-      "operating_system" => "environnement",
-      "language" => "langue",
-      "genre" => "type",
-      "license" => "licence",
-      "website" => "site web",
-    }
+    @name_changes = {}
   
     @template_names = []
     
-    @template_name = "Infobox Logiciel"
+    @template_name = nil
   
-    @filters = [
-      :rename_parameters,
-      :remove_open_source,
-      :remove_almost_empty,
-      :remove_firefox,
-      :rewrite_dates,
-    ]
+    @filters = []
   end
   
   def setup(action = nil)
@@ -264,6 +232,55 @@ class Piglobot::Editor
         "Infobox Software",
         "Infobox_Software",
       ]
+      @name_changes = {
+        "dernière_version" => "dernière version",
+        "date_de_dernière_version" => "date de dernière version",
+        "version_avancée" => "version avancée",
+        "date_de_version_avancée" => "date de version avancée",
+        "os" => "environnement",
+        "site_web" => "site web",
+        "name" => "nom",
+        "screenshot" => "image",
+        "caption" => "description",
+        "developer" => "développeur",
+        "latest release version" => "dernière version",
+        "latest release date" => "date de dernière version",
+        "latest preview version" => "dernière version avancée",
+        "latest preview date" => "date de dernière version avancée",
+        "latest_release_version" => "dernière version",
+        "latest_release_date" => "date de dernière version",
+        "latest_preview_version" => "dernière version avancée",
+        "latest_preview_date" => "date de dernière version avancée",
+        "platform" => "environnement",
+        "operating system" => "environnement",
+        "operating_system" => "environnement",
+        "language" => "langue",
+        "genre" => "type",
+        "license" => "licence",
+        "website" => "site web",
+      }
+      @filters = [
+        :rename_parameters,
+        :remove_open_source,
+        :remove_almost_empty,
+        :remove_firefox,
+        :rewrite_dates,
+      ]
+
+      @template_name = "Infobox Logiciel"
+    when "Infobox Aire protégée"
+      @template_names = [
+        "Infobox Aire protégée",
+        "Infobox aire protégée",
+      ]
+      @name_changes = {
+      }
+      @filters = [
+        :rename_parameters,
+        :rewrite_dates,
+      ]
+      @template_name = "Infobox Aire protégée"
+
     else
       @template_names = []
     end

@@ -381,6 +381,7 @@ describe Piglobot::Editor, " with default values", :shared => true do
     @template_names = []
     @filters = []
     @template_name = nil
+    @name_changes = {}
   end
   
   it "should have template_names" do
@@ -394,6 +395,14 @@ describe Piglobot::Editor, " with default values", :shared => true do
   it "should have template_name" do
     @editor.template_name.should == @template_name
   end
+  
+  it "should have name_changes" do
+    @editor.name_changes.should == @name_changes
+  end
+end
+
+describe Piglobot::Editor, " with real default values" do
+  it_should_behave_like "Piglobot::Editor with default values"
 end
 
 describe Piglobot::Editor, " working on Infobox Logiciel" do
@@ -417,6 +426,63 @@ describe Piglobot::Editor, " working on Infobox Logiciel" do
       :rewrite_dates,
     ]
     @template_name = "Infobox Logiciel"
+    @name_changes = {
+      "dernière_version" => "dernière version",
+      "date_de_dernière_version" => "date de dernière version",
+      "version_avancée" => "version avancée",
+      "date_de_version_avancée" => "date de version avancée",
+      "os" => "environnement",
+      "site_web" => "site web",
+      "name" => "nom",
+      "screenshot" => "image",
+      "caption" => "description",
+      "developer" => "développeur",
+      "latest release version" => "dernière version",
+      "latest release date" => "date de dernière version",
+      "latest preview version" => "dernière version avancée",
+      "latest preview date" => "date de dernière version avancée",
+      "latest_release_version" => "dernière version",
+      "latest_release_date" => "date de dernière version",
+      "latest_preview_version" => "dernière version avancée",
+      "latest_preview_date" => "date de dernière version avancée",
+      "platform" => "environnement",
+      "operating system" => "environnement",
+      "operating_system" => "environnement",
+      "language" => "langue",
+      "genre" => "type",
+      "license" => "licence",
+      "website" => "site web",
+    }
+  end
+end
+
+describe Piglobot::Editor, " working on Infobox Aire protégée" do
+  it_should_behave_like "Piglobot::Editor with default values"
+  
+  before do
+    @editor.setup "Infobox Aire protégée"
+    @template_names = [
+      "Infobox Aire protégée",
+      "Infobox aire protégée",
+    ]
+    @filters = [
+      :rename_parameters,
+      :rewrite_dates,
+    ]
+    @template_name = "Infobox Aire protégée"
+  end
+  
+  it "should parse and write real case" do
+    text = File.read("parc_national_des_arches.txt")
+    result = File.read("parc_national_des_arches_result.txt")
+    infobox = @editor.parse_infobox(text)
+    infobox[:parameters].should include(["name", "Arches"])
+    @editor.write_infobox(infobox).should == result
+  end
+  
+  it "should rewrite template name" do
+    box = { :before => "", :after => "", :parameters => "" }
+    @editor.write_infobox(box).should == "{{Infobox Aire protégée}}"
   end
 end
 
@@ -623,6 +689,7 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       :after => "",
       :parameters => [],
     }
+    @editor.template_name = "Infobox Logiciel"
   end
   
   it "should write empty infobox" do
@@ -767,33 +834,7 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
   end
   
   it "should have default name_changes" do
-    @editor.name_changes.should == {
-      "dernière_version" => "dernière version",
-      "date_de_dernière_version" => "date de dernière version",
-      "version_avancée" => "version avancée",
-      "date_de_version_avancée" => "date de version avancée",
-      "os" => "environnement",
-      "site_web" => "site web",
-      "name" => "nom",
-      "screenshot" => "image",
-      "caption" => "description",
-      "developer" => "développeur",
-      "latest release version" => "dernière version",
-      "latest release date" => "date de dernière version",
-      "latest preview version" => "dernière version avancée",
-      "latest preview date" => "date de dernière version avancée",
-      "latest_release_version" => "dernière version",
-      "latest_release_date" => "date de dernière version",
-      "latest_preview_version" => "dernière version avancée",
-      "latest_preview_date" => "date de dernière version avancée",
-      "platform" => "environnement",
-      "operating system" => "environnement",
-      "operating_system" => "environnement",
-      "language" => "langue",
-      "genre" => "type",
-      "license" => "licence",
-      "website" => "site web",
-    }
+    @editor.name_changes.should == {}
   end
   
   it "should use template_name" do
