@@ -42,7 +42,7 @@ class Piglobot
     ]
   end
   
-  def process_infobox(data, infobox)
+  def process_infobox(data, infobox, link)
     changes = false
     
     articles = data[infobox]
@@ -81,7 +81,7 @@ class Piglobot
         end
       end
     else
-      articles = @wiki.links("Modèle:#{infobox}")
+      articles = @wiki.links(link)
       articles.delete_if { |name| name =~ /:/ and name !~ /::/ }
       data[infobox] = articles
       text = "~~~~~ : #{infobox} : #{articles.size} articles à traiter"
@@ -135,10 +135,10 @@ class Piglobot
       case @job
       when "Infobox Logiciel"
         @editor.setup("Infobox Logiciel")
-        changes = process_infobox(data, "Infobox Logiciel")
+        changes = process_infobox(data, "Infobox Logiciel", "Modèle:Infobox Logiciel")
       when "Infobox Aire protégée"
         @editor.setup("Infobox Aire protégée")
-        changes = process_infobox(data, "Infobox Aire protégée")
+        changes = process_infobox(data, "Infobox Aire protégée", "Modèle:Infobox aire protégée")
       when "Homonymes"
         changes = process_homonyms(data)
       else

@@ -253,14 +253,17 @@ end
 describe Piglobot, " working on infoboxes" do
   it_should_behave_like "Piglobot"
   
-  ["Infobox Logiciel", "Infobox Aire protégée"].each do |infobox|
+  [
+    ["Infobox Logiciel", "Modèle:Infobox Logiciel"],
+    ["Infobox Aire protégée", "Modèle:Infobox aire protégée"],
+  ].each do |infobox, link|
     it "should process #{infobox}" do
       data = mock("data")
       changes = mock("changes")
       
       @dump.should_receive(:load_data).and_return(data)
       @editor.should_receive(:setup).with(infobox)
-      @bot.should_receive(:process_infobox).with(data, infobox).and_return(changes)
+      @bot.should_receive(:process_infobox).with(data, infobox, link).and_return(changes)
       @dump.should_receive(:save_data).with(data)
       
       @bot.job = infobox
@@ -284,10 +287,11 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
     @data = { "Foo" => "Bar"}
     create_bot
     @name = RandomTemplate.random_name
+    @link = "link"
   end
   
   def process
-    @bot.process_infobox(@data, @name)
+    @bot.process_infobox(@data, @name, @link)
   end
   
   def set_data(data)
@@ -303,7 +307,7 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
   end
   
   it "should get infobox links when data is empty" do
-    @wiki.should_receive(:links, "Modèle:#@name").and_return(["Foo", "Bar", "Baz"])
+    @wiki.should_receive(:links, @link).and_return(["Foo", "Bar", "Baz"])
     text = "~~~~~ : #@name : 3 articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     process.should == false
@@ -357,7 +361,7 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
   
   it "should get infobox links when list is empty" do
     set_data []
-    @wiki.should_receive(:links, "Modèle:#@name").and_return(["A", "B"])
+    @wiki.should_receive(:links, @link).and_return(["A", "B"])
     text = "~~~~~ : #@name : 2 articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     process.should == false
@@ -366,7 +370,7 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
   
   it "should ignore links in namespace" do
     set_data []
-    @wiki.should_receive(:links, "Modèle:#@name").and_return(["A", "B", "C:D", "E:F", "G::H", "I:J"])
+    @wiki.should_receive(:links, @link).and_return(["A", "B", "C:D", "E:F", "G::H", "I:J"])
     expected = ["A", "B", "G::H"]
     text = "~~~~~ : #@name : #{expected.size} articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
