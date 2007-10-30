@@ -46,6 +46,135 @@ describe Piglobot, :shared => true do
     @dump.should_receive(:load_data).and_return({})
     lambda { @bot.process }.should raise_error(RuntimeError, "Invalid job: \"Foo\"")
   end
+
+  [
+    "STOP",
+    "stop",
+    "Stop",
+    "fooStOpbar",
+    "\nStop!\nsnul",
+  ].each do |text|
+    it "should return false and log on safety_check when #{text.inspect} is on disable page" do
+      @wiki.should_receive(:get).with("Utilisateur:Piglobot/Arrêt d'urgence").and_return(text)
+      Piglobot::Tools.should_receive(:log).with("Arrêt d'urgence : #{text}").once
+      @bot.safety_check.should == false
+    end
+  end
+  
+  [
+    "STO",
+    "foo",
+    "S t o p",
+    "ST\nOP",
+  ].each do |text|
+    it "should return true on safety_check when #{text.inspect} is on disable page" do
+      @wiki.should_receive(:get).with("Utilisateur:Piglobot/Arrêt d'urgence").and_return(text)
+      @bot.safety_check.should == true
+    end
+  end
+  
+  it "should sleep 60 seconds on sleep" do
+    log_done = false
+    Piglobot::Tools.should_receive(:log).with("Sleep 60 seconds").once {
+      log_done = true
+    }
+    Kernel.should_receive(:sleep).ordered.with(60).once {
+      log_done.should == true
+    }
+    @bot.sleep
+  end
+  
+  it "should sleep 10 minutes on long_sleep" do
+    log_done = false
+    Piglobot::Tools.should_receive(:log).with("Sleep 10 minutes").once {
+      log_done = true
+    }
+    Kernel.should_receive(:sleep).ordered.with(10*60).once {
+      log_done.should == true
+    }
+    @bot.long_sleep
+  end
+  
+  it "should sleep 10 seconds on short_sleep" do
+    log_done = false
+    Piglobot::Tools.should_receive(:log).with("Sleep 10 seconds").once {
+      log_done = true
+    }
+    Kernel.should_receive(:sleep).ordered.with(10).once {
+      log_done.should == true
+    }
+    @bot.short_sleep
+  end
+  
+  it "should log error" do
+    e = AnyError.new("error message")
+    text = "~~~~~: error message (AnyError)"
+    e.should_receive(:backtrace).and_return(["backtrace 1", "backtrace 2"])
+    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
+    Piglobot::Tools.should_receive(:log).with("error message (AnyError)\nbacktrace 1\nbacktrace 2").once
+    @bot.log_error(e)
+  end
+  
+  it "should safety_check, process and sleep on step" do
+    @bot.should_receive(:safety_check).with().once.and_return(true)
+    @bot.should_receive(:process).with().once.and_return(true)
+    @bot.should_receive(:sleep).with().once
+    @bot.step
+  end
+  
+  it "should short_sleep if process returned false" do
+    @bot.should_receive(:safety_check).with().once.and_return(true)
+    @bot.should_receive(:process).with().once.and_return(false)
+    @bot.should_receive(:short_sleep).with().once
+    @bot.step
+  end
+  
+  it "should not process if safety_check failed" do
+    @bot.should_receive(:safety_check).with().once.and_return(false)
+    @bot.should_receive(:sleep).with().once
+    @bot.step
+  end
+  
+  it "should long_sleep on Internal Server Error during safety_check" do
+    @bot.should_receive(:safety_check).with().once.and_raise(MediaWiki::InternalServerError)
+    @bot.should_receive(:long_sleep).with().once
+    @bot.step
+  end
+  
+  it "should long_sleep on Internal Server Error during process" do
+    @bot.should_receive(:safety_check).with().once.and_return(true)
+    @bot.should_receive(:process).with().once.and_raise(MediaWiki::InternalServerError)
+    @bot.should_receive(:long_sleep).with().once
+    @bot.step
+  end
+  
+  class AnyError < Exception; end
+  it "should log exceptions during process" do
+    @bot.should_receive(:safety_check).with().once.and_return(true)
+    e = AnyError.new
+    @bot.should_receive(:process).with().once.and_raise(e)
+    @bot.should_receive(:log_error).with(e).once
+    @bot.should_receive(:sleep).with().once
+    @bot.step
+  end
+  
+  it "should abort on Interrupt during process" do
+    @bot.should_receive(:safety_check).with().once.and_return(true)
+    @bot.should_receive(:process).with().once.and_raise(Interrupt.new("interrupt"))
+    lambda { @bot.step }.should raise_error(Interrupt)
+  end
+  
+  it "should abort on Interrupt during safety_check" do
+    @bot.should_receive(:safety_check).with().once.and_raise(Interrupt.new("interrupt"))
+    lambda { @bot.step }.should raise_error(Interrupt)
+  end
+  
+  it "should abort on Interrupt during sleep" do
+    @bot.should_receive(:safety_check).with().once.and_return(true)
+    @bot.should_receive(:process).with().once.and_return(true)
+    @bot.should_receive(:sleep).with().once.and_raise(Interrupt.new("interrupt"))
+    lambda { @bot.step }.should raise_error(Interrupt)
+  end
 end
 
 describe Piglobot, " running" do
@@ -191,135 +320,6 @@ describe Piglobot, " working on Infobox Logiciel" do
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => expected, "Foo" => "Bar"})
     @bot.process.should == false
-  end
-  
-  [
-    "STOP",
-    "stop",
-    "Stop",
-    "fooStOpbar",
-    "\nStop!\nsnul",
-  ].each do |text|
-    it "should return false and log on safety_check when #{text.inspect} is on disable page" do
-      @wiki.should_receive(:get).with("Utilisateur:Piglobot/Arrêt d'urgence").and_return(text)
-      Piglobot::Tools.should_receive(:log).with("Arrêt d'urgence : #{text}").once
-      @bot.safety_check.should == false
-    end
-  end
-  
-  [
-    "STO",
-    "foo",
-    "S t o p",
-    "ST\nOP",
-  ].each do |text|
-    it "should return true on safety_check when #{text.inspect} is on disable page" do
-      @wiki.should_receive(:get).with("Utilisateur:Piglobot/Arrêt d'urgence").and_return(text)
-      @bot.safety_check.should == true
-    end
-  end
-  
-  it "should sleep 60 seconds on sleep" do
-    log_done = false
-    Piglobot::Tools.should_receive(:log).with("Sleep 60 seconds").once {
-      log_done = true
-    }
-    Kernel.should_receive(:sleep).ordered.with(60).once {
-      log_done.should == true
-    }
-    @bot.sleep
-  end
-  
-  it "should sleep 10 minutes on long_sleep" do
-    log_done = false
-    Piglobot::Tools.should_receive(:log).with("Sleep 10 minutes").once {
-      log_done = true
-    }
-    Kernel.should_receive(:sleep).ordered.with(10*60).once {
-      log_done.should == true
-    }
-    @bot.long_sleep
-  end
-  
-  it "should sleep 10 seconds on short_sleep" do
-    log_done = false
-    Piglobot::Tools.should_receive(:log).with("Sleep 10 seconds").once {
-      log_done = true
-    }
-    Kernel.should_receive(:sleep).ordered.with(10).once {
-      log_done.should == true
-    }
-    @bot.short_sleep
-  end
-  
-  it "should log error" do
-    e = AnyError.new("error message")
-    text = "~~~~~: error message (AnyError)"
-    e.should_receive(:backtrace).and_return(["backtrace 1", "backtrace 2"])
-    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
-    Piglobot::Tools.should_receive(:log).with("error message (AnyError)\nbacktrace 1\nbacktrace 2").once
-    @bot.log_error(e)
-  end
-  
-  it "should safety_check, process and sleep on step" do
-    @bot.should_receive(:safety_check).with().once.and_return(true)
-    @bot.should_receive(:process).with().once.and_return(true)
-    @bot.should_receive(:sleep).with().once
-    @bot.step
-  end
-  
-  it "should short_sleep if process returned false" do
-    @bot.should_receive(:safety_check).with().once.and_return(true)
-    @bot.should_receive(:process).with().once.and_return(false)
-    @bot.should_receive(:short_sleep).with().once
-    @bot.step
-  end
-  
-  it "should not process if safety_check failed" do
-    @bot.should_receive(:safety_check).with().once.and_return(false)
-    @bot.should_receive(:sleep).with().once
-    @bot.step
-  end
-  
-  it "should long_sleep on Internal Server Error during safety_check" do
-    @bot.should_receive(:safety_check).with().once.and_raise(MediaWiki::InternalServerError)
-    @bot.should_receive(:long_sleep).with().once
-    @bot.step
-  end
-  
-  it "should long_sleep on Internal Server Error during process" do
-    @bot.should_receive(:safety_check).with().once.and_return(true)
-    @bot.should_receive(:process).with().once.and_raise(MediaWiki::InternalServerError)
-    @bot.should_receive(:long_sleep).with().once
-    @bot.step
-  end
-  
-  class AnyError < Exception; end
-  it "should log exceptions during process" do
-    @bot.should_receive(:safety_check).with().once.and_return(true)
-    e = AnyError.new
-    @bot.should_receive(:process).with().once.and_raise(e)
-    @bot.should_receive(:log_error).with(e).once
-    @bot.should_receive(:sleep).with().once
-    @bot.step
-  end
-  
-  it "should abort on Interrupt during process" do
-    @bot.should_receive(:safety_check).with().once.and_return(true)
-    @bot.should_receive(:process).with().once.and_raise(Interrupt.new("interrupt"))
-    lambda { @bot.step }.should raise_error(Interrupt)
-  end
-  
-  it "should abort on Interrupt during safety_check" do
-    @bot.should_receive(:safety_check).with().once.and_raise(Interrupt.new("interrupt"))
-    lambda { @bot.step }.should raise_error(Interrupt)
-  end
-  
-  it "should abort on Interrupt during sleep" do
-    @bot.should_receive(:safety_check).with().once.and_return(true)
-    @bot.should_receive(:process).with().once.and_return(true)
-    @bot.should_receive(:sleep).with().once.and_raise(Interrupt.new("interrupt"))
-    lambda { @bot.step }.should raise_error(Interrupt)
   end
 end
 
