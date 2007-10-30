@@ -280,7 +280,23 @@ class Piglobot::Editor
         :rewrite_dates,
       ]
       @template_name = "Infobox Aire protégée"
-
+      @name_changes = {
+        "name" => "nom",
+        "iucn_category" => "catégorie iucn",
+        "locator_x" => "localisation x",
+        "locator_y" => "localisation y",
+        "top_image" => "image",
+        "top_caption" => "légende image",
+        "location" => "localisation",
+        "nearest_city" => "ville proche",
+        "area" => "superficie",
+        "established" => "création",
+        "visitation_num" => "visiteurs",
+        "visitation_year" => "visiteurs année",
+        "governing_body" => "administration",
+        "web_site" => "site web",
+        "comments" => "remarque",
+      }
     else
       @template_names = []
     end

@@ -470,14 +470,39 @@ describe Piglobot::Editor, " working on Infobox Aire protégée" do
       :rewrite_dates,
     ]
     @template_name = "Infobox Aire protégée"
+    @name_changes = {
+      "name" => "nom",
+      "iucn_category" => "catégorie iucn",
+      "locator_x" => "localisation x",
+      "locator_y" => "localisation y",
+      "top_image" => "image",
+      "top_caption" => "légende image",
+      "location" => "localisation",
+      "nearest_city" => "ville proche",
+      "area" => "superficie",
+      "established" => "création",
+      "visitation_num" => "visiteurs",
+      "visitation_year" => "visiteurs année",
+      "governing_body" => "administration",
+      "web_site" => "site web",
+      "comments" => "remarque",
+    }
+=begin
+    * supprimer back_color
+    * supprimer label
+    * image => carte (seulement sur aire, et pas Aire)
+    * lat_degrees, lat_minutes, lat_seconds, lat_direction, long_degrees, long_minutes, long_seconds, long_direction => coordonnées = {{coord|lat_degrees|lat_minutes|lat_seconds|lat_direction|long_degrees|long_minutes|long_seconds|long_direction}}
+=end
   end
   
   it "should parse and write real case" do
-    text = File.read("parc_national_des_arches.txt")
-    result = File.read("parc_national_des_arches_result.txt")
-    infobox = @editor.parse_infobox(text)
-    infobox[:parameters].should include(["name", "Arches"])
-    @editor.write_infobox(infobox).should == result
+    pending "missing a few things" do
+      text = File.read("parc_national_des_arches.txt")
+      result = File.read("parc_national_des_arches_result.txt")
+      infobox = @editor.parse_infobox(text)
+      infobox[:parameters].should include(["name", "Arches"])
+      @editor.write_infobox(infobox).should == result
+    end
   end
   
   it "should rewrite template name" do
