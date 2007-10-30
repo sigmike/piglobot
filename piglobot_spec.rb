@@ -187,7 +187,7 @@ end
 
 describe Piglobot, " running" do
   it "should list jobs" do
-    Piglobot.jobs.should == ["Infobox Logiciel", "Homonymes"]
+    Piglobot.jobs.should == ["Infobox Logiciel", "Homonymes", "Infobox Aire protégée"]
   end
   
   it "should step continously until Interrupt on run" do
@@ -253,17 +253,19 @@ end
 describe Piglobot, " working on infoboxes" do
   it_should_behave_like "Piglobot"
   
-  it "should process Infobox Logiciel" do
-    data = mock("data")
-    changes = mock("changes")
-    
-    @dump.should_receive(:load_data).and_return(data)
-    @editor.should_receive(:setup).with("Infobox Logiciel")
-    @bot.should_receive(:process_infobox).with(data, "Infobox Logiciel").and_return(changes)
-    @dump.should_receive(:save_data).with(data)
-    
-    @bot.job = "Infobox Logiciel"
-    @bot.process.should == changes
+  ["Infobox Logiciel", "Infobox Aire protégée"].each do |infobox|
+    it "should process #{infobox}" do
+      data = mock("data")
+      changes = mock("changes")
+      
+      @dump.should_receive(:load_data).and_return(data)
+      @editor.should_receive(:setup).with(infobox)
+      @bot.should_receive(:process_infobox).with(data, infobox).and_return(changes)
+      @dump.should_receive(:save_data).with(data)
+      
+      @bot.job = infobox
+      @bot.process.should == changes
+    end
   end
 end
 

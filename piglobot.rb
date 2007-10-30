@@ -38,6 +38,7 @@ class Piglobot
     [
       "Infobox Logiciel",
       "Homonymes",
+      "Infobox Aire protégée",
     ]
   end
   
@@ -135,6 +136,9 @@ class Piglobot
       when "Infobox Logiciel"
         @editor.setup("Infobox Logiciel")
         changes = process_infobox(data, "Infobox Logiciel")
+      when "Infobox Aire protégée"
+        @editor.setup("Infobox Aire protégée")
+        changes = process_infobox(data, "Infobox Aire protégée")
       when "Homonymes"
         changes = process_homonyms(data)
       else
