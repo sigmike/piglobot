@@ -474,6 +474,8 @@ describe Piglobot::Editor, " working on Infobox Aire protégée" do
       :rename_parameters,
       :remove_parameters,
       :rewrite_dates,
+      :rename_image_protected_area,
+      :rewrite_coordinates,
     ]
     @template_name = "Infobox Aire protégée"
     @name_changes = {
@@ -481,7 +483,6 @@ describe Piglobot::Editor, " working on Infobox Aire protégée" do
       "iucn_category" => "catégorie iucn",
       "locator_x" => "localisation x",
       "locator_y" => "localisation y",
-      "top_image" => "image",
       "top_caption" => "légende image",
       "location" => "localisation",
       "nearest_city" => "ville proche",
@@ -494,20 +495,14 @@ describe Piglobot::Editor, " working on Infobox Aire protégée" do
       "comments" => "remarque",
     }
     @removable_parameters = ["back_color", "label"]
-=begin
-    * image => carte (seulement sur aire, et pas Aire)
-    * lat_degrees, lat_minutes, lat_seconds, lat_direction, long_degrees, long_minutes, long_seconds, long_direction => coordonnées = {{coord|lat_degrees|lat_minutes|lat_seconds|lat_direction|long_degrees|long_minutes|long_seconds|long_direction}}
-=end
   end
   
   it "should parse and write real case" do
-    pending "missing a few things" do
-      text = File.read("parc_national_des_arches.txt")
-      result = File.read("parc_national_des_arches_result.txt")
-      infobox = @editor.parse_infobox(text)
-      infobox[:parameters].should include(["name", "Arches"])
-      @editor.write_infobox(infobox).should == result
-    end
+    text = File.read("parc_national_des_arches.txt")
+    result = File.read("parc_national_des_arches_result.txt")
+    infobox = @editor.parse_infobox(text)
+    infobox[:parameters].should include(["name", "Arches"])
+    @editor.write_infobox(infobox).should == result
   end
   
   it "should rewrite template name" do
@@ -521,6 +516,7 @@ describe Piglobot::Editor, " parsing Infobox Logiciel" do
     @wiki = mock("wiki")
     @editor = Piglobot::Editor.new(@wiki)
     @infobox = {
+      :name => "Infobox Logiciel",
       :before => "",
       :after => "",
       :parameters => [],
@@ -631,6 +627,7 @@ describe Piglobot::Editor, " parsing Infobox Logiciel" do
       @editor.template_names = template_names
       text = "{{#{template} | bob = mock }}"
       @infobox[:parameters] = [["bob", "mock"]]
+      @infobox[:name] = template
       @editor.parse_infobox(text).should == @infobox
     end
   end
@@ -833,6 +830,7 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
   it "should apply filters" do
     params = [["foo", "bar"]]
     @editor.should_receive(:fake_filter).with(params) do |parameters|
+      @editor.infobox.should == @infobox
       parameters.replace [["a", "b"]]
     end
     
@@ -863,6 +861,77 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
     params.should == [["new foo", "foo"], ["bob", "value"]]
   end
   
+  ["infobox aire protégée", "Infobox aire protégée"].each do |name|
+    it "should rename image on protected_area when template is #{name}" do
+      params = [["image", "map"], ["top_image", "illustration"]]
+      @editor.infobox = { :name => name }
+      @editor.rename_image_protected_area(params)
+      params.should == [["carte", "map"], ["image", "illustration"]]
+    end
+  
+    it "should rename image on protected_area when template is #{name}, inverted order" do
+      params = [["top_image", "illustration"], ["image", "map"]]
+      @editor.infobox = { :name => name }
+      @editor.rename_image_protected_area(params)
+      params.should == [["image", "illustration"], ["carte", "map"]]
+    end
+  end
+
+  it "should not rename image on protected_area when already done" do
+    params = [["carte", "map"], ["image", "illustration"]]
+    @editor.infobox = { :name => "Infobox Aire protégée" }
+    @editor.rename_image_protected_area(params)
+    params.should == [["carte", "map"], ["image", "illustration"]]
+  end
+
+  it "should not rename image on protected_area when already done, inverted order" do
+    params = [["image", "illustration"], ["carte", "map"]]
+    @editor.infobox = { :name => "Infobox Aire protégée" }
+    @editor.rename_image_protected_area(params)
+    params.should == [["image", "illustration"], ["carte", "map"]]
+  end
+  
+  it "should rewrite coordinates" do
+    params = [
+      ["foo", "bar"],
+      ["lat_degrees", "1"],
+      ["lat_minutes", "2"],
+      ["lat_seconds", "3"],
+      ["lat_direction", "4"],
+      ["long_degrees", "5"],
+      ["long_minutes", "6"],
+      ["long_seconds", "7"],
+      ["long_direction", "8"],
+      ["bar", "baz"]
+    ]
+    @editor.rewrite_coordinates(params)
+    params.should == [["foo", "bar"], ["coordonnées", "{{coord|1|2|3|4|5|6|7|8}}"], ["bar", "baz"]]
+  end
+  
+  it "should not rewrite anything when no coordinates" do
+    params = [
+      ["alat_degrees", "1"],
+      ["alat_minutes", "2"],
+      ["alat_seconds", "3"],
+      ["alat_direction", "4"],
+      ["along_degrees", "5"],
+      ["along_minutes", "6"],
+      ["along_seconds", "7"],
+      ["along_direction", "8"],
+    ]
+    @editor.rewrite_coordinates(params)
+    params.should == [
+      ["alat_degrees", "1"],
+      ["alat_minutes", "2"],
+      ["alat_seconds", "3"],
+      ["alat_direction", "4"],
+      ["along_degrees", "5"],
+      ["along_minutes", "6"],
+      ["along_seconds", "7"],
+      ["along_direction", "8"],
+    ]
+  end
+
   it "should have default name_changes" do
     @editor.name_changes.should == {}
   end

@@ -210,6 +210,8 @@ end
 class Piglobot::Editor
   attr_accessor :name_changes, :template_names, :template_name, :filters, :removable_parameters
 
+  attr_accessor :infobox
+
   def initialize(wiki)
     @wiki = wiki
   
@@ -277,6 +279,8 @@ class Piglobot::Editor
         :rename_parameters,
         :remove_parameters,
         :rewrite_dates,
+        :rename_image_protected_area,
+        :rewrite_coordinates,
       ]
       @template_name = "Infobox Aire protégée"
       @name_changes = {
@@ -284,7 +288,6 @@ class Piglobot::Editor
         "iucn_category" => "catégorie iucn",
         "locator_x" => "localisation x",
         "locator_y" => "localisation y",
-        "top_image" => "image",
         "top_caption" => "légende image",
         "location" => "localisation",
         "nearest_city" => "ville proche",
@@ -318,6 +321,39 @@ class Piglobot::Editor
       end
       [name, value]
     }
+  end
+  
+  def rename_image_protected_area(parameters)
+    if @infobox[:name] == "Infobox aire protégée" or @infobox[:name] == "infobox aire protégée"
+      parameters.map! { |name, value|
+        name = "carte" if name == "image"
+        [name, value]
+      }
+      parameters.map! { |name, value|
+        name = "image" if name == "top_image"
+        [name, value]
+      }
+    end
+  end
+  
+  def rewrite_coordinates(params)
+    names = %w(lat_degrees lat_minutes lat_seconds lat_direction long_degrees long_minutes long_seconds long_direction)
+    args = names.map { |name|
+      arg = params.find { |n, v| n == name }
+      arg ? arg.last : ""
+    }
+    if args.all? { |arg| arg != "" }
+      done = false
+      params.map! { |n, v|
+        if names.include? n and !done
+          done = true
+          ["coordonnées", "{{coord|" + args.join("|") + "}}"]
+        else
+          [n, v]
+        end
+      }
+      params.delete_if { |n, v| names.include? n }
+    end
   end
   
   def remove_parameters(params)
@@ -399,6 +435,7 @@ class Piglobot::Editor
     else
       parameters = box[:parameters]
       
+      @infobox = box
       @filters.each do |method|
         send(method, parameters)
       end
@@ -765,6 +802,7 @@ class Piglobot::TemplateParser
       @template_names.include? title
     }
     if t
+      title = t.first["title"]
       parameters = t.first["parts"] || []
       before = t[1]
       after = t[2]
@@ -790,6 +828,7 @@ class Piglobot::TemplateParser
         end
       end
       {
+        :name => title,
         :before => before,
         :after => after,
         :parameters => parameters,
