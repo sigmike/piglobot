@@ -211,6 +211,22 @@ module MediaWiki
         form.elements['textarea'].text
       end
     end
+  
+    def full_category(name, next_id = nil)
+      url_name = CGI::escape("Category:" + name.gsub(' ', '_'))
+      url = "#{@url.path}index.php?title=#{url_name}"
+      url << "&from=#{next_id}" if next_id
+      content = @browser.get_content(url)
+      res = []
+      content.scan(%r{<li><a href=".+?" title="(.+?)">(.+?)</a></li>}).each do |title, text|
+        res << title if title == text
+      end
+      next_id = nil
+      content.scan(%r{<a href=".+?&amp;from=(.+?)" title=".+?">}).each do |id,|
+        next_id = id
+      end
+      [res, next_id]
+    end
   end
 end
 

@@ -74,6 +74,27 @@ describe MediaWiki, " with fake MiniBrowser" do
     @browser.should_receive(:get_content).with(@uri.path + "index.php?title=#{CGI.escape 'Utilisateur:Piglobot/Bac_à_sable'}&action=edit&oldid=22274949").and_return(result)
     @wiki.old_text("Utilisateur:Piglobot/Bac à sable", "22274949").should == "[[Chine]]\n"
   end
+  
+  it "should retreive category articles" do
+    result = File.read("sample_category.html")
+    @browser.should_receive(:get_content).with(@uri.path + "index.php?title=#{CGI.escape 'Category:Category_name'}").and_return(result)
+    items, next_id = @wiki.full_category("Category name")
+    items.size.should == 200
+    items.first.should == "Discussion Wikipédia:Liste des articles non neutres/André-Georges Manry"
+    items.should include("Modèle:Initialiser LANN")
+    items.should include("Wikipédia:Liste des articles non neutres/Alexis Carrel")
+    items.should include("Wikipédia:Liste des articles non neutres/Alfa Romeo 166")
+    items.should include("Wikipédia:Liste des articles non neutres/Auriculothérapie")
+    items.should include("Wikipédia:Liste des articles non neutres/Bengaliidae")
+    items.last.should == "Wikipédia:Liste des articles non neutres/Canadien français"
+    next_id.should == "Wikip%C3%A9dia%3AListe+des+articles+non+neutres%2FCannelle+%28ourse%29"
+  end
+
+  it "should retreive next category articles" do
+    result = File.read("sample_category.html")
+    @browser.should_receive(:get_content).with(@uri.path + "index.php?title=#{CGI.escape 'Category:Category_name'}&from=néxt_id").and_return(result)
+    @wiki.full_category("Category name", "néxt_id")
+  end
 end
 
 =begin
