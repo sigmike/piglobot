@@ -123,7 +123,7 @@ describe Piglobot, " working on Infobox Logiciel" do
   it "should get infobox links when data is empty" do
     @dump.should_receive(:load_data).and_return({})
     @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["Foo", "Bar", "Baz"])
-    text = "~~~~~ : Récupéré 3 articles à traiter"
+    text = "~~~~~ : Infobox Logiciel : 3 articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Foo", "Bar", "Baz"]})
     @bot.process.should == false
@@ -135,7 +135,7 @@ describe Piglobot, " working on Infobox Logiciel" do
     infobox = mock("infobox")
     @editor.should_receive(:parse_infobox).with("foo").and_return(infobox)
     @editor.should_receive(:write_infobox).with(infobox).and_return("result")
-    comment = "[[Utilisateur:Piglobot#Infobox Logiciel|Correction automatique]] de l'[[Modèle:Infobox Logiciel|Infobox Logiciel]]"
+    comment = "[[Utilisateur:Piglobot/Travail#Infobox Logiciel|Correction automatique]] de l'[[Modèle:Infobox Logiciel|Infobox Logiciel]]"
     @wiki.should_receive(:post).with("Article 1", "result", comment)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
     @bot.process.should == true
@@ -177,7 +177,7 @@ describe Piglobot, " working on Infobox Logiciel" do
   it "should get infobox links when list is empty" do
     @dump.should_receive(:load_data).and_return({"Infobox Logiciel" => [], "Foo" => "Bar"})
     @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["A", "B"])
-    text = "~~~~~ : Récupéré 2 articles à traiter"
+    text = "~~~~~ : Infobox Logiciel : 2 articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["A", "B"], "Foo" => "Bar"})
     @bot.process.should == false
@@ -187,7 +187,7 @@ describe Piglobot, " working on Infobox Logiciel" do
     @dump.should_receive(:load_data).and_return({"Infobox Logiciel" => [], "Foo" => "Bar"})
     @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["A", "B", "C:D", "E:F", "G::H", "I:J"])
     expected = ["A", "B", "G::H"]
-    text = "~~~~~ : Récupéré #{expected.size} articles à traiter"
+    text = "~~~~~ : Infobox Logiciel : #{expected.size} articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     @dump.should_receive(:save_data).with({ "Infobox Logiciel" => expected, "Foo" => "Bar"})
     @bot.process.should == false

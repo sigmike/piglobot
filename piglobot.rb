@@ -43,7 +43,9 @@ class Piglobot
   
   def process_infobox(data)
     changes = false
-    articles = data["Infobox Logiciel"]
+    infobox = "Infobox Logiciel"
+    
+    articles = data[infobox]
 
     if articles and !articles.empty?
       article = articles.shift
@@ -58,17 +60,17 @@ class Piglobot
           if box
             result = @editor.write_infobox(box)
             if result != text
-              comment = "[[Utilisateur:Piglobot#Infobox Logiciel|Correction automatique]] de l'[[Modèle:Infobox Logiciel|Infobox Logiciel]]"
+              comment = "[[Utilisateur:Piglobot/Travail##{infobox}|Correction automatique]] de l'[[Modèle:#{infobox}|#{infobox}]]"
               @wiki.post(article,
                 result,
                 comment)
               changes = true
             else
-              text = "[[#{article}]] : Aucun changement nécessaire dans l'Infobox Logiciel"
+              text = "[[#{article}]] : Aucun changement nécessaire dans l'#{infobox}"
               Piglobot::Tools.log(text)
             end
           else
-            text = "~~~~~, [[#{article}]] : Infobox Logiciel non trouvée dans l'article"
+            text = "~~~~~, [[#{article}]] : #{infobox} non trouvée dans l'article"
             @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
             changes = true
           end
@@ -79,10 +81,10 @@ class Piglobot
         end
       end
     else
-      articles = @wiki.links("Modèle:Infobox Logiciel")
+      articles = @wiki.links("Modèle:#{infobox}")
       articles.delete_if { |name| name =~ /:/ and name !~ /::/ }
-      data["Infobox Logiciel"] = articles
-      text = "~~~~~ : Récupéré #{articles.size} articles à traiter"
+      data[infobox] = articles
+      text = "~~~~~ : #{infobox} : #{articles.size} articles à traiter"
       @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
     end
     changes
