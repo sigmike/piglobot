@@ -310,7 +310,7 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
     @wiki.should_receive(:links, @link).and_return(["Foo", "Bar", "Baz"])
     text = "~~~~~ : #@name : 3 articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
-    process.should == false
+    process.should == true
     get_data.should == ["Foo", "Bar", "Baz"]
   end
   
@@ -364,7 +364,7 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
     @wiki.should_receive(:links, @link).and_return(["A", "B"])
     text = "~~~~~ : #@name : 2 articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
-    process.should == false
+    process.should == true
     get_data.should == ["A", "B"]
   end
   
@@ -374,7 +374,7 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
     expected = ["A", "B", "G::H"]
     text = "~~~~~ : #@name : #{expected.size} articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
-    process.should == false
+    process.should == true
     get_data.should == expected
   end
 end

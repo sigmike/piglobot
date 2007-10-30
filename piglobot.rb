@@ -86,6 +86,7 @@ class Piglobot
       data[infobox] = articles
       text = "~~~~~ : #{infobox} : #{articles.size} articles à traiter"
       @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+      changes = true
     end
     changes
   end
