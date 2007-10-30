@@ -18,8 +18,8 @@
 
 require 'piglobot'
 
-describe Piglobot, :shared => true do
-  before do
+module PiglobotHelper
+  def create_bot
     @wiki = mock("wiki")
     @dump = mock("dump")
     @editor = mock("editor")
@@ -27,6 +27,14 @@ describe Piglobot, :shared => true do
     Piglobot::Dump.should_receive(:new).once.with(@wiki).and_return(@dump)
     Piglobot::Editor.should_receive(:new).once.with(@wiki).and_return(@editor)
     @bot = Piglobot.new
+  end
+end
+
+describe Piglobot, :shared => true do
+  include PiglobotHelper
+  
+  before do
+    create_bot
   end
   
   it "should initialize data on first process" do
@@ -249,77 +257,118 @@ describe Piglobot, " working on Infobox Logiciel" do
     @bot.job = "Infobox Logiciel"
   end
   
+  it "should load_data, setup editor, process_infobox, save_data and return changes" do
+    data = mock("data")
+    changes = mock("changes")
+    @dump.should_receive(:load_data).and_return(data)
+    @editor.should_receive(:setup).with("Infobox Logiciel")
+    @bot.should_receive(:process_infobox).with(data, "Infobox Logiciel").and_return(changes)
+    @dump.should_receive(:save_data).with(data)
+    @bot.process.should == changes
+  end
+end
+
+describe Piglobot, " processing infobox" do
+  include PiglobotHelper
+  
+  before do
+    @data = {}
+    create_bot
+  end
+  
+  def process
+    @bot.process_infobox(@data, "Infobox Logiciel")
+  end
+  
   it "should get infobox links when data is empty" do
-    @dump.should_receive(:load_data).and_return({})
     @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["Foo", "Bar", "Baz"])
     text = "~~~~~ : Infobox Logiciel : 3 articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
-    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Foo", "Bar", "Baz"]})
-    @bot.process.should == false
+    process.should == false
+    @data.should == { "Infobox Logiciel" => ["Foo", "Bar", "Baz"]}
   end
   
   it "should send infobox links to InfoboxEditor" do
-    @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["Article 1", "Article 2"]})
+    @data = { "Infobox Logiciel" => ["Article 1", "Article 2"]}
     @wiki.should_receive(:get).with("Article 1").and_return("foo")
     infobox = mock("infobox")
     @editor.should_receive(:parse_infobox).with("foo").and_return(infobox)
     @editor.should_receive(:write_infobox).with(infobox).and_return("result")
     comment = "[[Utilisateur:Piglobot/Travail#Infobox Logiciel|Correction automatique]] de l'[[Modèle:Infobox Logiciel|Infobox Logiciel]]"
     @wiki.should_receive(:post).with("Article 1", "result", comment)
-    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
-    @bot.process.should == true
+    process.should == true
+    @data.should == {"Infobox Logiciel" => ["Article 2"]}
   end
   
   it "should not write infobox if none found" do
-    @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["Article 1", "Article 2"]})
+    @data = { "Infobox Logiciel" => ["Article 1", "Article 2"]}
     @wiki.should_receive(:get).with("Article 1").and_return("foo")
     @editor.should_receive(:parse_infobox).with("foo").and_return(nil)
     text = "~~~~~, [[Article 1]] : Infobox Logiciel non trouvée dans l'article"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
-    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
-    @bot.process.should == true
+    process.should == true
+    @data.should == { "Infobox Logiciel" => ["Article 2"]}
   end
   
   it "should not write infobox if nothing changed" do
-    @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["Article 1", "Article 2"]})
+    @data = { "Infobox Logiciel" => ["Article 1", "Article 2"]}
     @wiki.should_receive(:get).with("Article 1").and_return("foo")
     infobox = mock("infobox")
     @editor.should_receive(:parse_infobox).with("foo").and_return(infobox)
     @editor.should_receive(:write_infobox).with(infobox).and_return("foo")
     text = "[[Article 1]] : Aucun changement nécessaire dans l'Infobox Logiciel"
     Piglobot::Tools.should_receive(:log).with(text).once
-    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
-    @bot.process.should == false
+    process.should == false
+    @data.should == { "Infobox Logiciel" => ["Article 2"]}
   end
   
   it "should log parsing error" do
-    @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["Article 1", "Article 2"]})
+    @data = { "Infobox Logiciel" => ["Article 1", "Article 2"]}
     @wiki.should_receive(:get).with("Article 1").and_return("foo")
     infobox = mock("infobox")
     @editor.should_receive(:parse_infobox).with("foo").and_raise(Piglobot::ErrorPrevention.new("error message"))
     text = "~~~~~, [[Article 1]] : error message (Piglobot::ErrorPrevention)"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
-    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Article 2"]})
-    @bot.process.should == true
+    process.should == true
+    @data.should == { "Infobox Logiciel" => ["Article 2"]}
   end
   
   it "should get infobox links when list is empty" do
-    @dump.should_receive(:load_data).and_return({"Infobox Logiciel" => [], "Foo" => "Bar"})
+    @data = {"Infobox Logiciel" => [], "Foo" => "Bar"}
     @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["A", "B"])
     text = "~~~~~ : Infobox Logiciel : 2 articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
-    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["A", "B"], "Foo" => "Bar"})
-    @bot.process.should == false
+    process.should == false
+    @data.should == { "Infobox Logiciel" => ["A", "B"], "Foo" => "Bar"}
   end
   
   it "should ignore links in namespace" do
-    @dump.should_receive(:load_data).and_return({"Infobox Logiciel" => [], "Foo" => "Bar"})
+    @data = {"Infobox Logiciel" => [], "Foo" => "Bar"}
     @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["A", "B", "C:D", "E:F", "G::H", "I:J"])
     expected = ["A", "B", "G::H"]
     text = "~~~~~ : Infobox Logiciel : #{expected.size} articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
-    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => expected, "Foo" => "Bar"})
-    @bot.process.should == false
+    process.should == false
+    @data.should == { "Infobox Logiciel" => expected, "Foo" => "Bar"}
+  end
+end
+
+describe Piglobot::Editor, " working on Infobox Logiciel" do
+  before do
+    @wiki = mock("wiki")
+    @editor = Piglobot::Editor.new(@wiki)
+    @editor.setup "Infobox Logiciel"
+  end
+
+  it "should have valid template_names" do
+    @editor.template_names.should == [
+      "Infobox Logiciel",
+      "Logiciel simple",
+      "Logiciel_simple",
+      "Logiciel",
+      "Infobox Software",
+      "Infobox_Software",
+    ]
   end
 end
 
@@ -332,6 +381,7 @@ describe Piglobot::Editor, " parsing Infobox Logiciel" do
       :after => "",
       :parameters => [],
     }
+    @editor.template_names = ["Infobox Logiciel"]
   end
   
   it "should parse empty infobox" do
@@ -459,14 +509,8 @@ describe Piglobot::Editor, " parsing Infobox Logiciel" do
   end
   
   it "should have default template_names" do
-    @editor.template_names.should == [
-      "Infobox Logiciel",
-      "Logiciel simple",
-      "Logiciel_simple",
-      "Logiciel",
-      "Infobox Software",
-      "Infobox_Software",
-    ]
+    @editor.setup
+    @editor.template_names.should == []
   end
   
   it "should parse mono.sample" do
@@ -492,6 +536,7 @@ describe Piglobot::Editor, " parsing Infobox Logiciel" do
 
   it "should parse limewire.sample" do
     text = File.read("limewire.sample")
+    @editor.template_names = ["Logiciel_simple"]
     box = @editor.parse_infobox(text)
     box.should_not == nil
     @editor.write_infobox(box).should_not == text
@@ -518,18 +563,6 @@ describe Piglobot::Editor, " parsing Infobox Logiciel" do
     text = "{{Infobox Logiciel |\nnom = foo \n |\n bar | a = b\n}}"
     lambda { @editor.parse_infobox(text) }.should raise_error(Piglobot::ErrorPrevention,
       "L'infobox contient un paramètre sans nom")
-  end
-  
-  it "should parse infobox_software" do
-    text = "{{Infobox_Software |\nname = foo |\nscreenshot = bar|\n}}"
-    @infobox[:parameters] = [["name", "foo"], ["screenshot", "bar"]]
-    @editor.parse_infobox(text).should == @infobox
-  end
-
-  it "should parse infobox software" do
-    text = "{{Infobox Software |\nname = foo |\nscreenshot = bar|\n}}"
-    @infobox[:parameters] = [["name", "foo"], ["screenshot", "bar"]]
-    @editor.parse_infobox(text).should == @infobox
   end
 end
 

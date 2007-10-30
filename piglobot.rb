@@ -41,9 +41,8 @@ class Piglobot
     ]
   end
   
-  def process_infobox(data)
+  def process_infobox(data, infobox)
     changes = false
-    infobox = "Infobox Logiciel"
     
     articles = data[infobox]
 
@@ -134,7 +133,8 @@ class Piglobot
     else
       case @job
       when "Infobox Logiciel"
-        changes = process_infobox(data)
+        @editor.setup("Infobox Logiciel")
+        changes = process_infobox(data, "Infobox Logiciel")
       when "Homonymes"
         changes = process_homonyms(data)
       else
@@ -241,13 +241,7 @@ class Piglobot::Editor
       "website" => "site web",
     }
   
-    @template_names = ["Infobox Logiciel",
-      "Logiciel simple",
-      "Logiciel_simple",
-      "Logiciel",
-      "Infobox Software",
-      "Infobox_Software",
-    ]
+    @template_names = []
     
     @template_name = "Infobox Logiciel"
   
@@ -258,6 +252,21 @@ class Piglobot::Editor
       :remove_firefox,
       :rewrite_dates,
     ]
+  end
+  
+  def setup(action = nil)
+    case action
+    when "Infobox Logiciel"
+      @template_names = ["Infobox Logiciel",
+        "Logiciel simple",
+        "Logiciel_simple",
+        "Logiciel",
+        "Infobox Software",
+        "Infobox_Software",
+      ]
+    else
+      @template_names = []
+    end
   end
   
   def parse_infobox(text)
