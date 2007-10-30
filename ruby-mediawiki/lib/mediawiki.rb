@@ -212,7 +212,7 @@ module MediaWiki
       end
     end
   
-    def full_category(name, next_id = nil)
+    def category_slice(name, next_id = nil)
       url_name = CGI::escape("Category:" + name.gsub(' ', '_'))
       url = "#{@url.path}index.php?title=#{url_name}"
       url << "&from=#{next_id}" if next_id
@@ -226,6 +226,17 @@ module MediaWiki
         next_id = id
       end
       [res, next_id]
+    end
+    
+    def full_category(name)
+      res = []
+      next_id = nil
+      loop do
+        items, next_id = category_slice(name, next_id)
+        res += items
+        break unless next_id
+      end
+      res
     end
   end
 end

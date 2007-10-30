@@ -78,7 +78,7 @@ describe MediaWiki, " with fake MiniBrowser" do
   it "should retreive category articles" do
     result = File.read("sample_category.html")
     @browser.should_receive(:get_content).with(@uri.path + "index.php?title=#{CGI.escape 'Category:Category_name'}").and_return(result)
-    items, next_id = @wiki.full_category("Category name")
+    items, next_id = @wiki.category_slice("Category name")
     items.size.should == 200
     items.first.should == "Discussion Wikipédia:Liste des articles non neutres/André-Georges Manry"
     items.should include("Modèle:Initialiser LANN")
@@ -93,7 +93,15 @@ describe MediaWiki, " with fake MiniBrowser" do
   it "should retreive next category articles" do
     result = File.read("sample_category.html")
     @browser.should_receive(:get_content).with(@uri.path + "index.php?title=#{CGI.escape 'Category:Category_name'}&from=néxt_id").and_return(result)
-    @wiki.full_category("Category name", "néxt_id")
+    @wiki.category_slice("Category name", "néxt_id")
+  end
+  
+  it "should retreive full category" do
+    name = mock("name")
+    @wiki.should_receive(:category_slice).with(name, nil).and_return([["foo"], "bar"])
+    @wiki.should_receive(:category_slice).with(name, "bar").and_return([["bar"], "baz"])
+    @wiki.should_receive(:category_slice).with(name, "baz").and_return([["baz"], nil])
+    @wiki.full_category(name).should == ["foo", "bar", "baz"]
   end
 end
 
