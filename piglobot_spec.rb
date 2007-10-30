@@ -250,118 +250,158 @@ describe Piglobot, " working on homonyms" do
   end
 end
 
-describe Piglobot, " working on Infobox Logiciel" do
+describe Piglobot, " working on infoboxes" do
   it_should_behave_like "Piglobot"
   
-  before do
-    @bot.job = "Infobox Logiciel"
-  end
-  
-  it "should load_data, setup editor, process_infobox, save_data and return changes" do
+  it "should process Infobox Logiciel" do
     data = mock("data")
     changes = mock("changes")
+    
     @dump.should_receive(:load_data).and_return(data)
     @editor.should_receive(:setup).with("Infobox Logiciel")
     @bot.should_receive(:process_infobox).with(data, "Infobox Logiciel").and_return(changes)
     @dump.should_receive(:save_data).with(data)
+    
+    @bot.job = "Infobox Logiciel"
     @bot.process.should == changes
   end
 end
 
-describe Piglobot, " processing infobox" do
+module RandomTemplate
+  module_function
+  def random_name
+    chars = ((0..25).map { |i| [?a + i, ?A + i] }.flatten.map { |c| c.chr } + [" ", "_", "-"]).flatten
+    @infobox_name ||= (1..(rand(20)+1)).map { chars[rand(chars.size)] }.join
+  end
+end
+
+describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.inspect})" do
   include PiglobotHelper
   
   before do
-    @data = {}
+    @data = { "Foo" => "Bar"}
     create_bot
+    @name = RandomTemplate.random_name
   end
   
   def process
-    @bot.process_infobox(@data, "Infobox Logiciel")
+    @bot.process_infobox(@data, @name)
+  end
+  
+  def set_data(data)
+    @data = { @name => data, "Foo" => "Bar" }
+  end
+  
+  def get_data
+    @data[@name]
+  end
+  
+  after do
+    @data["Foo"].should == "Bar"
   end
   
   it "should get infobox links when data is empty" do
-    @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["Foo", "Bar", "Baz"])
-    text = "~~~~~ : Infobox Logiciel : 3 articles à traiter"
+    @wiki.should_receive(:links, "Modèle:#@name").and_return(["Foo", "Bar", "Baz"])
+    text = "~~~~~ : #@name : 3 articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     process.should == false
-    @data.should == { "Infobox Logiciel" => ["Foo", "Bar", "Baz"]}
+    get_data.should == ["Foo", "Bar", "Baz"]
   end
   
   it "should send infobox links to InfoboxEditor" do
-    @data = { "Infobox Logiciel" => ["Article 1", "Article 2"]}
+    set_data ["Article 1", "Article 2"]
     @wiki.should_receive(:get).with("Article 1").and_return("foo")
     infobox = mock("infobox")
     @editor.should_receive(:parse_infobox).with("foo").and_return(infobox)
     @editor.should_receive(:write_infobox).with(infobox).and_return("result")
-    comment = "[[Utilisateur:Piglobot/Travail#Infobox Logiciel|Correction automatique]] de l'[[Modèle:Infobox Logiciel|Infobox Logiciel]]"
+    comment = "[[Utilisateur:Piglobot/Travail##@name|Correction automatique]] de l'[[Modèle:#@name|#@name]]"
     @wiki.should_receive(:post).with("Article 1", "result", comment)
     process.should == true
-    @data.should == {"Infobox Logiciel" => ["Article 2"]}
+    get_data.should == ["Article 2"]
   end
   
   it "should not write infobox if none found" do
-    @data = { "Infobox Logiciel" => ["Article 1", "Article 2"]}
+    set_data ["Article 1", "Article 2"]
     @wiki.should_receive(:get).with("Article 1").and_return("foo")
     @editor.should_receive(:parse_infobox).with("foo").and_return(nil)
-    text = "~~~~~, [[Article 1]] : Infobox Logiciel non trouvée dans l'article"
+    text = "~~~~~, [[Article 1]] : #@name non trouvée dans l'article"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     process.should == true
-    @data.should == { "Infobox Logiciel" => ["Article 2"]}
+    get_data.should == ["Article 2"]
   end
   
   it "should not write infobox if nothing changed" do
-    @data = { "Infobox Logiciel" => ["Article 1", "Article 2"]}
+    set_data ["Article 1", "Article 2"]
     @wiki.should_receive(:get).with("Article 1").and_return("foo")
     infobox = mock("infobox")
     @editor.should_receive(:parse_infobox).with("foo").and_return(infobox)
     @editor.should_receive(:write_infobox).with(infobox).and_return("foo")
-    text = "[[Article 1]] : Aucun changement nécessaire dans l'Infobox Logiciel"
+    text = "[[Article 1]] : Aucun changement nécessaire dans l'#@name"
     Piglobot::Tools.should_receive(:log).with(text).once
     process.should == false
-    @data.should == { "Infobox Logiciel" => ["Article 2"]}
+    get_data.should == ["Article 2"]
   end
   
   it "should log parsing error" do
-    @data = { "Infobox Logiciel" => ["Article 1", "Article 2"]}
+    set_data ["Article 1", "Article 2"]
     @wiki.should_receive(:get).with("Article 1").and_return("foo")
     infobox = mock("infobox")
     @editor.should_receive(:parse_infobox).with("foo").and_raise(Piglobot::ErrorPrevention.new("error message"))
     text = "~~~~~, [[Article 1]] : error message (Piglobot::ErrorPrevention)"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     process.should == true
-    @data.should == { "Infobox Logiciel" => ["Article 2"]}
+    get_data.should == ["Article 2"]
   end
   
   it "should get infobox links when list is empty" do
-    @data = {"Infobox Logiciel" => [], "Foo" => "Bar"}
-    @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["A", "B"])
-    text = "~~~~~ : Infobox Logiciel : 2 articles à traiter"
+    set_data []
+    @wiki.should_receive(:links, "Modèle:#@name").and_return(["A", "B"])
+    text = "~~~~~ : #@name : 2 articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     process.should == false
-    @data.should == { "Infobox Logiciel" => ["A", "B"], "Foo" => "Bar"}
+    get_data.should == ["A", "B"]
   end
   
   it "should ignore links in namespace" do
-    @data = {"Infobox Logiciel" => [], "Foo" => "Bar"}
-    @wiki.should_receive(:links, "Modèle:Infobox Logiciel").and_return(["A", "B", "C:D", "E:F", "G::H", "I:J"])
+    set_data []
+    @wiki.should_receive(:links, "Modèle:#@name").and_return(["A", "B", "C:D", "E:F", "G::H", "I:J"])
     expected = ["A", "B", "G::H"]
-    text = "~~~~~ : Infobox Logiciel : #{expected.size} articles à traiter"
+    text = "~~~~~ : #@name : #{expected.size} articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     process.should == false
-    @data.should == { "Infobox Logiciel" => expected, "Foo" => "Bar"}
+    get_data.should == expected
+  end
+end
+
+describe Piglobot::Editor, " with default values", :shared => true do
+  before do
+    @wiki = mock("wiki")
+    @editor = Piglobot::Editor.new(@wiki)
+    
+    @template_names = []
+    @filters = []
+    @template_name = nil
+  end
+  
+  it "should have template_names" do
+    @editor.template_names.should == @template_names
+  end
+
+  it "should have filters" do
+    @editor.filters.should == @filters
+  end
+
+  it "should have template_name" do
+    @editor.template_name.should == @template_name
   end
 end
 
 describe Piglobot::Editor, " working on Infobox Logiciel" do
+  it_should_behave_like "Piglobot::Editor with default values"
+  
   before do
-    @wiki = mock("wiki")
-    @editor = Piglobot::Editor.new(@wiki)
     @editor.setup "Infobox Logiciel"
-  end
-
-  it "should have valid template_names" do
-    @editor.template_names.should == [
+    @template_names = [
       "Infobox Logiciel",
       "Logiciel simple",
       "Logiciel_simple",
@@ -369,6 +409,14 @@ describe Piglobot::Editor, " working on Infobox Logiciel" do
       "Infobox Software",
       "Infobox_Software",
     ]
+    @filters = [
+      :rename_parameters,
+      :remove_open_source,
+      :remove_almost_empty,
+      :remove_firefox,
+      :rewrite_dates,
+    ]
+    @template_name = "Infobox Logiciel"
   end
 end
 
@@ -695,16 +743,6 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
     @infobox[:parameters] = params
     @editor.write_infobox(@infobox).should ==
       "{{Infobox Logiciel\n| a = b\n}}"
-  end
-  
-  it "should have default filters" do
-    @editor.filters.should == [
-      :rename_parameters,
-      :remove_open_source,
-      :remove_almost_empty,
-      :remove_firefox,
-      :rewrite_dates,
-    ]
   end
   
   it "should call rewrite_date with all values and replace with result" do
