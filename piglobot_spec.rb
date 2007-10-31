@@ -928,6 +928,40 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
     params.should == [["foo", "bar"], ["coordonnées", "{{coord|1|2|3|4|5|6|7|8}}"], ["bar", "baz"]]
   end
   
+  it "should rewrite coordinates without seconds" do
+    params = [
+      ["foo", "bar"],
+      ["lat_degrees", "1"],
+      ["lat_minutes", "2"],
+      ["lat_seconds", ""],
+      ["lat_direction", "4"],
+      ["long_degrees", "5"],
+      ["long_minutes", "6"],
+      ["long_seconds", ""],
+      ["long_direction", "8"],
+      ["bar", "baz"]
+    ]
+    @editor.rewrite_coordinates(params)
+    params.should == [["foo", "bar"], ["coordonnées", "{{coord|1|2|4|5|6|8}}"], ["bar", "baz"]]
+  end
+  
+  it "should rewrite coordinates without data" do
+    params = [
+      ["foo", "bar"],
+      ["lat_degrees", ""],
+      ["lat_minutes", ""],
+      ["lat_seconds", ""],
+      ["lat_direction", ""],
+      ["long_degrees", ""],
+      ["long_minutes", ""],
+      ["long_seconds", ""],
+      ["long_direction", ""],
+      ["bar", "baz"]
+    ]
+    @editor.rewrite_coordinates(params)
+    params.should == [["foo", "bar"], ["coordonnées", "<!-- {{coord|...}} -->"], ["bar", "baz"]]
+  end
+  
   it "should not rewrite anything when no coordinates" do
     params = [
       ["alat_degrees", "1"],
@@ -992,7 +1026,17 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
     end
     
     [
-      "91 279 ha (zone centrale)<br/>229 726 ha (zone périphérique)",
+      ["17 300 ha (zone centrale)<br/>16 200 ha (zone périphérique)",
+       "{{unité|173.0|km|2}} (zone centrale)<br/>{{unité|162.0|km|2}} (zone périphérique)"],
+    ].each do |value, result|
+      it "should rewrite #{name} with #{value.inspect} to #{result.inspect}" do
+        params = [[name, value], ["foo", "bar"]]
+        @editor.rewrite_area(params)
+        params.should == [[name, result], ["foo", "bar"]]
+      end
+    end
+    
+    [
       "foo",
       "?",
       "36 m",

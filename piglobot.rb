@@ -353,12 +353,23 @@ class Piglobot::Editor
       arg = params.find { |n, v| n == name }
       arg ? arg.last : ""
     }
+    args_without_seconds = args[0..1] + args[3..5] + [args[7]]
+    
+    coord = nil
     if args.all? { |arg| arg != "" }
+      coord = "{{coord|" + args.join("|") + "}}"
+    elsif args_without_seconds.all? { |arg| arg != "" }
+      coord = "{{coord|" + args_without_seconds.join("|") + "}}"
+    elsif args.all? { |arg| arg == "" }
+      coord = "<!-- {{coord|...}} -->"
+    end
+  
+    if coord
       done = false
       params.map! { |n, v|
         if names.include? n and !done
           done = true
-          ["coordonnées", "{{coord|" + args.join("|") + "}}"]
+          ["coordonnées", coord]
         else
           [n, v]
         end
@@ -396,6 +407,21 @@ class Piglobot::Editor
             value = $1
           when /\A(#{n}) ha\Z/
             value = $1.tr(" ", "").to_i * 0.01
+          when /\A(#{n}) ha (.+?)<br\/>(#{n}) ha (.+?)\Z/
+            v1 = $1
+            t1 = $2
+            v2 = $3
+            t2 = $4
+            v1, v2 = [v1, v2].map { |v|
+              v = v.tr(" ", "").to_i * 0.01
+              v = v.to_s
+              v.gsub!(/,(\d{3})/, "\\1")
+              v.sub!(/,/, ".")
+              v.gsub!(/ /, "")
+              v = "{{unité|#{v}|km|2}}"
+            }
+            value = "#{v1} #{t1}<br/>#{v2} #{t2}"
+            found = false
           else
             found = false
           end
