@@ -482,6 +482,7 @@ describe Piglobot::Editor, " working on Infobox Aire protégée" do
       :rewrite_dates,
       :rename_image_protected_area,
       :rewrite_coordinates,
+      :rewrite_area,
     ]
     @template_name = "Infobox Aire protégée"
     @name_changes = {
@@ -936,6 +937,54 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       ["along_seconds", "7"],
       ["along_direction", "8"],
     ]
+  end
+  
+  %w( area superficie ).each do |name|
+    [
+      ["", ""],
+      ["{{unité|4800|km|2}}", "4800"],
+      ["{{unité|150|km|2}}", "150"],
+      ["{{formatnum:2219799}} acres<br />{{formatnum:8983}} km²", "8983"],
+      ["{{unité|761266|acres}}<br />{{unité|3081|km|2}}", "3081"],
+      ["76 519 acres<br />310 km²", "310"],
+      ["741,5 km²", "741.5"],
+      ["35 835 acres<br />145 km²", "145"],
+      ["10 878 km²", "10878"],
+      ["337 598 acres<br />1 366,21 km²", "1366.21"],
+      ["789 745 acres<br />3 196 km²", "3196"],
+      ["{{formatnum:922561}} acres ({{formatnum:3734}} km²)", "3734"],
+      ["112 511 acres<br />455 km²", "455"],
+      ["163 513 ha (1,635 km²)", "1635"],
+      ["{{formatnum:3400}} km²", "3400"],
+      ["{{formatnum:13762}} km²", "13762"],
+      ["244 km²", "244"],
+      ["22 470 ha", "224.7"],
+      ["590 ha", "5.9"],
+      ["3 ha", "0.03"],
+    ].each do |value, result|
+      it "should rewrite #{name} with #{value.inspect} to #{result.inspect}" do
+        params = [[name, value], ["foo", "bar"]]
+        @editor.rewrite_area(params)
+        params.should == [[name, result], ["foo", "bar"]]
+      end
+    end
+    
+    [
+      "91 279 ha (zone centrale)<br/>229 726 ha (zone périphérique)",
+      "foo",
+      "?",
+      "36 m",
+      "12 km² foo",
+      "foo {{formatnum:12}} km²",
+      "36 hab",
+      "foo 3 ha",
+      "497,3 km² en 2005",
+    ].each do |value|
+      it "should raise an ErrorPrevention on rewrite #{name} with #{value.inspect}" do
+        params = [[name, value]]
+        lambda { @editor.rewrite_area(params) }.should raise_error(Piglobot::ErrorPrevention, "La superficie pose problème : #{value.inspect}")
+      end
+    end
   end
 
   it "should have default name_changes" do
