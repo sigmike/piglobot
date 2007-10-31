@@ -366,38 +366,41 @@ class Piglobot::Editor
   def rewrite_area(params)
     params.map! do |name, value|
       if name == "area" or name == "superficie"
-        n = /[\d,.\s]+/
-        case value
-        when ""
-          value = ""
-        when /\A(#{n}) km²\Z/
-          value = $1
-        when /\A(#{n}) km<sup>2<\/?sup>\Z/
-          value = $1
-        when /\A\{\{formatnum:(#{n})\}\} km²\Z/
-          value = $1
-        when /\A#{n} ha \((#{n}) km²\)\Z/
-          value = $1
-        when /\A#{n} acres<br \/>(#{n}) km²\Z/
-          value = $1
-        when /\A\{\{unité\|(#{n})\|km\|2\}\}\Z/
-          value = $1
-        when /\A\{\{unité\|#{n}\|acres\}\}<br \/>\{\{unité\|(#{n})\|km\|2\}\}\Z/
-          value = $1
-        when /\A\{\{formatnum:#{n}\}\} acres \(\{\{formatnum:(#{n})\}\} km²\)\Z/
-          value = $1
-        when /\A\{\{formatnum:#{n}\}\} acres<br \/>\{\{formatnum:(#{n})\}\} km²\Z/
-          value = $1
-        when /\A(#{n}) ha\Z/
-          value = $1.tr(" ", "").to_i * 0.01
-        else
-          raise Piglobot::ErrorPrevention,
-            "La superficie pose problème"
+        unless value.empty?
+          n = /[\d,.\s]+/
+          case value
+          when /\A(#{n}) km²\Z/
+            value = $1
+          when /\A(\d+)\Z/
+            value = $1
+          when /\A(#{n}) km<sup>2<\/?sup>\Z/
+            value = $1
+          when /\A\{\{formatnum:(#{n})\}\} km²\Z/
+            value = $1
+          when /\A#{n} ha \((#{n}) km²\)\Z/
+            value = $1
+          when /\A#{n} acres<br \/>(#{n}) km²\Z/
+            value = $1
+          when /\A\{\{unité\|(#{n})\|km\|2\}\}\Z/
+            value = $1
+          when /\A\{\{unité\|#{n}\|acres\}\}<br \/>\{\{unité\|(#{n})\|km\|2\}\}\Z/
+            value = $1
+          when /\A\{\{formatnum:#{n}\}\} acres \(\{\{formatnum:(#{n})\}\} km²\)\Z/
+            value = $1
+          when /\A\{\{formatnum:#{n}\}\} acres<br \/>\{\{formatnum:(#{n})\}\} km²\Z/
+            value = $1
+          when /\A(#{n}) ha\Z/
+            value = $1.tr(" ", "").to_i * 0.01
+          else
+            raise Piglobot::ErrorPrevention,
+              "La superficie pose problème"
+          end
+          value = value.to_s
+          value.gsub!(/,(\d{3})/, "\\1")
+          value.sub!(/,/, ".")
+          value.gsub!(/ /, "")
+          value = "{{unité|#{value}|km|2}}"
         end
-        value = value.to_s
-        value.gsub!(/,(\d{3})/, "\\1")
-        value.sub!(/,/, ".")
-        value.gsub!(/ /, "")
       end
       [name, value]
     end

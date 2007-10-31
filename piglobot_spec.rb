@@ -942,8 +942,13 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
   end
   
   %w( area superficie ).each do |name|
+    it "should keep #{name} empty" do
+        params = [[name, ""], ["foo", "bar"]]
+        @editor.rewrite_area(params)
+        params.should == [[name, ""], ["foo", "bar"]]
+    end
+  
     [
-      ["", ""],
       ["{{unité|4800|km|2}}", "4800"],
       ["{{unité|150|km|2}}", "150"],
       ["{{formatnum:2219799}} acres<br />{{formatnum:8983}} km²", "8983"],
@@ -964,11 +969,13 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       ["590 ha", "5.9"],
       ["3 ha", "0.03"],
       ["1 438 km<sup>2<sup>", "1438"],
+      ["12345", "12345"],
     ].each do |value, result|
-      it "should rewrite #{name} with #{value.inspect} to #{result.inspect}" do
+      expected = "{{unité|#{result}|km|2}}"
+      it "should rewrite #{name} with #{value.inspect} to #{expected.inspect}" do
         params = [[name, value], ["foo", "bar"]]
         @editor.rewrite_area(params)
-        params.should == [[name, result], ["foo", "bar"]]
+        params.should == [[name, expected], ["foo", "bar"]]
       end
     end
     
