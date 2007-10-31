@@ -254,8 +254,8 @@ describe Piglobot, " working on infoboxes" do
   it_should_behave_like "Piglobot"
   
   [
-    ["Infobox Logiciel", "Modèle:Infobox Logiciel"],
-    ["Infobox Aire protégée", "Modèle:Infobox aire protégée"],
+    ["Infobox Logiciel", ["Modèle:Infobox Logiciel"]],
+    ["Infobox Aire protégée", ["Modèle:Infobox Aire protégée", "Modèle:Infobox aire protégée"]],
   ].each do |infobox, link|
     it "should process #{infobox}" do
       data = mock("data")
@@ -288,10 +288,11 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
     create_bot
     @name = RandomTemplate.random_name
     @link = "link"
+    @links = [@link]
   end
   
   def process
-    @bot.process_infobox(@data, @name, @link)
+    @bot.process_infobox(@data, @name, @links)
   end
   
   def set_data(data)
@@ -307,11 +308,21 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
   end
   
   it "should get infobox links when data is empty" do
-    @wiki.should_receive(:links, @link).and_return(["Foo", "Bar", "Baz"])
+    @wiki.should_receive(:links).with(@link).and_return(["Foo", "Bar", "Baz"])
     text = "~~~~~ : #@name : 3 articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     process.should == true
     get_data.should == ["Foo", "Bar", "Baz"]
+  end
+  
+  it "should get infobox multiple links when data is empty" do
+    @links = ["First", "Second"]
+    @wiki.should_receive(:links).with("First").and_return(["Foo", "Bar", "Baz"])
+    @wiki.should_receive(:links).with("Second").and_return(["A", "Bar", "C", "D"])
+    text = "~~~~~ : #@name : 6 articles à traiter"
+    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
+    process.should == true
+    get_data.sort.should == ["Foo", "Bar", "Baz", "A", "C", "D"].sort
   end
   
   it "should send infobox links to InfoboxEditor" do
@@ -361,7 +372,7 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
   
   it "should get infobox links when list is empty" do
     set_data []
-    @wiki.should_receive(:links, @link).and_return(["A", "B"])
+    @wiki.should_receive(:links).with(@link).and_return(["A", "B"])
     text = "~~~~~ : #@name : 2 articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     process.should == true
@@ -370,7 +381,7 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
   
   it "should ignore links in namespace" do
     set_data []
-    @wiki.should_receive(:links, @link).and_return(["A", "B", "C:D", "E:F", "G::H", "I:J"])
+    @wiki.should_receive(:links).with(@link).and_return(["A", "B", "C:D", "E:F", "G::H", "I:J"])
     expected = ["A", "B", "G::H"]
     text = "~~~~~ : #@name : #{expected.size} articles à traiter"
     @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
