@@ -196,7 +196,11 @@ module MediaWiki
               comment = span.to_a.join.sub(/\A\((.*)\Z\)/, "\\1")
             end
           end
-          result << [oldid, author] # date, comment
+          result << {
+            :oldid => oldid,
+            :author =>  author,
+            :date => date,
+          }
         end
       end
       result

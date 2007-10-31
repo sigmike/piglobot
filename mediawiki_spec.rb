@@ -60,10 +60,10 @@ describe MediaWiki, " with fake MiniBrowser" do
     result = File.read("sample_history.html")
     @browser.should_receive(:get_content).with(@uri.path + "index.php?title=#{CGI.escape('Wikipédia')}&limit=1000&action=history").and_return(result)
     @wiki.history("Wikipédia", 1000).should == [
-      ["22180997", "Jauclair"],
-      ["22094257", "DocteurCosmos"],
-      ["22094221", "DocteurCosmos"],
-      ["22080062", "DocteurCosmos"],
+      { :oldid => "22180997", :author => "Jauclair", :date => "25 octobre 2007 à 17:17" },
+      { :oldid => "22094257", :author => "DocteurCosmos", :date => "23 octobre 2007 à 16:00" },
+      { :oldid => "22094221", :author => "DocteurCosmos", :date => "23 octobre 2007 à 15:59" },
+      { :oldid => "22080062", :author => "DocteurCosmos", :date => "23 octobre 2007 à 07:47" },
     ]
   end
   
