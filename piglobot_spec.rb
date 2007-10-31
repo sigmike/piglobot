@@ -828,6 +828,7 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       "[[#{month}]] [[2003]]" => "[[#{month}]] [[2003]]",
       "[[#{month} (mois)|#{month}]] [[2003]]" => "[[#{month} (mois)|#{month}]] [[2003]]",
       "{{1er #{month}}} [[2007]]" => "{{Date|1|#{emonth}|2007}}",
+      "1{{er}} #{month} 1928" => "{{Date|1|#{emonth}|1928}}",
     }.each do |text, result|
       it "should rewrite_date #{text.inspect} to #{result.inspect}" do
         @editor.rewrite_date(text).should == result

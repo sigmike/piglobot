@@ -420,6 +420,7 @@ class Piglobot::Editor
   
   def rewrite_date(value)
     if value =~ /\A\{\{(1er) (.+)\}\} \[\[(\d{4})\]\]\Z/ or
+      value =~ /\A(1)\{\{er\}\} (.+) (\d{4})\Z/ or
       value =~ /\A\[\[(.+) (.+)\]\],? \[\[(\d{4})\]\]\Z/ or
       value =~ /\A(.+) (.+) (\d{4})\Z/ or
       value =~ /\A(.+) \[\[(.+) \(mois\)\|.+\]\] \[\[(\d{4})\]\]\Z/ or
