@@ -371,11 +371,12 @@ class Piglobot::Editor
     params.map! do |name, value|
       if name == "area" or name == "superficie"
         unless value.empty?
+          found = true
           n = /[\d,.\s]+/
           case value
           when /\A(#{n}) km²\Z/
             value = $1
-          when /\A(\d+)\Z/
+          when /\A([\d\.]+)\Z/
             value = $1
           when /\A(#{n}) km<sup>2<\/?sup>\Z/
             value = $1
@@ -396,14 +397,15 @@ class Piglobot::Editor
           when /\A(#{n}) ha\Z/
             value = $1.tr(" ", "").to_i * 0.01
           else
-            raise Piglobot::ErrorPrevention,
-              "La superficie pose problème"
+            found = false
           end
-          value = value.to_s
-          value.gsub!(/,(\d{3})/, "\\1")
-          value.sub!(/,/, ".")
-          value.gsub!(/ /, "")
-          value = "{{unité|#{value}|km|2}}"
+          if found
+            value = value.to_s
+            value.gsub!(/,(\d{3})/, "\\1")
+            value.sub!(/,/, ".")
+            value.gsub!(/ /, "")
+            value = "{{unité|#{value}|km|2}}"
+          end
         end
       end
       [name, value]

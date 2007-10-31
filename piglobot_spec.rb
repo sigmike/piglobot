@@ -981,6 +981,7 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       ["3 ha", "0.03"],
       ["1 438 km<sup>2<sup>", "1438"],
       ["12345", "12345"],
+      ["123.45", "123.45"],
     ].each do |value, result|
       expected = "{{unité|#{result}|km|2}}"
       it "should rewrite #{name} with #{value.inspect} to #{expected.inspect}" do
@@ -1003,7 +1004,8 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
     ].each do |value|
       it "should raise an ErrorPrevention on rewrite #{name} with #{value.inspect}" do
         params = [[name, value]]
-        lambda { @editor.rewrite_area(params) }.should raise_error(Piglobot::ErrorPrevention, "La superficie pose problème")
+        @editor.rewrite_area(params)
+        params.should == [[name, value]]
       end
     end
   end
