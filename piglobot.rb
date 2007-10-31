@@ -392,7 +392,7 @@ class Piglobot::Editor
           value = $1.tr(" ", "").to_i * 0.01
         else
           raise Piglobot::ErrorPrevention,
-            "La superficie pose problème : #{value.inspect}"
+            "La superficie pose problème"
         end
         value = value.to_s
         value.gsub!(/,(\d{3})/, "\\1")

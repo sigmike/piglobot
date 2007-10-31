@@ -984,7 +984,7 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
     ].each do |value|
       it "should raise an ErrorPrevention on rewrite #{name} with #{value.inspect}" do
         params = [[name, value]]
-        lambda { @editor.rewrite_area(params) }.should raise_error(Piglobot::ErrorPrevention, "La superficie pose problème : #{value.inspect}")
+        lambda { @editor.rewrite_area(params) }.should raise_error(Piglobot::ErrorPrevention, "La superficie pose problème")
       end
     end
   end
