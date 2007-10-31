@@ -295,7 +295,8 @@ class Piglobot::Editor
         "locator_x" => "localisation x",
         "locator_y" => "localisation y",
         "top_caption" => "légende image",
-        "location" => "localisation",
+        "location" => "situation",
+        "localisation" => "situation",
         "nearest_city" => "ville proche",
         "area" => "superficie",
         "established" => "création",
@@ -370,6 +371,8 @@ class Piglobot::Editor
         when ""
           value = ""
         when /\A(#{n}) km²\Z/
+          value = $1
+        when /\A(#{n}) km<sup>2<\/?sup>\Z/
           value = $1
         when /\A\{\{formatnum:(#{n})\}\} km²\Z/
           value = $1

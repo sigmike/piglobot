@@ -491,7 +491,8 @@ describe Piglobot::Editor, " working on Infobox Aire protégée" do
       "locator_x" => "localisation x",
       "locator_y" => "localisation y",
       "top_caption" => "légende image",
-      "location" => "localisation",
+      "location" => "situation",
+      "localisation" => "situation",
       "nearest_city" => "ville proche",
       "area" => "superficie",
       "established" => "création",
@@ -961,6 +962,7 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       ["22 470 ha", "224.7"],
       ["590 ha", "5.9"],
       ["3 ha", "0.03"],
+      ["1 438 km<sup>2<sup>", "1438"],
     ].each do |value, result|
       it "should rewrite #{name} with #{value.inspect} to #{result.inspect}" do
         params = [[name, value], ["foo", "bar"]]
