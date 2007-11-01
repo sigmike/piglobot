@@ -414,7 +414,7 @@ class Piglobot::Editor
         when /\A\{\{formatnum:#{n}\}\} acres<br \/>\{\{formatnum:(#{n})\}\} km²\Z/
           value = $1
         when /\A(#{n}) ha\Z/
-          value = $1.tr(" ", "").to_i * 0.01
+          value = $1.tr(" ", "").gsub(/,(\d{3})/, "\\1").sub(/,/, ".").to_f * 0.01
         when /\A(#{n}) ha (.+?)<br\/>(#{n}) ha (.+?)\Z/
           v1 = $1
           t1 = $2

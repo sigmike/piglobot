@@ -1046,6 +1046,8 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       ["1 438 km<sup>2<sup>", "1438"],
       ["12345", "12345"],
       ["123.45", "123.45"],
+      ["181,414 ha", "1814.14"],
+      ["8,9 ha", "0.089"],
     ].each do |value, result|
       expected = "{{unité|#{result}|km|2}}"
       it "should rewrite #{name} with #{value.inspect} to #{expected.inspect}" do
