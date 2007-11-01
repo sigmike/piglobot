@@ -390,58 +390,59 @@ class Piglobot::Editor
   def rewrite_area(params)
     params.map! do |name, value|
       if name == "area" or name == "superficie"
-        unless value.empty?
-          found = true
-          n = /[\d,.\s]+/
-          case value
-          when /\A(#{n}) km²\Z/
-            value = $1
-          when /\A([\d\.]+)\Z/
-            value = $1
-          when /\A(#{n}) km<sup>2<\/?sup>\Z/
-            value = $1
-          when /\A\{\{formatnum:(#{n})\}\} km²\Z/
-            value = $1
-          when /\A#{n} ha \((#{n}) km²\)\Z/
-            value = $1
-          when /\A#{n} acres<br \/>(#{n}) km²\Z/
-            value = $1
-          when /\A\{\{unité\|(#{n})\|km\|2\}\}\Z/
-            value = $1
-          when /\A\{\{unité\|#{n}\|acres\}\}<br \/>\{\{unité\|(#{n})\|km\|2\}\}\Z/
-            value = $1
-          when /\A\{\{formatnum:#{n}\}\} acres \(\{\{formatnum:(#{n})\}\} km²\)\Z/
-            value = $1
-          when /\A\{\{formatnum:#{n}\}\} acres<br \/>\{\{formatnum:(#{n})\}\} km²\Z/
-            value = $1
-          when /\A(#{n}) ha\Z/
-            value = $1.tr(" ", "").to_i * 0.01
-          when /\A(#{n}) ha (.+?)<br\/>(#{n}) ha (.+?)\Z/
-            v1 = $1
-            t1 = $2
-            v2 = $3
-            t2 = $4
-            v1, v2 = [v1, v2].map { |v|
-              v = v.tr(" ", "").to_i * 0.01
-              v = v.to_s
-              v.gsub!(/,(\d{3})/, "\\1")
-              v.sub!(/,/, ".")
-              v.gsub!(/ /, "")
-              v = "{{unité|#{v}|km|2}}"
-            }
-            value = "#{v1} #{t1}<br/>#{v2} #{t2}"
-            found = false
-          else
-            @bot.notice("Superficie non gérée : <nowiki>#{value}</nowiki>")
-            found = false
-          end
-          if found
-            value = value.to_s
-            value.gsub!(/,(\d{3})/, "\\1")
-            value.sub!(/,/, ".")
-            value.gsub!(/ /, "")
-            value = "{{unité|#{value}|km|2}}"
-          end
+        found = true
+        n = /[\d,.\s]+/
+        case value
+        when /\A(#{n}) km²\Z/
+          value = $1
+        when /\A([\d\.]+)\Z/
+          value = $1
+        when /\A(#{n}) km<sup>2<\/?sup>\Z/
+          value = $1
+        when /\A\{\{formatnum:(#{n})\}\} km²\Z/
+          value = $1
+        when /\A#{n} ha \((#{n}) km²\)\Z/
+          value = $1
+        when /\A#{n} acres<br \/>(#{n}) km²\Z/
+          value = $1
+        when /\A\{\{unité\|(#{n})\|km\|2\}\}\Z/
+          value = $1
+        when /\A\{\{unité\|#{n}\|acres\}\}<br \/>\{\{unité\|(#{n})\|km\|2\}\}\Z/
+          value = $1
+        when /\A\{\{formatnum:#{n}\}\} acres \(\{\{formatnum:(#{n})\}\} km²\)\Z/
+          value = $1
+        when /\A\{\{formatnum:#{n}\}\} acres<br \/>\{\{formatnum:(#{n})\}\} km²\Z/
+          value = $1
+        when /\A(#{n}) ha\Z/
+          value = $1.tr(" ", "").to_i * 0.01
+        when /\A(#{n}) ha (.+?)<br\/>(#{n}) ha (.+?)\Z/
+          v1 = $1
+          t1 = $2
+          v2 = $3
+          t2 = $4
+          v1, v2 = [v1, v2].map { |v|
+            v = v.tr(" ", "").to_i * 0.01
+            v = v.to_s
+            v.gsub!(/,(\d{3})/, "\\1")
+            v.sub!(/,/, ".")
+            v.gsub!(/ /, "")
+            v = "{{unité|#{v}|km|2}}"
+          }
+          value = "#{v1} #{t1}<br/>#{v2} #{t2}"
+          found = false
+        when ""
+          value = "<!-- {{unité|...|km|2}} -->"
+          found = false
+        else
+          @bot.notice("Superficie non gérée : <nowiki>#{value}</nowiki>")
+          found = false
+        end
+        if found
+          value = value.to_s
+          value.gsub!(/,(\d{3})/, "\\1")
+          value.sub!(/,/, ".")
+          value.gsub!(/ /, "")
+          value = "{{unité|#{value}|km|2}}"
         end
       end
       [name, value]

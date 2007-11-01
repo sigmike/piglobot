@@ -1022,12 +1022,7 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
   end
   
   %w( area superficie ).each do |name|
-    it "should keep #{name} empty" do
-        params = [[name, ""], ["foo", "bar"]]
-        @editor.rewrite_area(params)
-        params.should == [[name, ""], ["foo", "bar"]]
-    end
-  
+
     [
       ["{{unité|4800|km|2}}", "4800"],
       ["{{unité|150|km|2}}", "150"],
@@ -1063,6 +1058,7 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
     [
       ["17 300 ha (zone centrale)<br/>16 200 ha (zone périphérique)",
        "{{unité|173.0|km|2}} (zone centrale)<br/>{{unité|162.0|km|2}} (zone périphérique)"],
+      ["", "<!-- {{unité|...|km|2}} -->"],
     ].each do |value, result|
       it "should rewrite #{name} with #{value.inspect} to #{result.inspect}" do
         params = [[name, value], ["foo", "bar"]]
