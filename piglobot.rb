@@ -54,6 +54,44 @@ class Piglobot
     end
   end
   
+  class HomonymPrevention < Job
+    def process(data)
+      changes = false
+      data["Homonymes"] ||= {}
+      china = data["Homonymes"]["Chine"] || {}
+      china = {} if china.is_a?(Array)
+      last = china["Last"] || {}
+      new = china["New"] || []
+      
+      if last.empty?
+        last = @wiki.links("Chine")
+        Piglobot::Tools.log("#{last.size} liens vers la page d'homonymie [[Chine]]")
+      else
+        current = @wiki.links("Chine")
+        
+        new.delete_if do |old_new|
+          if current.include? old_new
+            false
+          else
+            Piglobot::Tools.log("Le lien vers [[Chine]] dans [[#{old_new}]] a été supprimé avant d'être traité")
+            true
+          end
+        end
+        
+        current_new = current - last
+        last = current
+        current_new.each do |new_name|
+          Piglobot::Tools.log("Un lien vers [[Chine]] a été ajouté dans [[#{new_name}]]")
+        end
+        new += current_new
+      end
+      china["Last"] = last
+      china["New"] = new if new
+      data["Homonymes"]["Chine"] = china
+      changes
+    end
+  end
+  
   class InfoboxRewriter < Job
     def initialize(bot, infobox, links)
       super(bot)
@@ -116,44 +154,21 @@ class Piglobot
     end
   end
   
-  class HomonymPrevention < Job
-    def process(data)
-      changes = false
-      data["Homonymes"] ||= {}
-      china = data["Homonymes"]["Chine"] || {}
-      china = {} if china.is_a?(Array)
-      last = china["Last"] || {}
-      new = china["New"] || []
-      
-      if last.empty?
-        last = @wiki.links("Chine")
-        Piglobot::Tools.log("#{last.size} liens vers la page d'homonymie [[Chine]]")
-      else
-        current = @wiki.links("Chine")
-        
-        new.delete_if do |old_new|
-          if current.include? old_new
-            false
-          else
-            Piglobot::Tools.log("Le lien vers [[Chine]] dans [[#{old_new}]] a été supprimé avant d'être traité")
-            true
-          end
-        end
-        
-        current_new = current - last
-        last = current
-        current_new.each do |new_name|
-          Piglobot::Tools.log("Un lien vers [[Chine]] a été ajouté dans [[#{new_name}]]")
-        end
-        new += current_new
-      end
-      china["Last"] = last
-      china["New"] = new if new
-      data["Homonymes"]["Chine"] = china
-      changes
+  class InfoboxSoftware < InfoboxRewriter
+    def initialize(bot)
+      super(bot, "Infobox Logiciel", ["Modèle:Infobox Logiciel"])
     end
   end
   
+  class InfoboxProtectedArea < InfoboxRewriter
+    def initialize(bot)
+      super(bot,
+        "Infobox Aire protégée",
+        ["Modèle:Infobox Aire protégée", "Modèle:Infobox aire protégée"]
+      )
+    end
+  end
+      
   def process_infobox(data, infobox, links)
     rewriter = InfoboxRewriter.new(self, infobox, links)
     rewriter.process(data)
