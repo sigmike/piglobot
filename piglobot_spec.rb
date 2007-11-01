@@ -921,7 +921,7 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
     params.should == [["new foo", "foo"], ["bob", "value"]]
   end
   
-  ["infobox aire protégée", "Infobox aire protégée"].each do |name|
+  ["infobox aire protégée", "Infobox aire protégée", "infobox_aire protégée", "Infobox_aire protégée"].each do |name|
     it "should rename image on protected_area when template is #{name}" do
       params = [["image", "map"], ["top_image", "illustration"]]
       @editor.infobox = { :name => name }

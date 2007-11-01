@@ -393,7 +393,8 @@ class Piglobot::Editor
   end
   
   def rename_image_protected_area(parameters)
-    if @infobox[:name] == "Infobox aire protégée" or @infobox[:name] == "infobox aire protégée"
+    if @infobox[:name] == "Infobox aire protégée" or @infobox[:name] == "infobox aire protégée" or
+      @infobox[:name] == "Infobox_aire protégée" or @infobox[:name] == "infobox_aire protégée"
       parameters.map! { |name, value|
         name = "carte" if name == "image"
         [name, value]
