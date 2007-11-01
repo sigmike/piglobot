@@ -406,7 +406,11 @@ class Piglobot::Editor
         when /\A#{n} acres<br \/>(#{n}) km²\Z/
           value = $1
         when /\A\{\{unité\|(#{n})\|km\|2\}\}\Z/
-          value = $1
+          value = $1.to_f
+          value = (value * 100).round / 100.0 unless value < 0.1
+          if value == value.to_i
+            value = value.to_i
+          end
         when /\A\{\{unité\|#{n}\|acres\}\}<br \/>\{\{unité\|(#{n})\|km\|2\}\}\Z/
           value = $1
         when /\A\{\{formatnum:#{n}\}\} acres \(\{\{formatnum:(#{n})\}\} km²\)\Z/
@@ -415,6 +419,7 @@ class Piglobot::Editor
           value = $1
         when /\A(#{n}) ha\Z/
           value = $1.tr(" ", "").gsub(/,(\d{3})/, "\\1").gsub(/\.(\d{3})/, "\\1").sub(/,/, ".").to_f * 0.01
+          value = (value * 100).round / 100.0 unless value < 0.1
           if value == value.to_i
             value = value.to_i
           end
