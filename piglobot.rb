@@ -410,6 +410,8 @@ class Piglobot::Editor
           if value == value.to_i
             value = value.to_i
           end
+        when /\A\{\{unité\|(#{n})\|m\|2\}\}\Z/
+          value = $1.to_f / 1000000
         when /\A\{\{unité\|#{n}\|acres\}\}<br \/>\{\{unité\|(#{n})\|km\|2\}\}\Z/
           value = $1
         when /\A\{\{formatnum:#{n}\}\} acres \(\{\{formatnum:(#{n})\}\} km²\)\Z/
