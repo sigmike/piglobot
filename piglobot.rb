@@ -36,7 +36,7 @@ class Piglobot
     @editor.bot = self
   end
   
-  attr_accessor :job
+  attr_accessor :job, :wiki, :editor
   
   def Piglobot.jobs
     [
@@ -46,92 +46,121 @@ class Piglobot
     ]
   end
   
-  def process_infobox(data, infobox, links)
-    changes = false
+  class Job
+    def initialize(bot)
+      @bot = bot
+      @wiki = bot.wiki
+      @editor = bot.editor
+    end
+  end
+  
+  class InfoboxRewriter < Job
+    def initialize(bot, infobox, links)
+      super(bot)
+      @infobox = infobox
+      @links = links
+    end
     
-    articles = data[infobox]
-
-    if articles and !articles.empty?
-      article = articles.shift
-      @current_article = article
-      if article =~ /:/
-        comment = "Article ignoré car il n'est pas dans le bon espace de nom"
-        text = "[[#{article}]] : #{comment}"
-        Piglobot::Tools.log(text)
-      else
-        text = @wiki.get(article)
-        begin
-          box = @editor.parse_infobox(text)
-          if box
-            result = @editor.write_infobox(box)
-            if result != text
-              comment = "[[Utilisateur:Piglobot/Travail##{infobox}|Correction automatique]] de l'[[Modèle:#{infobox}|#{infobox}]]"
-              @wiki.post(article,
-                result,
-                comment)
-              changes = true
+    def process(data)
+      changes = false
+      infobox = @infobox
+      links = @links
+      
+      articles = data[infobox]
+  
+      if articles and !articles.empty?
+        article = articles.shift
+        @bot.current_article = article
+        if article =~ /:/
+          comment = "Article ignoré car il n'est pas dans le bon espace de nom"
+          text = "[[#{article}]] : #{comment}"
+          Piglobot::Tools.log(text)
+        else
+          text = @wiki.get(article)
+          begin
+            box = @editor.parse_infobox(text)
+            if box
+              result = @editor.write_infobox(box)
+              if result != text
+                comment = "[[Utilisateur:Piglobot/Travail##{infobox}|Correction automatique]] de l'[[Modèle:#{infobox}|#{infobox}]]"
+                @wiki.post(article,
+                  result,
+                  comment)
+                changes = true
+              else
+                text = "[[#{article}]] : Aucun changement nécessaire dans l'#{infobox}"
+                Piglobot::Tools.log(text)
+              end
             else
-              text = "[[#{article}]] : Aucun changement nécessaire dans l'#{infobox}"
-              Piglobot::Tools.log(text)
+              @bot.notice("#{infobox} non trouvée dans l'article", article)
+              changes = true
             end
-          else
-            notice("#{infobox} non trouvée dans l'article", article)
+          rescue => e
+            @bot.notice(e.message, article)
             changes = true
           end
-        rescue => e
-          notice(e.message, article)
-          changes = true
         end
+        @bot.current_article = nil
+      else
+        articles = []
+        links.each do |link|
+          articles += @wiki.links(link)
+        end
+        articles.uniq!
+        articles.delete_if { |name| name =~ /:/ and name !~ /::/ }
+        data[infobox] = articles
+        @bot.notice("#{articles.size} articles à traiter pour #{infobox}")
+        changes = true
       end
-      @current_article = nil
-    else
-      articles = []
-      links.each do |link|
-        articles += @wiki.links(link)
-      end
-      articles.uniq!
-      articles.delete_if { |name| name =~ /:/ and name !~ /::/ }
-      data[infobox] = articles
-      notice("#{articles.size} articles à traiter pour #{infobox}")
-      changes = true
+      changes
     end
-    changes
+  end
+  
+  class HomonymPrevention < Job
+    def process(data)
+      changes = false
+      data["Homonymes"] ||= {}
+      china = data["Homonymes"]["Chine"] || {}
+      china = {} if china.is_a?(Array)
+      last = china["Last"] || {}
+      new = china["New"] || []
+      
+      if last.empty?
+        last = @wiki.links("Chine")
+        Piglobot::Tools.log("#{last.size} liens vers la page d'homonymie [[Chine]]")
+      else
+        current = @wiki.links("Chine")
+        
+        new.delete_if do |old_new|
+          if current.include? old_new
+            false
+          else
+            Piglobot::Tools.log("Le lien vers [[Chine]] dans [[#{old_new}]] a été supprimé avant d'être traité")
+            true
+          end
+        end
+        
+        current_new = current - last
+        last = current
+        current_new.each do |new_name|
+          Piglobot::Tools.log("Un lien vers [[Chine]] a été ajouté dans [[#{new_name}]]")
+        end
+        new += current_new
+      end
+      china["Last"] = last
+      china["New"] = new if new
+      data["Homonymes"]["Chine"] = china
+      changes
+    end
+  end
+  
+  def process_infobox(data, infobox, links)
+    rewriter = InfoboxRewriter.new(self, infobox, links)
+    rewriter.process(data)
   end
   
   def process_homonyms(data)
-    changes = false
-    data["Homonymes"] ||= {}
-    china = data["Homonymes"]["Chine"] || {}
-    china = {} if china.is_a?(Array)
-    last = china["Last"] || {}
-    new = china["New"] || []
-    
-    if last.empty?
-      last = @wiki.links("Chine")
-      Piglobot::Tools.log("#{last.size} liens vers la page d'homonymie [[Chine]]")
-    else
-      current = @wiki.links("Chine")
-      
-      new.delete_if do |old_new|
-        if current.include? old_new
-          false
-        else
-          Piglobot::Tools.log("Le lien vers [[Chine]] dans [[#{old_new}]] a été supprimé avant d'être traité")
-          true
-        end
-      end
-      
-      current_new = current - last
-      last = current
-      current_new.each do |new_name|
-        Piglobot::Tools.log("Un lien vers [[Chine]] a été ajouté dans [[#{new_name}]]")
-      end
-      new += current_new
-    end
-    china["Last"] = last
-    china["New"] = new if new
-    data["Homonymes"]["Chine"] = china
-    changes
+    HomonymPrevention.new(self).process(data)
   end
   
   def process
