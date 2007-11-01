@@ -952,15 +952,15 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       ["lat_degrees", "1"],
       ["lat_minutes", "2"],
       ["lat_seconds", "3"],
-      ["lat_direction", "4"],
+      ["lat_direction", "S"],
       ["long_degrees", "5"],
       ["long_minutes", "6"],
       ["long_seconds", "7"],
-      ["long_direction", "8"],
+      ["long_direction", "E"],
       ["bar", "baz"]
     ]
     @editor.rewrite_coordinates(params)
-    params.should == [["foo", "bar"], ["coordonnées", "{{coord|1|2|3|4|5|6|7|8}}"], ["bar", "baz"]]
+    params.should == [["foo", "bar"], ["coordonnées", "{{coord|1|2|3|S|5|6|7|E}}"], ["bar", "baz"]]
   end
   
   it "should rewrite coordinates without seconds" do
@@ -969,15 +969,15 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       ["lat_degrees", "1"],
       ["lat_minutes", "2"],
       ["lat_seconds", ""],
-      ["lat_direction", "4"],
+      ["lat_direction", "N"],
       ["long_degrees", "5"],
       ["long_minutes", "6"],
       ["long_seconds", ""],
-      ["long_direction", "8"],
+      ["long_direction", "W"],
       ["bar", "baz"]
     ]
     @editor.rewrite_coordinates(params)
-    params.should == [["foo", "bar"], ["coordonnées", "{{coord|1|2|4|5|6|8}}"], ["bar", "baz"]]
+    params.should == [["foo", "bar"], ["coordonnées", "{{coord|1|2|N|5|6|W}}"], ["bar", "baz"]]
   end
   
   it "should rewrite coordinates without data" do
@@ -1019,6 +1019,43 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       ["along_seconds", "7"],
       ["along_direction", "8"],
     ]
+  end
+  
+  [
+    { "lat_direction" => "" },
+    { "long_direction" => "" },
+    { "lat_minutes" => "" },
+    { "lat_direction" => "", "long_direction" => "" },
+    { "lat_direction" => "O" },
+    { "long_direction" => "O" },
+    { "lat_direction" => "1" },
+    { "long_direction" => "F" },
+  ].each do |new_values|
+    it "should notice on invalid coordinates #{new_values.inspect}" do
+      params = [
+        ["lat_degrees", "1"],
+        ["lat_minutes", "2"],
+        ["lat_seconds", "3"],
+        ["lat_direction", "4"],
+        ["long_degrees", "5"],
+        ["long_minutes", "6"],
+        ["long_seconds", "7"],
+        ["long_direction", "8"],
+      ]
+      new_values.each do |k,v|
+        params.map! do |name, value|
+          if name == k
+            [name, v]
+          else
+            [name, value]
+          end
+        end
+      end
+      old_params = YAML.load(params.to_yaml)
+      @bot.should_receive(:notice).with("Coordonnées invalides")
+      @editor.rewrite_coordinates(params)
+      params.should == old_params
+    end
   end
   
   %w( area superficie ).each do |name|

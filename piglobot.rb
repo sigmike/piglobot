@@ -358,32 +358,63 @@ class Piglobot::Editor
   
   def rewrite_coordinates(params)
     names = %w(lat_degrees lat_minutes lat_seconds lat_direction long_degrees long_minutes long_seconds long_direction)
-    args = names.map { |name|
+    hash = {}
+    found_any = false
+    names.each do |name|
       arg = params.find { |n, v| n == name }
-      arg ? arg.last : ""
-    }
-    args_without_seconds = args[0..1] + args[3..5] + [args[7]]
-    
-    coord = nil
-    if args.all? { |arg| arg != "" }
-      coord = "{{coord|" + args.join("|") + "}}"
-    elsif args_without_seconds.all? { |arg| arg != "" }
-      coord = "{{coord|" + args_without_seconds.join("|") + "}}"
-    elsif args.all? { |arg| arg == "" }
-      coord = "<!-- {{coord|...}} -->"
+      if arg
+        arg = arg.last
+        arg = nil if arg.empty?
+        hash[name.intern] = arg
+        found_any = true
+      end
     end
-  
-    if coord
-      done = false
-      params.map! { |n, v|
-        if names.include? n and !done
-          done = true
-          ["coordonnées", coord]
+    
+    if found_any
+      coord = nil
+      if hash[:lat_degrees] and hash[:lat_minutes] and %w(N S).include?(hash[:lat_direction]) and
+          hash[:long_degrees] and hash[:long_minutes] and %w(E W).include?(hash[:long_direction])
+        if hash[:lat_seconds] and hash[:long_seconds]
+          coord = "{{" + [
+            "coord",
+            hash[:lat_degrees],
+            hash[:lat_minutes],
+            hash[:lat_seconds],
+            hash[:lat_direction],
+            hash[:long_degrees],
+            hash[:long_minutes],
+            hash[:long_seconds],
+            hash[:long_direction],
+          ].join("|") + "}}"
         else
-          [n, v]
+          coord = "{{" + [
+            "coord",
+            hash[:lat_degrees],
+            hash[:lat_minutes],
+            hash[:lat_direction],
+            hash[:long_degrees],
+            hash[:long_minutes],
+            hash[:long_direction],
+          ].join("|") + "}}"
         end
-      }
-      params.delete_if { |n, v| names.include? n }
+      elsif hash.values.all? { |arg| arg == nil }
+        coord = "<!-- {{coord|...}} -->"
+      else
+        @bot.notice("Coordonnées invalides")
+      end
+    
+      if coord
+        done = false
+        params.map! { |n, v|
+          if names.include? n and !done
+            done = true
+            ["coordonnées", coord]
+          else
+            [n, v]
+          end
+        }
+        params.delete_if { |n, v| names.include? n }
+      end
     end
   end
   
