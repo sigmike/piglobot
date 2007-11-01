@@ -26,13 +26,14 @@ class Piglobot
   class Disabled < RuntimeError; end
   class ErrorPrevention < RuntimeError; end
 
-  attr_accessor :log_page
+  attr_accessor :log_page, :current_article
 
   def initialize
     @wiki = Wiki.new
     @dump = Dump.new(@wiki)
     @editor = Editor.new(@wiki)
     @log_page = "Utilisateur:Piglobot/Journal"
+    @editor.bot = self
   end
   
   attr_accessor :job
@@ -52,6 +53,7 @@ class Piglobot
 
     if articles and !articles.empty?
       article = articles.shift
+      @current_article = article
       if article =~ /:/
         comment = "Article ignoré car il n'est pas dans le bon espace de nom"
         text = "[[#{article}]] : #{comment}"
@@ -81,6 +83,7 @@ class Piglobot
           changes = true
         end
       end
+      @current_article = nil
     else
       articles = []
       links.each do |link|
@@ -206,7 +209,7 @@ class Piglobot
     end
   end
   
-  def notice(text, article = nil)
+  def notice(text, article = @current_article)
     line = "~~~~~ : "
     line << "[[#{article}]] : " if article
     line << text
@@ -225,7 +228,7 @@ end
 class Piglobot::Editor
   attr_accessor :name_changes, :template_names, :template_name, :filters, :removable_parameters
 
-  attr_accessor :infobox
+  attr_accessor :infobox, :bot
 
   def initialize(wiki)
     @wiki = wiki
@@ -429,6 +432,7 @@ class Piglobot::Editor
             value = "#{v1} #{t1}<br/>#{v2} #{t2}"
             found = false
           else
+            @bot.notice("Superficie non gérée : <nowiki>#{value}</nowiki>")
             found = false
           end
           if found

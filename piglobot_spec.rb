@@ -26,7 +26,11 @@ module PiglobotHelper
     Piglobot::Wiki.should_receive(:new).and_return(@wiki)
     Piglobot::Dump.should_receive(:new).once.with(@wiki).and_return(@dump)
     Piglobot::Editor.should_receive(:new).once.with(@wiki).and_return(@editor)
+    received_bot = nil
+    @editor.should_receive(:bot=) { |bot| received_bot = bot }
     @bot = Piglobot.new
+    received_bot.should == @bot
+    @bot
   end
 end
 
@@ -198,6 +202,13 @@ describe Piglobot, :shared => true do
     @wiki.should_receive(:append).with(@bot.log_page, "* #{text}", text)
     @bot.notice "foo bar", "article name"
   end
+
+  it "should append link to current_article on notice with link" do
+    text = "~~~~~ : [[current article name]] : foo bar"
+    @wiki.should_receive(:append).with(@bot.log_page, "* #{text}", text)
+    @bot.current_article = "current article name"
+    @bot.notice "foo bar"
+  end
 end
 
 describe Piglobot, " running" do
@@ -342,11 +353,18 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
     set_data ["Article 1", "Article 2"]
     @wiki.should_receive(:get).with("Article 1").and_return("foo")
     infobox = mock("infobox")
-    @editor.should_receive(:parse_infobox).with("foo").and_return(infobox)
-    @editor.should_receive(:write_infobox).with(infobox).and_return("result")
+    @editor.should_receive(:parse_infobox).with("foo") do
+      @bot.current_article.should == "Article 1"
+      infobox
+    end
+    @editor.should_receive(:write_infobox).with(infobox) do
+      @bot.current_article.should == "Article 1"
+      "result"
+    end
     comment = "[[Utilisateur:Piglobot/Travail##@name|Correction automatique]] de l'[[Modèle:#@name|#@name]]"
     @wiki.should_receive(:post).with("Article 1", "result", comment)
     process.should == true
+    @bot.current_article.should == nil
     get_data.should == ["Article 2"]
   end
   
@@ -403,6 +421,8 @@ describe Piglobot::Editor, " with default values", :shared => true do
   before do
     @wiki = mock("wiki")
     @editor = Piglobot::Editor.new(@wiki)
+    @bot = mock("bot")
+    @editor.bot = @bot
     
     @template_names = []
     @filters = []
@@ -543,6 +563,8 @@ describe Piglobot::Editor, " parsing Infobox Logiciel" do
   before do
     @wiki = mock("wiki")
     @editor = Piglobot::Editor.new(@wiki)
+    @bot = mock("bot")
+    @editor.bot = @bot
     @infobox = {
       :name => "Infobox Logiciel",
       :before => "",
@@ -745,6 +767,8 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       :parameters => [],
     }
     @editor.template_name = "Infobox Logiciel"
+    @bot = mock("bot")
+    @editor.bot = @bot
   end
   
   it "should write empty infobox" do
@@ -1057,6 +1081,7 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
     ].each do |value|
       it "should raise an ErrorPrevention on rewrite #{name} with #{value.inspect}" do
         params = [[name, value]]
+        @bot.should_receive(:notice).with("Superficie non gérée : <nowiki>#{value}</nowiki>")
         @editor.rewrite_area(params)
         params.should == [[name, value]]
       end
