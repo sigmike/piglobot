@@ -210,10 +210,10 @@ class Piglobot
   end
   
   def notice(text, article = @current_article)
-    line = "~~~~~ : "
+    line = ""
     line << "[[#{article}]] : " if article
     line << text
-    @wiki.append(@log_page, "* #{line}", line)
+    @wiki.append(@log_page, "* ~~~~~ : #{line}", line)
   end
   
   def self.run(job)

@@ -192,20 +192,20 @@ describe Piglobot, :shared => true do
   end
   
   it "should append to log on notice" do
-    text = "~~~~~ : foo bar"
-    @wiki.should_receive(:append).with(@bot.log_page, "* #{text}", text)
+    text = "foo bar"
+    @wiki.should_receive(:append).with(@bot.log_page, "* ~~~~~ : #{text}", text)
     @bot.notice "foo bar"
   end
   
   it "should append link to article on notice with link" do
-    text = "~~~~~ : [[article name]] : foo bar"
-    @wiki.should_receive(:append).with(@bot.log_page, "* #{text}", text)
+    text = "[[article name]] : foo bar"
+    @wiki.should_receive(:append).with(@bot.log_page, "* ~~~~~ : #{text}", text)
     @bot.notice "foo bar", "article name"
   end
 
   it "should append link to current_article on notice with link" do
-    text = "~~~~~ : [[current article name]] : foo bar"
-    @wiki.should_receive(:append).with(@bot.log_page, "* #{text}", text)
+    text = "[[current article name]] : foo bar"
+    @wiki.should_receive(:append).with(@bot.log_page, "* ~~~~~ : #{text}", text)
     @bot.current_article = "current article name"
     @bot.notice "foo bar"
   end
