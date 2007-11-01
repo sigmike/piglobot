@@ -487,7 +487,7 @@ class Piglobot::Editor
         }.flatten.include? month
         day = "1" if day == "1er"
         day.sub! /\A0+/, ""
-        value = "{{Date|#{day}|#{month.downcase}|#{year}}}"
+        value = "{{date|#{day}|#{month.downcase}|#{year}}}"
       end
     end
     value
