@@ -542,6 +542,8 @@ describe Piglobot::Editor, " working on Infobox Aire protégée" do
       "governing_body" => "administration",
       "web_site" => "site web",
       "comments" => "remarque",
+      "caption" => "légende carte",
+      "base_width" => "largeur carte",
     }
     @removable_parameters = ["back_color", "label"]
   end
@@ -1124,6 +1126,7 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
        "{{unité|173.0|km|2}} (zone centrale)<br/>{{unité|162.0|km|2}} (zone périphérique)"],
       ["", "<!-- {{unité|...|km|2}} -->"],
       ["[[km²]]", "<!-- {{unité|...|km|2}} -->"],
+      ["<!-- {{unité|...|km|2}} -->", "<!-- {{unité|...|km|2}} -->"],
       #["22 015 km² <br>''parc:'' 5 900 km²<br>''réserve de parc:''16 115 km²",
       # "{{unité|22015|km|2}} <br>''parc:'' {{unité|5900|km|2}}<br>''réserve de parc:''{{unité|16115|km|2}}"],
       #["{{unité|22015|km|2}} <br>''parc:'' 5 900 km²<br>''réserve de parc:''16 115 km²",

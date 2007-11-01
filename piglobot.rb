@@ -363,6 +363,8 @@ class Piglobot::Editor
         "governing_body" => "administration",
         "web_site" => "site web",
         "comments" => "remarque",
+        "caption" => "légende carte",
+        "base_width" => "largeur carte",
       }
       @removable_parameters = ["back_color", "label"]
     else
@@ -470,6 +472,9 @@ class Piglobot::Editor
         found = true
         n = /[\d,.\s]+/
         case value
+        when "", "[[km²]]", "<!-- {{unité|...|km|2}} -->"
+          value = "<!-- {{unité|...|km|2}} -->"
+          found = false
         when /\A([\d\.]+)\Z/
           value = $1
         when /\A(#{n}) km<sup>2<\/?sup>\Z/
@@ -523,9 +528,6 @@ class Piglobot::Editor
           value = $1
         when /\A\{\{formatnum:(#{n})\}\} km\{\{2\}\}\Z/
           value = $1
-        when "", "[[km²]]"
-          value = "<!-- {{unité|...|km|2}} -->"
-          found = false
         else
           @bot.notice("Superficie non gérée : <nowiki>#{value}</nowiki>")
           found = false
