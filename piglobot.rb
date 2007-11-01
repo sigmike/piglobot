@@ -390,11 +390,10 @@ class Piglobot::Editor
   def rewrite_area(params)
     params.map! do |name, value|
       if name == "area" or name == "superficie"
+        extra = nil
         found = true
         n = /[\d,.\s]+/
         case value
-        when /\A(#{n}) km²\Z/
-          value = $1
         when /\A([\d\.]+)\Z/
           value = $1
         when /\A(#{n}) km<sup>2<\/?sup>\Z/
@@ -417,12 +416,6 @@ class Piglobot::Editor
           value = $1
         when /\A\{\{formatnum:#{n}\}\} acres<br \/>\{\{formatnum:(#{n})\}\} km²\Z/
           value = $1
-        when /\A(#{n}) ha\Z/
-          value = $1.tr(" ", "").gsub(/,(\d{3})/, "\\1").gsub(/\.(\d{3})/, "\\1").sub(/,/, ".").to_f * 0.01
-          value = (value * 100).round / 100.0 unless value < 0.1
-          if value == value.to_i
-            value = value.to_i
-          end
         when /\A(#{n}) ha (.+?)<br\/>(#{n}) ha (.+?)\Z/
           v1 = $1
           t1 = $2
@@ -438,6 +431,20 @@ class Piglobot::Editor
           }
           value = "#{v1} #{t1}<br/>#{v2} #{t2}"
           found = false
+        when /\A(#{n}) ha( .+)?\Z/
+          extra = $2
+          value = $1.tr(" ", "").gsub(/,(\d{3})/, "\\1").gsub(/\.(\d{3})/, "\\1").sub(/,/, ".").to_f * 0.01
+          value = (value * 100).round / 100.0 unless value < 0.1
+          if value == value.to_i
+            value = value.to_i
+          end
+        when /\A(#{n}) km²( .+)?\Z/
+          value = $1
+          extra = $2
+        when /\A(#{n}) \[\[km²\]\]\Z/
+          value = $1
+        when /\A\{\{formatnum:(#{n})\}\} km\{\{2\}\}\Z/
+          value = $1
         when ""
           value = "<!-- {{unité|...|km|2}} -->"
           found = false
@@ -451,6 +458,7 @@ class Piglobot::Editor
           value.sub!(/,/, ".")
           value.gsub!(/ /, "")
           value = "{{unité|#{value}|km|2}}"
+          value << extra if extra
         end
       end
       [name, value]

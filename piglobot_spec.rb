@@ -1052,8 +1052,13 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       ["565,69 ha", "5.66"],
       ["{{unité|5.6569|km|2}}", "5.66"],
       ["{{unité|0.023|km|2}}", "0.023"],
-    ].each do |value, result|
-      expected = "{{unité|#{result}|km|2}}"
+      ["105 447 ha (cœur)", "1054.47", " (cœur)"],
+      ["6.7 km² de terres", "6.7", " de terres"],
+      ["497,3 km² en 2005", "497.3", " en 2005"],
+      ["591 [[km²]]", "591"],
+      ["{{formatnum:458}} km{{2}}", "458"],
+    ].each do |value, result, extra|
+      expected = "{{unité|#{result}|km|2}}#{extra}"
       it "should rewrite #{name} with #{value.inspect} to #{expected.inspect}" do
         params = [[name, value], ["foo", "bar"]]
         @editor.rewrite_area(params)
@@ -1077,11 +1082,9 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       "foo",
       "?",
       "36 m",
-      "12 km² foo",
       "foo {{formatnum:12}} km²",
       "36 hab",
       "foo 3 ha",
-      "497,3 km² en 2005",
     ].each do |value|
       it "should raise an ErrorPrevention on rewrite #{name} with #{value.inspect}" do
         params = [[name, value]]
