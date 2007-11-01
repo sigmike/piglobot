@@ -26,10 +26,13 @@ class Piglobot
   class Disabled < RuntimeError; end
   class ErrorPrevention < RuntimeError; end
 
+  attr_accessor :log_page
+
   def initialize
     @wiki = Wiki.new
     @dump = Dump.new(@wiki)
     @editor = Editor.new(@wiki)
+    @log_page = "Utilisateur:Piglobot/Journal"
   end
   
   attr_accessor :job
@@ -70,13 +73,11 @@ class Piglobot
               Piglobot::Tools.log(text)
             end
           else
-            text = "~~~~~, [[#{article}]] : #{infobox} non trouvée dans l'article"
-            @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+            notice("#{infobox} non trouvée dans l'article", article)
             changes = true
           end
         rescue => e
-          text = "~~~~~, [[#{article}]] : #{e.message} (#{e.class})"
-          @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+          notice(e.message, article)
           changes = true
         end
       end
@@ -88,8 +89,7 @@ class Piglobot
       articles.uniq!
       articles.delete_if { |name| name =~ /:/ and name !~ /::/ }
       data[infobox] = articles
-      text = "~~~~~ : #{infobox} : #{articles.size} articles à traiter"
-      @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+      notice("#{articles.size} articles à traiter pour #{infobox}")
       changes = true
     end
     changes
@@ -181,8 +181,7 @@ class Piglobot
   
   def log_error(e)
     Tools.log("#{e.message} (#{e.class})\n" + e.backtrace.join("\n"))
-    text = "~~~~~: #{e.message} (#{e.class})"
-    @wiki.append("Utilisateur:Piglobot/Journal", "* #{text}", text)
+    notice(e.message)
   end
   
   def step
@@ -205,6 +204,13 @@ class Piglobot
     rescue MediaWiki::InternalServerError
       long_sleep
     end
+  end
+  
+  def notice(text, article = nil)
+    line = "~~~~~ : "
+    line << "[[#{article}]] : " if article
+    line << text
+    @wiki.append(@log_page, "* #{line}", line)
   end
   
   def self.run(job)

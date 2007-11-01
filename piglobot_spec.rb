@@ -116,10 +116,9 @@ describe Piglobot, :shared => true do
   
   it "should log error" do
     e = AnyError.new("error message")
-    text = "~~~~~: error message (AnyError)"
     e.should_receive(:backtrace).and_return(["backtrace 1", "backtrace 2"])
-    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
     Piglobot::Tools.should_receive(:log).with("error message (AnyError)\nbacktrace 1\nbacktrace 2").once
+    @bot.should_receive(:notice).with("error message")
     @bot.log_error(e)
   end
   
@@ -182,6 +181,22 @@ describe Piglobot, :shared => true do
     @bot.should_receive(:process).with().once.and_return(true)
     @bot.should_receive(:sleep).with().once.and_raise(Interrupt.new("interrupt"))
     lambda { @bot.step }.should raise_error(Interrupt)
+  end
+  
+  it "should have a log page" do
+    @bot.log_page.should == "Utilisateur:Piglobot/Journal"
+  end
+  
+  it "should append to log on notice" do
+    text = "~~~~~ : foo bar"
+    @wiki.should_receive(:append).with(@bot.log_page, "* #{text}", text)
+    @bot.notice "foo bar"
+  end
+  
+  it "should append link to article on notice with link" do
+    text = "~~~~~ : [[article name]] : foo bar"
+    @wiki.should_receive(:append).with(@bot.log_page, "* #{text}", text)
+    @bot.notice "foo bar", "article name"
   end
 end
 
@@ -309,8 +324,7 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
   
   it "should get infobox links when data is empty" do
     @wiki.should_receive(:links).with(@link).and_return(["Foo", "Bar", "Baz"])
-    text = "~~~~~ : #@name : 3 articles à traiter"
-    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
+    @bot.should_receive(:notice).with("3 articles à traiter pour #@name")
     process.should == true
     get_data.should == ["Foo", "Bar", "Baz"]
   end
@@ -319,8 +333,7 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
     @links = ["First", "Second"]
     @wiki.should_receive(:links).with("First").and_return(["Foo", "Bar", "Baz"])
     @wiki.should_receive(:links).with("Second").and_return(["A", "Bar", "C", "D"])
-    text = "~~~~~ : #@name : 6 articles à traiter"
-    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
+    @bot.should_receive(:notice).with("6 articles à traiter pour #@name")
     process.should == true
     get_data.sort.should == ["Foo", "Bar", "Baz", "A", "C", "D"].sort
   end
@@ -341,8 +354,7 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
     set_data ["Article 1", "Article 2"]
     @wiki.should_receive(:get).with("Article 1").and_return("foo")
     @editor.should_receive(:parse_infobox).with("foo").and_return(nil)
-    text = "~~~~~, [[Article 1]] : #@name non trouvée dans l'article"
-    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
+    @bot.should_receive(:notice).with("#@name non trouvée dans l'article", "Article 1")
     process.should == true
     get_data.should == ["Article 2"]
   end
@@ -364,8 +376,7 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
     @wiki.should_receive(:get).with("Article 1").and_return("foo")
     infobox = mock("infobox")
     @editor.should_receive(:parse_infobox).with("foo").and_raise(Piglobot::ErrorPrevention.new("error message"))
-    text = "~~~~~, [[Article 1]] : error message (Piglobot::ErrorPrevention)"
-    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
+    @bot.should_receive(:notice).with("error message", "Article 1")
     process.should == true
     get_data.should == ["Article 2"]
   end
@@ -373,8 +384,7 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
   it "should get infobox links when list is empty" do
     set_data []
     @wiki.should_receive(:links).with(@link).and_return(["A", "B"])
-    text = "~~~~~ : #@name : 2 articles à traiter"
-    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
+    @bot.should_receive(:notice).with("2 articles à traiter pour #@name")
     process.should == true
     get_data.should == ["A", "B"]
   end
@@ -383,8 +393,7 @@ describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.ins
     set_data []
     @wiki.should_receive(:links).with(@link).and_return(["A", "B", "C:D", "E:F", "G::H", "I:J"])
     expected = ["A", "B", "G::H"]
-    text = "~~~~~ : #@name : #{expected.size} articles à traiter"
-    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Journal", "* #{text}", text)
+    @bot.should_receive(:notice).with("#{expected.size} articles à traiter pour #@name")
     process.should == true
     get_data.should == expected
   end
