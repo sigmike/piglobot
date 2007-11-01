@@ -1042,23 +1042,37 @@ describe Piglobot::Editor, " writing Infobox Logiciel" do
       ["244 km²", "244"],
       ["22 470 ha", "224.7"],
       ["590 ha", "5.9"],
-      ["3 ha", "0.03"],
       ["1 438 km<sup>2<sup>", "1438"],
       ["12345", "12345"],
       ["123.45", "123.45"],
       ["181,414 ha", "1814.14"],
-      ["8,9 ha", "0.089"],
       ["12.000 ha", "120"],
       ["565,69 ha", "5.66"],
       ["{{unité|5.6569|km|2}}", "5.66"],
-      ["{{unité|0.023|km|2}}", "0.023"],
       ["105 447 ha (cœur)", "1054.47", " (cœur)"],
       ["6.7 km² de terres", "6.7", " de terres"],
       ["497,3 km² en 2005", "497.3", " en 2005"],
       ["591 [[km²]]", "591"],
       ["{{formatnum:458}} km{{2}}", "458"],
+      ["{{unité|0.12|km|2}}", "0.12"],
+      ["12 ha", "0.12"],
     ].each do |value, result, extra|
       expected = "{{unité|#{result}|km|2}}#{extra}"
+      it "should rewrite #{name} with #{value.inspect} to #{expected.inspect}" do
+        params = [[name, value], ["foo", "bar"]]
+        @editor.rewrite_area(params)
+        params.should == [[name, expected], ["foo", "bar"]]
+      end
+    end
+    
+    [
+      ["8,9 ha", "89000"],
+      ["3 ha", "30000"],
+      ["4,67 ha", "46700"],
+      ["{{unité|0.0467|km|2}}", "46700"],
+      ["{{unité|0.023|km|2}}", "23000"],
+    ].each do |value, result, extra|
+      expected = "{{unité|#{result}|m|2}}#{extra}"
       it "should rewrite #{name} with #{value.inspect} to #{expected.inspect}" do
         params = [[name, value], ["foo", "bar"]]
         @editor.rewrite_area(params)

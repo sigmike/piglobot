@@ -453,11 +453,18 @@ class Piglobot::Editor
           found = false
         end
         if found
+          if value.to_f < 0.1
+            value *= 1000000
+            value = value.to_i if value.to_s =~ /\.0\Z/
+            unit = "m"
+          else
+            unit = "km"
+          end
           value = value.to_s
           value.gsub!(/,(\d{3})/, "\\1")
           value.sub!(/,/, ".")
           value.gsub!(/ /, "")
-          value = "{{unité|#{value}|km|2}}"
+          value = "{{unité|#{value}|#{unit}|2}}"
           value << extra if extra
         end
       end
