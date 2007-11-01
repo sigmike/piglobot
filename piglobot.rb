@@ -365,6 +365,8 @@ class Piglobot::Editor
         "comments" => "remarque",
         "caption" => "légende carte",
         "base_width" => "largeur carte",
+        "bot_image" => "image pied",
+        "bot_caption" => "légende pied",
       }
       @removable_parameters = ["back_color", "label"]
     else
