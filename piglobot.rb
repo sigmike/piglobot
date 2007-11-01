@@ -290,6 +290,7 @@ class Piglobot::Editor
       @template_names = [
         "Infobox Aire protégée",
         "Infobox aire protégée",
+        "Infobox_aire protégée",
       ]
       @name_changes = {
       }
