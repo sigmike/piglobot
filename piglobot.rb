@@ -46,6 +46,13 @@ class Piglobot
     ]
   end
   
+  def Piglobot.code_files
+    {
+      "piglobot.rb" => "ruby",
+      "piglobot_spec.rb" => "ruby",
+    }
+  end
+  
   class Job
     attr_accessor :data
     
@@ -740,14 +747,14 @@ class Piglobot::Dump
     @wiki = wiki
   end
   
-  def publish_spec(comment)
-    text = File.read("piglobot_spec.rb")
-    @wiki.post("Utilisateur:Piglobot/Spec", Piglobot::Tools.spec_to_wiki(text), comment)
-  end
-
   def publish_code(comment)
-    text = File.read("piglobot.rb")
-    @wiki.post("Utilisateur:Piglobot/Code", Piglobot::Tools.code_to_wiki(text), comment)
+    content = Piglobot.code_files.sort.map do |file, lang|
+      text = File.read(file)
+      wiki = Piglobot::Tools.file_to_wiki(file, text, lang)
+      wiki
+    end
+    content = content.join
+    @wiki.post("Utilisateur:Piglobot/Code", content, comment)
   end
   
   def load_data
@@ -768,41 +775,14 @@ end
 module Piglobot::Tools
   module_function
   
-  def spec_to_wiki(spec)
-    wiki = spec.dup
-    wiki.gsub! /^describe (.+) do/ do |line|
-      match = $1
-      case match
-      when /(.+), ["'](.+)["']/
-        title = "#$1#$2"
-      when /["'](.+)["']/
-        title = $1
-      else
-        title = match
-      end
-      result = '<' + "/source>\n"
-      result << "== #{title} ==\n"
-      result << "<source lang=\"ruby\">\n"
-      result << line
-      result
-    end
-    wiki = "<source lang=\"ruby\">\n" + wiki + '<' + "/source>\n"
-    wiki
-  end
-
-  def code_to_wiki(spec)
-    wiki = spec.dup
-    wiki.gsub! /^(class|module) (.+)/ do |line|
-      match = $2
-      title = match
-      result = '<' + "/source>\n"
-      result << "== #{title} ==\n"
-      result << "<source lang=\"ruby\">\n"
-      result << line
-      result
-    end
-    wiki = "<source lang=\"ruby\">\n" + wiki + '<' + "/source>\n"
-    wiki
+  def file_to_wiki(filename, content, lang)
+    result = ""
+    result << "== #{filename} ==\n"
+    result << "<source lang=\"#{lang}\">\n"
+    result << content + "\n"
+    result << '<' + "/source>\n"
+    result << "\n"
+    result
   end
   
   def log(text)

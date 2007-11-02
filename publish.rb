@@ -9,6 +9,5 @@ comment = ARGV[0] || ""
 wiki = Piglobot::Wiki.new
 dump = Piglobot::Dump.new(wiki)
 
-dump.publish_spec comment
 dump.publish_code comment
 system("svn", "ci", "-m", comment) || exit(1)

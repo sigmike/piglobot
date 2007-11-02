@@ -1189,17 +1189,13 @@ describe Piglobot::Dump do
     @dump = Piglobot::Dump.new(@wiki)
   end
   
-  it "should publish spec" do
-    File.should_receive(:read).with("piglobot_spec.rb").and_return("file content")
-    Piglobot::Tools.should_receive(:spec_to_wiki).with("file content").and_return("result")
-    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Spec", "result", "comment")
-    @dump.publish_spec("comment")
-  end
-
   it "should publish code" do
-    File.should_receive(:read).with("piglobot.rb").and_return("file content")
-    Piglobot::Tools.should_receive(:code_to_wiki).with("file content").and_return("result")
-    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Code", "result", "comment")
+    Piglobot.code_files.each do |file, language|
+      File.should_receive(:read).with(file).and_return("#{file} content")
+      Piglobot::Tools.should_receive(:file_to_wiki).with(file, "#{file} content", language).and_return("#{file} wikified\n")
+    end
+    result = Piglobot.code_files.keys.sort.map { |file| "#{file} wikified\n" }.join
+    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Code", result, "comment")
     @dump.publish_code("comment")
   end
   
@@ -1297,98 +1293,15 @@ describe Piglobot::Wiki do
 end
 
 describe Piglobot::Tools do
-  it "should convert spec to wiki" do
-    result = Piglobot::Tools.spec_to_wiki([
-      "foo",
-      "describe FooBar do",
-      "  bar",
-      "end",
-      'describe FooBar, " with baz" do',
-      '  foo',
-      'end',
-      "describe FooBar, ' with baz2' do",
-      '  foo',
-      'end',
-      "describe 'baz' do",
-      "  baz",
-      "end",
-    ].map { |line| line + "\n" }.join)
+  it "should convert file to wiki" do
+    result = Piglobot::Tools.file_to_wiki("filename", "file\ncontent", "lang")
     result.should == ([
-      '<source lang="ruby">',
-      'foo',
+      "== filename ==",
+      '<source lang="lang">',
+      'file',
+      'content',
       '<' + '/source>',
-      '== FooBar ==',
-      '<source lang="ruby">',
-      'describe FooBar do',
-      "  bar",
-      "end",
-      '<' + '/source>',
-      '== FooBar with baz ==',
-      '<source lang="ruby">',
-      'describe FooBar, " with baz" do',
-      '  foo',
-      'end',
-      '<' + '/source>',
-      '== FooBar with baz2 ==',
-      '<source lang="ruby">',
-      "describe FooBar, ' with baz2' do",
-      '  foo',
-      'end',
-      '<' + '/source>',
-      '== baz ==',
-      '<source lang="ruby">',
-      "describe 'baz' do",
-      "  baz",
-      "end",
-      '<' + '/source>',
-    ].map { |line| line + "\n" }.join)
-  end
-  
-  it "shouldn't split spec if describe is not at the beginning of the line" do
-    result = Piglobot::Tools.spec_to_wiki([
-      " describe FooBar do",
-    ].map { |line| line + "\n" }.join)
-    result.should == ([
-      '<source lang="ruby">',
-      ' describe FooBar do',
-      '<' + '/source>',
-    ].map { |line| line + "\n" }.join)
-  end
-  
-  it "should convert class to title in code_to_wiki" do
-    result = Piglobot::Tools.code_to_wiki([
-      "foo",
-      "class Foo",
-      "  foo",
-      "end",
-      "foo then bar",
-      "module Foo::Bar",
-      "  bar",
-      "  class Baz",
-      "    baz",
-      "  end",
-      "end",
-    ].map { |line| line + "\n" }.join)
-    result.should == ([
-      '<source lang="ruby">',
-      'foo',
-      '<' + '/source>',
-      '== Foo ==',
-      '<source lang="ruby">',
-      "class Foo",
-      "  foo",
-      "end",
-      "foo then bar",
-      '<' + '/source>',
-      '== Foo::Bar ==',
-      '<source lang="ruby">',
-      "module Foo::Bar",
-      "  bar",
-      "  class Baz",
-      "    baz",
-      "  end",
-      "end",
-      '<' + '/source>',
+      '',
     ].map { |line| line + "\n" }.join)
   end
   
