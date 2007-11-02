@@ -212,6 +212,12 @@ describe Piglobot, " running" do
     }
     lambda { Piglobot.run("foo") }.should raise_error(Interrupt)
   end
+  
+  Piglobot.code_files.each do |file|
+    it "should have #{file}" do
+      File.exists?(file).should == true
+    end
+  end
 end
 
 describe Piglobot, " working on homonyms" do

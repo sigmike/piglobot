@@ -8,11 +8,24 @@ describe Piglobot::Dump do
   end
   
   it "should publish code" do
-    Piglobot.code_files.each do |file, language|
+    Piglobot.should_receive(:code_files).with().and_return(["foo.rb", "bar.txt", "foo_spec.rb", "bob"])
+    
+    [
+      ["foo.rb", "ruby"],
+      ["bar.txt", "text"],
+      ["foo_spec.rb", "ruby"],
+      ["bob", "text"],
+    ].each do |file, lang|
       File.should_receive(:read).with(file).and_return("#{file} content")
-      Piglobot::Tools.should_receive(:file_to_wiki).with(file, "#{file} content", language).and_return("#{file} wikified\n")
+      Piglobot::Tools.should_receive(:file_to_wiki).with(file, "#{file} content", lang).and_return("#{file} wikified")
     end
-    result = Piglobot.code_files.keys.sort.map { |file| "#{file} wikified\n" }.join
+    result = [
+      "foo.rb wikified",
+      "bar.txt wikified",
+      "foo_spec.rb wikified",
+      "bob wikified",
+    ].join
+      
     @wiki.should_receive(:post).with("Utilisateur:Piglobot/Code", result, "comment")
     @dump.publish_code("comment")
   end
