@@ -6,8 +6,7 @@ system "./spec" or raise "Spec failed"
 
 comment = ARGV[0] || ""
 
-wiki = Piglobot::Wiki.new
-dump = Piglobot::Dump.new(wiki)
+bot = Piglobot.new
 
-dump.publish_code comment
+bot.publish_code comment
 system("svn", "ci", "-m", comment) || exit(1)

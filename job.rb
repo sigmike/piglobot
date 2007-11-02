@@ -63,7 +63,7 @@ class Piglobot
   end
   
   class InfoboxRewriter < Job
-    attr_accessor :links
+    attr_accessor :links, :infobox
   
     def data_id
       @infobox
@@ -77,6 +77,7 @@ class Piglobot
     end
     
     def process
+      @editor.setup(@infobox)
       data = @data
       changes = false
       infobox = @infobox

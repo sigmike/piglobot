@@ -58,6 +58,7 @@ describe Piglobot::InfoboxRewriter do
   it "should get infobox links when data is empty" do
     @wiki.should_receive(:links).with(@link).and_return(["Foo", "Bar", "Baz"])
     @bot.should_receive(:notice).with("3 articles à traiter pour #@name")
+    @editor.should_receive(:setup).with(@name)
     @rewriter.process
     @rewriter.changed?.should == true
     @rewriter.data.should == ["Foo", "Bar", "Baz"]
@@ -68,6 +69,7 @@ describe Piglobot::InfoboxRewriter do
     @wiki.should_receive(:links).with("First").and_return(["Foo", "Bar", "Baz"])
     @wiki.should_receive(:links).with("Second").and_return(["A", "Bar", "C", "D"])
     @bot.should_receive(:notice).with("6 articles à traiter pour #@name")
+    @editor.should_receive(:setup).with(@name)
     @rewriter.process
     @rewriter.changed?.should == true
     @rewriter.data.sort.should == ["Foo", "Bar", "Baz", "A", "C", "D"].sort
@@ -82,6 +84,7 @@ describe Piglobot::InfoboxRewriter do
     @editor.should_receive(:write_infobox).with(infobox).ordered.and_return("result")
     comment = "[[Utilisateur:Piglobot/Travail##@name|Correction automatique]] de l'[[Modèle:#@name|#@name]]"
     @wiki.should_receive(:post).with("Article 1", "result", comment)
+    @editor.should_receive(:setup).with(@name)
     @rewriter.process
     @rewriter.changed?.should == true
     @rewriter.data.should == ["Article 2"]
@@ -93,6 +96,7 @@ describe Piglobot::InfoboxRewriter do
     @editor.should_receive(:current_article=).with("Article 1")
     @editor.should_receive(:parse_infobox).with("foo").and_return(nil)
     @bot.should_receive(:notice).with("#@name non trouvée dans l'article", "Article 1")
+    @editor.should_receive(:setup).with(@name)
     @rewriter.process
     @rewriter.changed?.should == true
     @rewriter.data.should == ["Article 2"]
@@ -107,6 +111,7 @@ describe Piglobot::InfoboxRewriter do
     @editor.should_receive(:write_infobox).with(infobox).and_return("foo")
     text = "[[Article 1]] : Aucun changement nécessaire dans l'#@name"
     Piglobot::Tools.should_receive(:log).with(text).once
+    @editor.should_receive(:setup).with(@name)
     @rewriter.process
     @rewriter.changed?.should == false
     @rewriter.data.should == ["Article 2"]
@@ -119,6 +124,7 @@ describe Piglobot::InfoboxRewriter do
     @editor.should_receive(:current_article=).with("Article 1")
     @editor.should_receive(:parse_infobox).with("foo").and_raise(Piglobot::ErrorPrevention.new("error message"))
     @bot.should_receive(:notice).with("error message", "Article 1")
+    @editor.should_receive(:setup).with(@name)
     @rewriter.process
     @rewriter.changed?.should == true
     @rewriter.data.should == ["Article 2"]
@@ -128,6 +134,7 @@ describe Piglobot::InfoboxRewriter do
     @rewriter.data = []
     @wiki.should_receive(:links).with(@link).and_return(["A", "B"])
     @bot.should_receive(:notice).with("2 articles à traiter pour #@name")
+    @editor.should_receive(:setup).with(@name)
     @rewriter.process
     @rewriter.changed?.should == true
     @rewriter.data.should == ["A", "B"]
@@ -138,9 +145,58 @@ describe Piglobot::InfoboxRewriter do
     @wiki.should_receive(:links).with(@link).and_return(["A", "B", "C:D", "E:F", "G::H", "I:J"])
     expected = ["A", "B", "G::H"]
     @bot.should_receive(:notice).with("#{expected.size} articles à traiter pour #@name")
+    @editor.should_receive(:setup).with(@name)
     @rewriter.process
     @rewriter.changed?.should == true
     @rewriter.data.should == expected
   end
 end
 
+describe Piglobot::InfoboxSoftware do
+  before do
+    @bot = mock("bot")
+    @wiki = mock("wiki")
+    @bot.should_receive(:wiki).and_return(@wiki, @wiki)
+    @job = Piglobot::InfoboxSoftware.new(@bot)
+  end
+  
+  it "should have infobox" do
+    @job.infobox.should == "Infobox Logiciel"
+  end
+  
+  it "should have links" do
+    @job.links.should == ["Modèle:Infobox Logiciel"]
+  end
+end
+
+describe Piglobot, " on real case" do
+  it "should continue Infobox Logiciel" do
+    @wiki = mock("wiki")
+    Piglobot::Wiki.should_receive(:new).and_return(@wiki)
+    @bot = Piglobot.new
+    @bot.job = "Infobox Logiciel"
+    
+    File.should_receive(:read).with("data.yaml").and_return({
+      "Foo" => "Bar",
+      "Infobox Logiciel" => ["Blender", "GNU Emacs"],
+      "Infobox Aire protégée" => ["Foo"],
+    }.to_yaml)
+    
+    @wiki.should_receive(:get).with("Blender").and_return("{{Infobox Logiciel | name = Blender }}\nBlender...")
+    @wiki.should_receive(:post) do |article, content, comment|
+      article.should == "Blender"
+      content.should == "{{Infobox Logiciel\n| nom = Blender\n}}\nBlender..."
+      comment.should =~ /Correction automatique/
+      comment.should =~ /Infobox Logiciel/
+    end
+    file = mock("file")
+    File.should_receive(:open).with("data.yaml", "w").and_yield(file)
+    file.should_receive(:write).with({
+      "Foo" => "Bar",
+      "Infobox Logiciel" => ["GNU Emacs"],
+      "Infobox Aire protégée" => ["Foo"],
+    }.to_yaml)
+    
+    @bot.process
+  end
+end
