@@ -50,6 +50,10 @@ class Piglobot
     {
       "piglobot.rb" => "ruby",
       "piglobot_spec.rb" => "ruby",
+      "dump_spec.rb" => "ruby",
+      "editor_spec.rb" => "ruby",
+      "tools_spec.rb" => "ruby",
+      "wiki_spec.rb" => "ruby",
     }
   end
   
