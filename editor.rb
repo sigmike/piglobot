@@ -1,10 +1,11 @@
 class Piglobot::Editor
   attr_accessor :name_changes, :template_names, :template_name, :filters, :removable_parameters
 
-  attr_accessor :infobox, :bot
+  attr_accessor :infobox, :bot, :wiki, :current_article
 
-  def initialize(wiki)
-    @wiki = wiki
+  def initialize(bot)
+    @bot = bot
+    @wiki = bot.wiki
   
     @name_changes = {}
     @template_names = []

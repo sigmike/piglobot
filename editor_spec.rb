@@ -3,10 +3,12 @@ require 'helper'
 
 describe Piglobot::Editor, " with default values", :shared => true do
   before do
-    @wiki = mock("wiki")
-    @editor = Piglobot::Editor.new(@wiki)
     @bot = mock("bot")
-    @editor.bot = @bot
+    @wiki = mock("wiki")
+    @bot.should_receive(:wiki).with().and_return(@wiki)
+    @editor = Piglobot::Editor.new(@bot)
+    @editor.bot.should == @bot
+    @editor.wiki.should == @wiki
     
     @template_names = []
     @filters = []
@@ -150,10 +152,10 @@ end
 
 describe Piglobot::Editor, " parsing Infobox Logiciel" do
   before do
-    @wiki = mock("wiki")
-    @editor = Piglobot::Editor.new(@wiki)
     @bot = mock("bot")
-    @editor.bot = @bot
+    @wiki = mock("wiki")
+    @bot.should_receive(:wiki).with().and_return(@wiki)
+    @editor = Piglobot::Editor.new(@bot)
     @infobox = {
       :name => "Infobox Logiciel",
       :before => "",
@@ -348,16 +350,16 @@ end
 
 describe Piglobot::Editor, " writing Infobox Logiciel" do
   before do
+    @bot = mock("bot")
     @wiki = mock("wiki")
-    @editor = Piglobot::Editor.new(@wiki)
+    @bot.should_receive(:wiki).with().and_return(@wiki)
+    @editor = Piglobot::Editor.new(@bot)
     @infobox = {
       :before => "",
       :after => "",
       :parameters => [],
     }
     @editor.template_name = "Infobox Logiciel"
-    @bot = mock("bot")
-    @editor.bot = @bot
   end
   
   it "should write empty infobox" do

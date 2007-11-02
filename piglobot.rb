@@ -30,19 +30,18 @@ require 'dump'
 require 'template_parser'
 require 'tools'
 require 'wiki'
+require 'job'
 
 class Piglobot
   class Disabled < RuntimeError; end
   class ErrorPrevention < RuntimeError; end
 
-  attr_accessor :log_page, :current_article
+  attr_accessor :log_page, :data
 
   def initialize
     @wiki = Wiki.new
     @dump = Dump.new(@wiki)
-    @editor = Editor.new(@wiki)
     @log_page = "Utilisateur:Piglobot/Journal"
-    @editor.bot = self
   end
   
   attr_accessor :job, :wiki, :editor
@@ -55,8 +54,10 @@ class Piglobot
     ]
   end
   
-  def Piglobot.code_files
+  def code_files
     %w(
+      job_spec.rb
+      job.rb
       piglobot_spec.rb
       piglobot.rb
       editor_spec.rb
@@ -68,194 +69,63 @@ class Piglobot
       wiki_spec.rb
       wiki.rb
       template_parser.rb
+      helper.rb
     )
   end
-  
-  class Job
-    attr_accessor :data
-    
-    def initialize(bot)
-      @bot = bot
-      @wiki = bot.wiki
-      @editor = bot.editor
-      @changed = false
-      @data = nil
-    end
-    
-    def data_id
-      self.class.name
-    end
-    
-    def changed?
-      @changed
-    end
-  end
-  
-  class HomonymPrevention < Job
-    def data_id
-      "Homonymes"
-    end
-  
-    def process
-      changes = false
-      data = @data
-      data ||= {}
-      china = data["Chine"] || {}
-      china = {} if china.is_a?(Array)
-      last = china["Last"] || {}
-      new = china["New"] || []
-      
-      if last.empty?
-        last = @wiki.links("Chine")
-        Piglobot::Tools.log("#{last.size} liens vers la page d'homonymie [[Chine]]")
-      else
-        current = @wiki.links("Chine")
-        
-        new.delete_if do |old_new|
-          if current.include? old_new
-            false
-          else
-            Piglobot::Tools.log("Le lien vers [[Chine]] dans [[#{old_new}]] a été supprimé avant d'être traité")
-            true
-          end
+
+  def publish_code(comment)
+    content = code_files.map do |file|
+      lang = case file
+        when /\.rb\Z/ then "ruby"
+        else "text"
         end
-        
-        current_new = current - last
-        last = current
-        current_new.each do |new_name|
-          Piglobot::Tools.log("Un lien vers [[Chine]] a été ajouté dans [[#{new_name}]]")
-        end
-        new += current_new
-      end
-      china["Last"] = last
-      china["New"] = new if new
-      data["Chine"] = china
-      @changed = changes
-      @data = data
+      text = File.read(file)
+      wiki = Piglobot::Tools.file_to_wiki(file, text, lang)
+      wiki
+    end
+    content = content.join
+    @wiki.post("Utilisateur:Piglobot/Code", content, comment)
+  end
+  
+  def load_data
+    @data = begin
+      YAML.load File.read("data.yaml")
+    rescue Errno::ENOENT
+      nil
+    end
+  end
+
+  def save_data
+    File.open("data.yaml", "w") do |f|
+      f.write @data.to_yaml
     end
   end
   
-  class InfoboxRewriter < Job
-    def data_id
-      @infobox
-    end
-  
-    def initialize(bot, infobox, links)
-      super(bot)
-      @infobox = infobox
-      @links = links
-    end
-    
-    def process
-      data = @data
-      changes = false
-      infobox = @infobox
-      links = @links
-      
-      articles = data
-  
-      if articles and !articles.empty?
-        article = articles.shift
-        @bot.current_article = article
-        if article =~ /:/
-          comment = "Article ignoré car il n'est pas dans le bon espace de nom"
-          text = "[[#{article}]] : #{comment}"
-          Piglobot::Tools.log(text)
-        else
-          text = @wiki.get(article)
-          begin
-            box = @editor.parse_infobox(text)
-            if box
-              result = @editor.write_infobox(box)
-              if result != text
-                comment = "[[Utilisateur:Piglobot/Travail##{infobox}|Correction automatique]] de l'[[Modèle:#{infobox}|#{infobox}]]"
-                @wiki.post(article,
-                  result,
-                  comment)
-                changes = true
-              else
-                text = "[[#{article}]] : Aucun changement nécessaire dans l'#{infobox}"
-                Piglobot::Tools.log(text)
-              end
-            else
-              @bot.notice("#{infobox} non trouvée dans l'article", article)
-              changes = true
-            end
-          rescue => e
-            @bot.notice(e.message, article)
-            changes = true
-          end
-        end
-        @bot.current_article = nil
-      else
-        articles = []
-        links.each do |link|
-          articles += @wiki.links(link)
-        end
-        articles.uniq!
-        articles.delete_if { |name| name =~ /:/ and name !~ /::/ }
-        data = articles
-        @bot.notice("#{articles.size} articles à traiter pour #{infobox}")
-        changes = true
-      end
-      @changed = changes
-      @data = data
+  def job_class job
+    case job
+    when "Homonymes" then HomonymPrevention
+    when "Infobox Logiciel" then InfoboxSoftware
+    when "Infobox Aire protégée" then InfoboxProtectedArea
+    else raise "Invalid job: #{job}"
     end
   end
-  
-=begin
-  class InfoboxSoftware < InfoboxRewriter
-    def initialize(bot)
-      super(bot, "Infobox Logiciel", ["Modèle:Infobox Logiciel"])
-    end
-  end
-  
-  class InfoboxProtectedArea < InfoboxRewriter
-    def initialize(bot)
-      super(bot,
-        "Infobox Aire protégée",
-        ["Modèle:Infobox Aire protégée", "Modèle:Infobox aire protégée"]
-      )
-    end
-  end
-=end
-      
-  def process_infobox(data, infobox, links)
-    job = InfoboxRewriter.new(self, infobox, links)
-    job.data = data[job.data_id]
-    job.process
-    data[job.data_id] = job.data
-    job.changed?
-  end
-  
-  def process_homonyms(data)
-    job = HomonymPrevention.new(self)
-    job.data = data[job.data_id]
-    job.process
-    data[job.data_id] = job.data
-    job.changed?
-  end
-  
+
   def process
     changes = false
-    data = @dump.load_data
+    load_data
+    data = @data
     if data.nil?
       data = {}
     else
-      case @job
-      when "Infobox Logiciel"
-        @editor.setup("Infobox Logiciel")
-        changes = process_infobox(data, "Infobox Logiciel", ["Modèle:Infobox Logiciel"])
-      when "Infobox Aire protégée"
-        @editor.setup("Infobox Aire protégée")
-        changes = process_infobox(data, "Infobox Aire protégée", ["Modèle:Infobox Aire protégée", "Modèle:Infobox aire protégée"])
-      when "Homonymes"
-        changes = process_homonyms(data)
-      else
-        raise "Invalid job: #{@job.inspect}"
-      end
+      job = job_class(@job).new(self)
+      data_id = job.data_id
+      job.data = data[data_id]
+      job.process
+      data[data_id] = job.data
+      changes = job.changed?
     end
-    @dump.save_data(data)
+    @data = data
+    save_data
     changes
   end
   

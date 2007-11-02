@@ -6,6 +6,7 @@ ARGV.replace %w(
   editor_spec.rb
   tools_spec.rb
   wiki_spec.rb
+  job_spec.rb
 ) if ARGV.empty?
 ARGV << "--diff"
 

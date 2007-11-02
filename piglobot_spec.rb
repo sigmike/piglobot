@@ -19,6 +19,102 @@
 require 'piglobot'
 require 'helper'
 
+describe Piglobot, "using data" do
+  include PiglobotHelper
+  
+  before do
+    create_bot
+  end
+  
+  it "should have existing code_files" do
+    result = @bot.code_files.map { |file| [file, File.exist?(file)] }
+    expected = @bot.code_files.map { |file| [file, true] }
+    result.should == expected
+  end
+  
+  it "should publish code" do
+    @bot.should_receive(:code_files).with().and_return(["foo.rb", "bar.txt", "foo_spec.rb", "bob"])
+    
+    [
+      ["foo.rb", "ruby"],
+      ["bar.txt", "text"],
+      ["foo_spec.rb", "ruby"],
+      ["bob", "text"],
+    ].each do |file, lang|
+      File.should_receive(:read).with(file).and_return("#{file} content")
+      Piglobot::Tools.should_receive(:file_to_wiki).with(file, "#{file} content", lang).and_return("#{file} wikified")
+    end
+    result = [
+      "foo.rb wikified",
+      "bar.txt wikified",
+      "foo_spec.rb wikified",
+      "bob wikified",
+    ].join
+      
+    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Code", result, "comment")
+    @bot.publish_code("comment")
+  end
+  
+  it "should load data" do
+    data = "foo"
+    File.should_receive(:read).with("data.yaml").and_return(data.to_yaml)
+    @bot.load_data
+    @bot.data.should == data
+  end
+
+  it "should save data" do
+    data = "bar"
+    text = "<source lang=\"text\">\n" + data.to_yaml + "</source" + ">"
+    file = mock("file")
+    File.should_receive(:open).with("data.yaml", "w").and_yield(file)
+    file.should_receive(:write).with(data.to_yaml)
+    @bot.data = data
+    @bot.save_data
+  end
+  
+  it "should load nil when no data" do
+    File.should_receive(:read).with("data.yaml").and_raise(Errno::ENOENT)
+    @bot.load_data
+    @bot.data.should == nil
+  end
+  
+  [
+    ["Homonymes", Piglobot::HomonymPrevention],
+    ["Infobox Logiciel", Piglobot::InfoboxSoftware],
+    ["Infobox Aire protégée", Piglobot::InfoboxProtectedArea],
+  ].each do |job, klass|
+    it "should find job class for job #{job.inspect}" do
+      @bot.job_class(job).should == klass
+    end
+  end
+  
+  it "should raise exception on unknown job" do
+    lambda { @bot.job_class("invalid job") }.should raise_error(RuntimeError)
+  end
+
+  class FakeJob
+  end
+
+  it "should use job class on process" do
+    job = mock("job")
+    @bot.should_receive(:job_class).with("job name").and_return(FakeJob)
+    FakeJob.should_receive(:new).with(@bot).and_return(job)
+    job.should_receive(:data_id).with().and_return("data id")
+    @bot.should_receive(:load_data).with() do
+      @bot.data = {"foo" => "bar", "data id" => "data" }
+    end
+    job.should_receive(:data=).with("data")
+    job.should_receive(:process)
+    job.should_receive(:data).with().and_return("result data")
+    job.should_receive(:changed?).with().and_return("changed?")
+    @bot.should_receive(:save_data).with() do
+      @bot.data.should == {"foo" => "bar", "data id" => "result data"}
+    end
+    @bot.job = "job name"
+    @bot.process.should == "changed?"
+  end
+end
+
 describe Piglobot, :shared => true do
   include PiglobotHelper
   
@@ -27,8 +123,12 @@ describe Piglobot, :shared => true do
   end
   
   it "should initialize data on first process" do
-    @dump.should_receive(:load_data).and_return(nil)
-    @dump.should_receive(:save_data).with({})
+    @bot.should_receive(:load_data) do
+      @bot.data = nil
+    end
+    @dump.should_receive(:save_data) do
+      @bot.data.should == {}
+    end
     @bot.process.should == false
   end
   
@@ -211,200 +311,6 @@ describe Piglobot, " running" do
       raise Interrupt.new("interrupt") if step == 3
     }
     lambda { Piglobot.run("foo") }.should raise_error(Interrupt)
-  end
-  
-  Piglobot.code_files.each do |file|
-    it "should have #{file}" do
-      File.exists?(file).should == true
-    end
-  end
-end
-
-describe Piglobot, " working on homonyms" do
-  it_should_behave_like "Piglobot"
-
-  before do
-    @bot.job = "Homonymes"
-  end
-  
-  it "should store links to Chine and keep Infobox Logiciel" do
-    @dump.should_receive(:load_data).and_return({ "Infobox Logiciel" => ["Foo", "Bar", "Baz"]})
-    @wiki.should_receive(:links, "Chine").and_return(["a", "b", "c"])
-    Piglobot::Tools.should_receive(:log).with("3 liens vers la page d'homonymie [[Chine]]")
-    @dump.should_receive(:save_data).with({ "Infobox Logiciel" => ["Foo", "Bar", "Baz"], "Homonymes" => { "Chine" => {"Last" => ["a", "b", "c"], "New" => [] }}})
-    @bot.process.should == false
-  end
-  
-  it "should find new links" do
-    @dump.should_receive(:load_data).and_return({"Homonymes" => 
-      { "Chine" => {"Last" => ["a", "b", "c"], "New" => [] }}
-    })
-    @wiki.should_receive(:links, "Chine").and_return(["a", "b", "d", "c", "e"])
-    Piglobot::Tools.should_receive(:log).with("Un lien vers [[Chine]] a été ajouté dans [[d]]")
-    Piglobot::Tools.should_receive(:log).with("Un lien vers [[Chine]] a été ajouté dans [[e]]")
-    @dump.should_receive(:save_data).with({"Homonymes" => { "Chine" => {"Last" => ["a", "b", "d", "c", "e"], "New" => ["d", "e"] }}})
-    @bot.process.should == false
-  end
-  
-  it "should keep new links" do
-    @dump.should_receive(:load_data).and_return({"Homonymes" => 
-      { "Chine" => {"Last" => ["a", "b"], "New" => ["b"] }}
-    })
-    @wiki.should_receive(:links, "Chine").and_return(["a", "b"])
-    Piglobot::Tools.should_not_receive(:log)
-    @dump.should_receive(:save_data).with({"Homonymes" => { "Chine" => {"Last" => ["a", "b"], "New" => ["b"] }}})
-    @bot.process
-  end
-  
-  it "should ignore removed pending links" do
-    @dump.should_receive(:load_data).and_return({"Homonymes" => 
-      { "Chine" => {"Last" => ["a", "b"], "New" => ["b"] }}
-    })
-    @wiki.should_receive(:links, "Chine").and_return(["a"])
-    Piglobot::Tools.should_receive(:log).with("Le lien vers [[Chine]] dans [[b]] a été supprimé avant d'être traité")
-    @dump.should_receive(:save_data).with({"Homonymes" => { "Chine" => {"Last" => ["a"], "New" => [] }}})
-    @bot.process
-  end
-end
-
-describe Piglobot, " working on infoboxes" do
-  it_should_behave_like "Piglobot"
-  
-  [
-    ["Infobox Logiciel", ["Modèle:Infobox Logiciel"]],
-    ["Infobox Aire protégée", ["Modèle:Infobox Aire protégée", "Modèle:Infobox aire protégée"]],
-  ].each do |infobox, link|
-    it "should process #{infobox}" do
-      data = mock("data")
-      changes = mock("changes")
-      
-      @dump.should_receive(:load_data).and_return(data)
-      @editor.should_receive(:setup).with(infobox)
-      @bot.should_receive(:process_infobox).with(data, infobox, link).and_return(changes)
-      @dump.should_receive(:save_data).with(data)
-      
-      @bot.job = infobox
-      @bot.process.should == changes
-    end
-  end
-end
-
-module RandomTemplate
-  module_function
-  def random_name
-    chars = ((0..25).map { |i| [?a + i, ?A + i] }.flatten.map { |c| c.chr } + [" ", "_", "-"]).flatten
-    @infobox_name ||= (1..(rand(20)+1)).map { chars[rand(chars.size)] }.join
-  end
-end
-
-describe Piglobot, " processing random infobox (#{RandomTemplate.random_name.inspect})" do
-  include PiglobotHelper
-  
-  before do
-    @data = { "Foo" => "Bar"}
-    create_bot
-    @name = RandomTemplate.random_name
-    @link = "link"
-    @links = [@link]
-  end
-  
-  def process
-    @bot.process_infobox(@data, @name, @links)
-  end
-  
-  def set_data(data)
-    @data = { @name => data, "Foo" => "Bar" }
-  end
-  
-  def get_data
-    @data[@name]
-  end
-  
-  after do
-    @data["Foo"].should == "Bar"
-  end
-  
-  it "should get infobox links when data is empty" do
-    @wiki.should_receive(:links).with(@link).and_return(["Foo", "Bar", "Baz"])
-    @bot.should_receive(:notice).with("3 articles à traiter pour #@name")
-    process.should == true
-    get_data.should == ["Foo", "Bar", "Baz"]
-  end
-  
-  it "should get infobox multiple links when data is empty" do
-    @links = ["First", "Second"]
-    @wiki.should_receive(:links).with("First").and_return(["Foo", "Bar", "Baz"])
-    @wiki.should_receive(:links).with("Second").and_return(["A", "Bar", "C", "D"])
-    @bot.should_receive(:notice).with("6 articles à traiter pour #@name")
-    process.should == true
-    get_data.sort.should == ["Foo", "Bar", "Baz", "A", "C", "D"].sort
-  end
-  
-  it "should send infobox links to InfoboxEditor" do
-    set_data ["Article 1", "Article 2"]
-    @wiki.should_receive(:get).with("Article 1").and_return("foo")
-    infobox = mock("infobox")
-    @editor.should_receive(:parse_infobox).with("foo") do
-      @bot.current_article.should == "Article 1"
-      infobox
-    end
-    @editor.should_receive(:write_infobox).with(infobox) do
-      @bot.current_article.should == "Article 1"
-      "result"
-    end
-    comment = "[[Utilisateur:Piglobot/Travail##@name|Correction automatique]] de l'[[Modèle:#@name|#@name]]"
-    @wiki.should_receive(:post).with("Article 1", "result", comment)
-    process.should == true
-    @bot.current_article.should == nil
-    get_data.should == ["Article 2"]
-  end
-  
-  it "should not write infobox if none found" do
-    set_data ["Article 1", "Article 2"]
-    @wiki.should_receive(:get).with("Article 1").and_return("foo")
-    @editor.should_receive(:parse_infobox).with("foo").and_return(nil)
-    @bot.should_receive(:notice).with("#@name non trouvée dans l'article", "Article 1")
-    process.should == true
-    get_data.should == ["Article 2"]
-  end
-  
-  it "should not write infobox if nothing changed" do
-    set_data ["Article 1", "Article 2"]
-    @wiki.should_receive(:get).with("Article 1").and_return("foo")
-    infobox = mock("infobox")
-    @editor.should_receive(:parse_infobox).with("foo").and_return(infobox)
-    @editor.should_receive(:write_infobox).with(infobox).and_return("foo")
-    text = "[[Article 1]] : Aucun changement nécessaire dans l'#@name"
-    Piglobot::Tools.should_receive(:log).with(text).once
-    process.should == false
-    get_data.should == ["Article 2"]
-  end
-  
-  it "should log parsing error" do
-    set_data ["Article 1", "Article 2"]
-    @wiki.should_receive(:get).with("Article 1").and_return("foo")
-    infobox = mock("infobox")
-    @editor.should_receive(:parse_infobox).with("foo").and_raise(Piglobot::ErrorPrevention.new("error message"))
-    @bot.should_receive(:notice).with("error message", "Article 1")
-    process.should == true
-    get_data.should == ["Article 2"]
-  end
-  
-  it "should get infobox links when list is empty" do
-    set_data []
-    @wiki.should_receive(:links).with(@link).and_return(["A", "B"])
-    @bot.should_receive(:notice).with("2 articles à traiter pour #@name")
-    process.should == true
-    get_data.should == ["A", "B"]
-  end
-  
-  it "should ignore links in namespace" do
-    set_data []
-    @wiki.should_receive(:links).with(@link).and_return(["A", "B", "C:D", "E:F", "G::H", "I:J"])
-    expected = ["A", "B", "G::H"]
-    @bot.should_receive(:notice).with("#{expected.size} articles à traiter pour #@name")
-    process.should == true
-    get_data.should == expected
   end
 end
 
