@@ -47,18 +47,35 @@ class Piglobot
   end
   
   class Job
+    attr_accessor :data
+    
     def initialize(bot)
       @bot = bot
       @wiki = bot.wiki
       @editor = bot.editor
+      @changed = false
+      @data = nil
+    end
+    
+    def data_id
+      self.class.name
+    end
+    
+    def changed?
+      @changed
     end
   end
   
   class HomonymPrevention < Job
-    def process(data)
+    def data_id
+      "Homonymes"
+    end
+  
+    def process
       changes = false
-      data["Homonymes"] ||= {}
-      china = data["Homonymes"]["Chine"] || {}
+      data = @data
+      data ||= {}
+      china = data["Chine"] || {}
       china = {} if china.is_a?(Array)
       last = china["Last"] || {}
       new = china["New"] || []
@@ -87,24 +104,30 @@ class Piglobot
       end
       china["Last"] = last
       china["New"] = new if new
-      data["Homonymes"]["Chine"] = china
-      changes
+      data["Chine"] = china
+      @changed = changes
+      @data = data
     end
   end
   
   class InfoboxRewriter < Job
+    def data_id
+      @infobox
+    end
+  
     def initialize(bot, infobox, links)
       super(bot)
       @infobox = infobox
       @links = links
     end
     
-    def process(data)
+    def process
+      data = @data
       changes = false
       infobox = @infobox
       links = @links
       
-      articles = data[infobox]
+      articles = data
   
       if articles and !articles.empty?
         article = articles.shift
@@ -146,14 +169,16 @@ class Piglobot
         end
         articles.uniq!
         articles.delete_if { |name| name =~ /:/ and name !~ /::/ }
-        data[infobox] = articles
+        data = articles
         @bot.notice("#{articles.size} articles à traiter pour #{infobox}")
         changes = true
       end
-      changes
+      @changed = changes
+      @data = data
     end
   end
   
+=begin
   class InfoboxSoftware < InfoboxRewriter
     def initialize(bot)
       super(bot, "Infobox Logiciel", ["Modèle:Infobox Logiciel"])
@@ -168,14 +193,22 @@ class Piglobot
       )
     end
   end
+=end
       
   def process_infobox(data, infobox, links)
-    rewriter = InfoboxRewriter.new(self, infobox, links)
-    rewriter.process(data)
+    job = InfoboxRewriter.new(self, infobox, links)
+    job.data = data[job.data_id]
+    job.process
+    data[job.data_id] = job.data
+    job.changed?
   end
   
   def process_homonyms(data)
-    HomonymPrevention.new(self).process(data)
+    job = HomonymPrevention.new(self)
+    job.data = data[job.data_id]
+    job.process
+    data[job.data_id] = job.data
+    job.changed?
   end
   
   def process
