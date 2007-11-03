@@ -74,7 +74,30 @@ describe Piglobot::Wiki do
     @wiki.retry(:foo, "bar", :baz).should == "result"
   end
   
-  %w( get post append links category ).each do |method|
+  it "should retreive history" do
+    Piglobot::Tools.should_receive(:parse_time).with("time").and_return("parsed time")
+    Piglobot::Tools.should_receive(:parse_time).with("time 2").and_return("parsed time 2")
+    @mediawiki.should_receive(:history).with("foo", 12, nil).and_return([
+      { :oldid => "oldid", :author => "author", :date => "time" },
+      { :oldid => "oldid2", :author => "author2", :date => "time 2" },
+    ])
+    Piglobot::Tools.should_receive(:log).with("History [[foo]] (12, nil)")
+    @wiki.internal_history("foo", 12).should == [
+      { :oldid => "oldid", :author => "author", :date => "parsed time" },
+      { :oldid => "oldid2", :author => "author2", :date => "parsed time 2" },
+    ]
+  end
+  
+  it "should retreive history with offset" do
+    Piglobot::Tools.should_receive(:parse_time).with("time").and_return("parsed time")
+    @mediawiki.should_receive(:history).with("foo", 5, "123456").and_return([
+      { :oldid => "oldid", :author => "author", :date => "time" },
+    ])
+    Piglobot::Tools.should_receive(:log).with("History [[foo]] (5, \"123456\")")
+    @wiki.internal_history("foo", 5, "123456")
+  end
+  
+  %w( get post append links category history ).each do |method|
     it "should call retry with internal on #{method}" do
       @wiki.should_receive(:retry).with("internal_#{method}".intern, "foo", :bar).and_return("baz")
       @wiki.send(method, "foo", :bar).should == "baz"

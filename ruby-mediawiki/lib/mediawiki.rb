@@ -164,10 +164,13 @@ module MediaWiki
       uri.to_s
     end
 
-    def history(name, count)
+    def history(name, count, offset = nil)
       url_name = CGI::escape(name.gsub(' ', '_'))
       oldid_url = "#{@url.path}index.php?title=#{url_name}"
-      content = @browser.get_content("#{@url.path}index.php?title=#{url_name}&limit=#{count}&action=history")
+      url = "#{@url.path}index.php?title=#{url_name}&limit=#{count}"
+      url << "&offset=#{offset}" if offset
+      url << "&action=history"
+      content = @browser.get_content(url)
       doc = REXML::Document.new(content)
       result = []
       doc.each_element("//li") do |li|

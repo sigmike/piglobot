@@ -34,6 +34,15 @@ class Piglobot::Wiki
     @wiki.full_category(category)
   end
   
+  def internal_history(name, count, offset = nil)
+    Piglobot::Tools.log("History [[#{name}]] (#{count}, #{offset.inspect})")
+    history = @wiki.history(name, count, offset)
+    history.each do |result|
+      result[:date] = Piglobot::Tools.parse_time(result[:date])
+    end
+    history
+  end
+  
   def retry(method, *args)
     begin
       send(method, *args)
@@ -44,7 +53,7 @@ class Piglobot::Wiki
     end
   end
   
-  %w( get post append links category ).each do |method|
+  %w( get post append links category history ).each do |method|
     define_method(method.intern) do |*args|
       self.retry("internal_#{method}".intern, *args)
     end

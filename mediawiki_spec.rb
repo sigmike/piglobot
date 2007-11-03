@@ -67,6 +67,12 @@ describe MediaWiki, " with fake MiniBrowser" do
     ]
   end
   
+  it "should use offset in history" do
+    result = File.read("sample_history.html")
+    @browser.should_receive(:get_content).with(@uri.path + "index.php?title=#{CGI.escape('Wikipédia')}&limit=1000&offset=offset&action=history").and_return(result)
+    @wiki.history("Wikipédia", 1000, "offset")
+  end
+  
   it "should retreive old text" do
     # to update:
     # wget "http://fr.wikipedia.org/w/index.php?title=Utilisateur:Piglobot/Bac_%C3%A0_sable&action=edit&oldid=22274949" -O sample_edit_old.html
