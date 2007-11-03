@@ -22,7 +22,8 @@ class LANN < Piglobot::Job
   
   def remove_cited
     lann = @wiki.get("WP:LANN")
-    links = parse_internal_links(lann)
+    parser = Piglobot::Parser.new
+    links = parser.internal_links(lann)
     links.map! do |link|
       if link =~ %r{\A/}
         "Wikipédia:Liste des articles non neutres" + link

@@ -26,7 +26,7 @@ class Piglobot
 end
 
 require 'editor'
-require 'template_parser'
+require 'parser'
 require 'tools'
 require 'wiki'
 require 'job'
@@ -68,7 +68,7 @@ class Piglobot
       wiki_spec_live.rb
       wiki_spec.rb
       wiki.rb
-      template_parser.rb
+      parser.rb
       helper.rb
     )
   end

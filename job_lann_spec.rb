@@ -14,6 +14,7 @@ describe LANN do
   before do
     @bot = mock("bot")
     @wiki = mock("wiki")
+    @parser = mock("parser")
     @bot.should_receive(:wiki) { @wiki }
     @job = LANN.new(@bot)
   end
@@ -64,7 +65,9 @@ describe LANN do
     @job.pages = ["Wikipédia:Liste des articles non neutres/Foo", "Wikipédia:Liste des articles non neutres/Bar"]
     
     @wiki.should_receive(:get).with("WP:LANN").and_return("content")
-    @job.should_receive(:parse_internal_links).with("content").and_return(links)
+    parser = mock("parser")
+    Piglobot::Parser.should_receive(:new).with().and_return(parser)
+    parser.should_receive(:internal_links).with("content").and_return(links)
     @job.remove_cited
     @job.pages.should == ["Wikipédia:Liste des articles non neutres/Bar"]
   end
@@ -132,10 +135,6 @@ describe LANN do
   end
   
   it "should process page" do
-    pending
-  end
-  
-  it "should parse internal links" do
     pending
   end
 end

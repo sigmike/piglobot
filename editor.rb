@@ -123,7 +123,7 @@ class Piglobot::Editor
   end
   
   def parse_infobox(text)
-    parser = Piglobot::TemplateParser.new
+    parser = Piglobot::Parser.new
     parser.template_names = @template_names.map { |name|
       [name, name[0].chr.swapcase + name[1..-1]]
     }.flatten

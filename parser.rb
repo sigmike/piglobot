@@ -16,7 +16,7 @@
     along with Piglobot.  If not, see <http://www.gnu.org/licenses/>.
 =end
 
-class Piglobot::TemplateParser
+class Piglobot::Parser
   # Code ported from http://svn.wikimedia.org/svnroot/mediawiki/trunk/phase3/includes/Parser.php
   # on revision 26849
   
@@ -229,12 +229,35 @@ class Piglobot::TemplateParser
     text
   end
   
+  def internal_links(text)
+    @links = []
+    callbacks = {
+      '{' => {
+        'end' => '}',
+        'cb' => { 2 => nil, 3 => nil },
+        'min' => 2,
+        'max' => 3,
+      },
+      '[' => {
+        'end' => ']',
+        'cb' => { 2 => [self, 'linkSubstitution'] },
+        'min' => 2,
+        'max' => 2,
+      }
+    }
+    replace_callback(text, callbacks)
+    @links
+  end
+
+  
   def braceSubstitution(args, before, after)
     @templates << [args, before, after]
     nil
   end
   
   def linkSubstitution(args, before, after)
+    @links << args["title"]
+    ""
   end
   
   def argSubstitution(args, before, after)

@@ -25,6 +25,7 @@ ARGV.replace %w(
   wiki_spec.rb
   job_spec.rb
   job_lann_spec.rb
+  parser_spec.rb
 ) if ARGV.empty?
 ARGV << "--diff"
 
