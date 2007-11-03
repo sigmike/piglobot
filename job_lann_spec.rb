@@ -59,13 +59,13 @@ describe LANN do
   end
   
   it "should remove cited" do
-    links = ["Foo", "Bar"]
-    @job.pages = ["Foo", "Baz"]
+    links = ["/Foo", "Bar"]
+    @job.pages = ["Wikipédia:Liste des articles non neutres/Foo", "Wikipédia:Liste des articles non neutres/Bar"]
     
     @wiki.should_receive(:get).with("WP:LANN").and_return("content")
     @job.should_receive(:parse_internal_links).with("content").and_return(links)
     @job.remove_cited
-    @job.pages.should == ["Baz"]
+    @job.pages.should == ["Wikipédia:Liste des articles non neutres/Bar"]
   end
   
   it "should remove already done" do
