@@ -103,6 +103,23 @@ describe MediaWiki, " with fake MiniBrowser" do
     @wiki.should_receive(:category_slice).with(name, "baz").and_return([["baz"], nil])
     @wiki.full_category(name).should == ["foo", "bar", "baz"]
   end
+  
+  it "should work on programming category" do
+    name = "Langage de programmation"
+    
+    url = @uri.path + "index.php?title=Category%3ALangage_de_programmation"
+    content = File.read("sample_category_programming.html")
+    @browser.should_receive(:get_content).with(url).and_return(content)
+    
+    url = @uri.path + 
+      "index.php?title=Category%3ALangage_de_programmation&from=Visual+Basic+for+Applications"
+    content = File.read("sample_category_programming_2.html")
+    @browser.should_receive(:get_content).with(url).and_return(content)
+    
+    result = @wiki.full_category(name)
+    result.should include("Ruby")
+    result.should include("YaBasic")
+  end
 end
 
 =begin

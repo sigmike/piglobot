@@ -226,7 +226,7 @@ module MediaWiki
         res << title if title == text
       end
       next_id = nil
-      content.scan(%r{<a href=".+?&amp;from=(.+?)" title=".+?">}).each do |id,|
+      content.scan(%r{<a href=".+?&amp;from=([^&]+?)" title=".+?">}).each do |id,|
         next_id = id
       end
       [res, next_id]

@@ -29,6 +29,11 @@ class Piglobot::Wiki
     article.fast_what_links_here(5000)
   end
   
+  def internal_category(category)
+    Piglobot::Tools.log("[[Category:#{category}]]")
+    @wiki.full_category(category)
+  end
+  
   def retry(method, *args)
     begin
       send(method, *args)
@@ -39,7 +44,7 @@ class Piglobot::Wiki
     end
   end
   
-  %w( get post append links ).each do |method|
+  %w( get post append links category ).each do |method|
     define_method(method.intern) do |*args|
       self.retry("internal_#{method}".intern, *args)
     end

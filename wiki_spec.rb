@@ -47,6 +47,15 @@ describe Piglobot::Wiki do
     @wiki.internal_links(name).should == expected_links
   end
   
+  it "should use full_category on category" do
+    category = "A category"
+    result = ["Foo", "Bar", "Foo:Bar", "Hello:Bob", "Baz"]
+    expected = result.dup
+    Piglobot::Tools.should_receive(:log).with("[[Category:A category]]")
+    @mediawiki.should_receive(:full_category).with(category).once.and_return(result)
+    @wiki.internal_category(category).should == expected
+  end
+  
   it "should wait 10 minutes and retry on error" do
     step = 0
     steps = rand(30) + 2
@@ -65,7 +74,7 @@ describe Piglobot::Wiki do
     @wiki.retry(:foo, "bar", :baz).should == "result"
   end
   
-  %w( get post append links ).each do |method|
+  %w( get post append links category ).each do |method|
     it "should call retry with internal on #{method}" do
       @wiki.should_receive(:retry).with("internal_#{method}".intern, "foo", :bar).and_return("baz")
       @wiki.send(method, "foo", :bar).should == "baz"
