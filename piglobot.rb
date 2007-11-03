@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+    along with Piglobot.  If not, see <http://www.gnu.org/licenses/>.
 =end
 
 require 'libs'
@@ -26,7 +26,6 @@ class Piglobot
 end
 
 require 'editor'
-require 'dump'
 require 'template_parser'
 require 'tools'
 require 'wiki'
@@ -41,7 +40,6 @@ class Piglobot
 
   def initialize
     @wiki = Wiki.new
-    @dump = Dump.new(@wiki)
     @log_page = "Utilisateur:Piglobot/Journal"
   end
   
@@ -65,8 +63,6 @@ class Piglobot
       piglobot.rb
       editor_spec.rb
       editor.rb
-      dump_spec.rb
-      dump.rb
       tools_spec.rb
       tools.rb
       wiki_spec_live.rb

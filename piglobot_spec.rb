@@ -13,7 +13,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+    along with Piglobot.  If not, see <http://www.gnu.org/licenses/>.
 =end
 
 require 'piglobot'
@@ -126,7 +126,7 @@ describe Piglobot, :shared => true do
     @bot.should_receive(:load_data) do
       @bot.data = nil
     end
-    @dump.should_receive(:save_data) do
+    @bot.should_receive(:save_data) do
       @bot.data.should == {}
     end
     @bot.process.should == false
@@ -134,13 +134,13 @@ describe Piglobot, :shared => true do
   
   it "should fail when job is nil" do
     @bot.job = nil
-    @dump.should_receive(:load_data).and_return({})
+    @bot.should_receive(:load_data).and_return({})
     lambda { @bot.process }.should raise_error(RuntimeError, "Invalid job: nil")
   end
 
   it "should fail when job is invalid" do
     @bot.job = "Foo"
-    @dump.should_receive(:load_data).and_return({})
+    @bot.should_receive(:load_data).and_return({})
     lambda { @bot.process }.should raise_error(RuntimeError, "Invalid job: \"Foo\"")
   end
 
