@@ -8,6 +8,7 @@ class LANN < Piglobot::Job
     remove_cited
     remove_already_done
     remove_active
+    remove_active_talk
     process_remaining
   end
   
@@ -37,9 +38,41 @@ class LANN < Piglobot::Job
     @pages -= links
   end
   
+  def remove_active
+    now = Time.now
+    limit = now - 7 * 24 * 3600
+    @pages.delete_if do |page|
+      history = @wiki.history(page, 1)
+      if history.empty?
+        true
+      else
+        date = history.first[:date]
+        date < limit
+      end
+    end
+  end
+  
+  def remove_active_talk
+    now = Time.now
+    limit = now - 7 * 24 * 3600
+    @pages.delete_if do |page|
+      history = @wiki.history("Discussion " + page, 1)
+      if history.empty?
+        false
+      else
+        date = history.first[:date]
+        date < limit
+      end
+    end
+  end
+  
   def process_remaining
     @pages.each do |page|
       process_page page
     end
+  end
+  
+  def process_page(page)
+    puts "process #{page.inspect}"
   end
 end
