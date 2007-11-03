@@ -68,14 +68,26 @@ describe LANN do
     @job.pages.should == ["Baz"]
   end
   
-  it "should respond to all methods" do
-    pending "not finished yet" do
-      %w(
-        get_pages remove_bad_names remove_cited remove_already_done remove_active
-        process_remaining parse_internal_links
-      ).each do |method|
-        @job.should respond_to(method)
-      end
-    end
+  it "should remove already done" do
+    pending
+  end
+  
+  it "should remove active" do
+    pending
+  end
+  
+  it "should process remaining" do
+    @job.pages = ["Foo", "Bar"]
+    @job.should_receive(:process_page).with("Foo")
+    @job.should_receive(:process_page).with("Bar")
+    @job.process_remaining
+  end
+  
+  it "should process page" do
+    pending
+  end
+  
+  it "should parse internal links" do
+    pending
   end
 end

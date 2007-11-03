@@ -24,4 +24,10 @@ class LANN < Piglobot::Job
     links = parse_internal_links(lann)
     @pages -= links
   end
+  
+  def process_remaining
+    @pages.each do |page|
+      process_page page
+    end
+  end
 end
