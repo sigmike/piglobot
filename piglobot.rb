@@ -31,6 +31,7 @@ require 'template_parser'
 require 'tools'
 require 'wiki'
 require 'job'
+require 'job_lann'
 
 class Piglobot
   class Disabled < RuntimeError; end
@@ -56,6 +57,8 @@ class Piglobot
   
   def code_files
     %w(
+      job_lann_spec.rb
+      job_lann.rb
       job_spec.rb
       job.rb
       piglobot_spec.rb
@@ -66,6 +69,7 @@ class Piglobot
       dump.rb
       tools_spec.rb
       tools.rb
+      wiki_spec_live.rb
       wiki_spec.rb
       wiki.rb
       template_parser.rb
@@ -106,6 +110,7 @@ class Piglobot
     when "Homonymes" then HomonymPrevention
     when "Infobox Logiciel" then InfoboxSoftware
     when "Infobox Aire protégée" then InfoboxProtectedArea
+    when "LANN" then LANN
     else raise "Invalid job: #{job}"
     end
   end

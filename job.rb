@@ -16,6 +16,10 @@ class Piglobot
     def changed?
       @changed
     end
+    
+    def process
+      raise "No process defined in this job"
+    end
   end
   
   class HomonymPrevention < Job
