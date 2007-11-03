@@ -69,7 +69,10 @@ describe LANN do
   end
   
   it "should remove already done" do
-    pending
+    @job.pages = ["Foo", "Bar", "Baz"]
+    @wiki.should_receive(:links).with("Modèle:Archive LANN").and_return(["Foo", "bar", "Baz"])
+    @job.remove_already_done
+    @job.pages.should == ["Bar"]
   end
   
   it "should remove active" do

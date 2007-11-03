@@ -32,6 +32,11 @@ class LANN < Piglobot::Job
     @pages -= links
   end
   
+  def remove_already_done
+    links = @wiki.links("Modèle:Archive LANN")
+    @pages -= links
+  end
+  
   def process_remaining
     @pages.each do |page|
       process_page page
