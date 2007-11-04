@@ -18,6 +18,9 @@
     along with Piglobot.  If not, see <http://www.gnu.org/licenses/>.
 =end
 
+require 'rubygems'
+require "ruby-debug"
+
 ARGV.replace %w(
   piglobot_spec.rb
   editor_spec.rb

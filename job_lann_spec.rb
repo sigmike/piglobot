@@ -28,9 +28,9 @@ describe LANN do
     @job.should_receive(:remove_bad_names).with()
     @job.should_receive(:remove_cited).with()
     @job.should_receive(:remove_already_done).with()
-    @job.should_receive(:remove_active).with()
-    @job.should_receive(:remove_active_talk).with()
-    @job.should_receive(:process_remaining).with()
+    @job.pages = ["Foo", "Bar"]
+    @job.should_receive(:process_page).with("Foo")
+    @job.should_receive(:process_page).with("Bar")
     @job.process
   end
   
@@ -38,7 +38,7 @@ describe LANN do
     items = ["Foo", "Bar", "Baz:Baz"]
     category = "Wikipédia:Archives Articles non neutres"
     @wiki.should_receive(:category).with(category).and_return(items)
-    Piglobot::Tools.should_receive(:log).with("3 articles dans la catégorie")
+    @job.should_receive(:log).with("3 articles dans la catégorie")
     @job.get_pages
     @job.pages.should == items
   end
@@ -53,7 +53,7 @@ describe LANN do
       "Wikipédia:Liste des articles non neutres/Bar",
       "Modèle:Wikipédia:Liste des articles non neutres/Foo",
     ]
-    Piglobot::Tools.should_receive(:log).with("3 articles avec un nom valide")
+    @job.should_receive(:log).with("3 articles avec un nom valide")
     @job.remove_bad_names
     @job.pages.should == [
       "Wikipédia:Liste des articles non neutres/Foo",
@@ -62,23 +62,34 @@ describe LANN do
     ]
   end
   
+  def parser_should_return(content, links)
+    parser = mock("parser")
+    Piglobot::Parser.should_receive(:new).with().and_return(parser)
+    parser.should_receive(:internal_links).with(content).and_return(links)
+  end
+  
   it "should remove cited" do
     links = ["/Foo", "Bar"]
     @job.pages = ["Wikipédia:Liste des articles non neutres/Foo", "Wikipédia:Liste des articles non neutres/Bar"]
     
-    @wiki.should_receive(:get).with("WP:LANN").and_return("content")
-    parser = mock("parser")
-    Piglobot::Parser.should_receive(:new).with().and_return(parser)
-    parser.should_receive(:internal_links).with("content").and_return(links)
-    Piglobot::Tools.should_receive(:log).with("1 articles non cités")
+    @wiki.should_receive(:get).with("Wikipédia:Liste des articles non neutres").and_return("content")
+    parser_should_return("content", links)
+    @job.should_receive(:log).with("1 articles non cités")
     @job.remove_cited
     @job.pages.should == ["Wikipédia:Liste des articles non neutres/Bar"]
+  end
+  
+  it "should raise an error if none are cited" do
+    @job.pages = ["Foo", "Bar"]
+    @wiki.should_receive(:get).with("Wikipédia:Liste des articles non neutres").and_return("content")
+    parser_should_return("content", ["Baz", "Bob"])
+    lambda { @job.remove_cited }.should raise_error(Piglobot::ErrorPrevention, "Aucun article de la catégorie n'est cité dans [[WP:LANN]]")
   end
   
   it "should remove already done" do
     @job.pages = ["Foo", "Bar", "Baz"]
     @wiki.should_receive(:links).with("Modèle:Archive LANN").and_return(["Foo", "bar", "Baz"])
-    Piglobot::Tools.should_receive(:log).with("1 articles non traités")
+    @job.should_receive(:log).with("1 articles non traités")
     @job.remove_already_done
     @job.pages.should == ["Bar"]
   end
@@ -92,8 +103,8 @@ describe LANN do
     @wiki.should_receive(:history).with("Bar", 1).and_return([
       { :author => "author2", :date => Time.local(2007, 9, 26, 23, 56, 12, 0), :oldid => "oldid2" }
     ])
-    Piglobot::Tools.should_receive(:log).with("[[Bar]] ignoré car actif")
-    Piglobot::Tools.should_receive(:log).with("1 articles inactifs")
+    @job.should_receive(:log).with("[[Bar]] ignoré car actif")
+    @job.should_receive(:log).with("1 articles inactifs")
     @job.remove_active
     @job.pages.should == ["Foo"]
   end
@@ -105,48 +116,109 @@ describe LANN do
     @wiki.should_receive(:history).with("Bar", 1).and_return([
       { :author => "author2", :date => Time.local(2007, 9, 26, 23, 56, 13, 0), :oldid => "oldid2" }
     ])
-    Piglobot::Tools.should_receive(:log).with("[[Foo]] ignoré car sans historique")
-    Piglobot::Tools.should_receive(:log).with("1 articles inactifs")
+    @job.should_receive(:log).with("[[Foo]] ignoré car sans historique")
+    @job.should_receive(:log).with("1 articles inactifs")
     @job.remove_active
     @job.pages.should == ["Bar"]
   end
   
   it "should remove active talk" do
     @job.pages = ["Foo", "Bar"]
-    Time.should_receive(:now).with().and_return(Time.local(2007, 10, 3, 23, 56, 12, 13456))
+    now = 
+    Time.should_receive(:now).with().and_return(Time.local(2007, 10, 3, 23, 56, 12))
     @wiki.should_receive(:history).with("Discussion Foo", 1).and_return([
-      { :author => "author", :date => Time.local(2007, 9, 26, 23, 56, 13, 0), :oldid => "oldid" }
+      { :author => "author", :date => Time.local(2007, 9, 26, 23, 57, 0), :oldid => "oldid" }
     ])
     @wiki.should_receive(:history).with("Discussion Bar", 1).and_return([
-      { :author => "author2", :date => Time.local(2007, 9, 26, 23, 56, 12, 0), :oldid => "oldid2" }
+      { :author => "author2", :date => Time.local(2007, 9, 26, 23, 56, 0), :oldid => "oldid2" }
     ])
-    Piglobot::Tools.should_receive(:log).with("[[Bar]] ignoré car discussion active")
-    Piglobot::Tools.should_receive(:log).with("1 articles avec discussion inactive")
+    @job.should_receive(:log).with("[[Bar]] ignoré car discussion active")
+    @job.should_receive(:log).with("1 articles avec discussion inactive")
     @job.remove_active_talk
     @job.pages.should == ["Foo"]
   end
   
   it "should not remove if talk history is empty" do
     @job.pages = ["Foo", "Bar"]
-    Time.stub!(:now).and_return(Time.local(2007, 10, 3, 23, 56, 12, 13456))
+    Time.stub!(:now).and_return(Time.local(2007, 10, 3, 23, 56, 12))
     @wiki.should_receive(:history).with("Discussion Foo", 1).and_return([])
     @wiki.should_receive(:history).with("Discussion Bar", 1).and_return([
-      { :author => "author2", :date => Time.local(2007, 9, 26, 23, 56, 13, 0), :oldid => "oldid2" }
+      { :author => "author2", :date => Time.local(2007, 9, 26, 23, 57, 0), :oldid => "oldid2" }
     ])
-    Piglobot::Tools.should_receive(:log).with("2 articles avec discussion inactive")
+    @job.should_receive(:log).with("2 articles avec discussion inactive")
     @job.remove_active_talk
     @job.pages.should == ["Foo", "Bar"]
   end
   
-  it "should process remaining" do
-    @job.pages = ["Foo", "Bar"]
-    @job.should_receive(:process_page).with("Foo")
-    @job.should_receive(:process_page).with("Bar")
-    Piglobot::Tools.should_receive(:log).with("Traitement de 2 pages")
-    @job.process_remaining
+  it "should use Piglobot::Tools.log on log" do
+    Piglobot::Tools.should_receive(:log).with("text")
+    @job.log("text")
   end
   
-  it "should process page" do
-    pending
+  def time_travel(*now)
+    Time.should_receive(:now).and_return(Time.local(*now))
+  end
+  
+  def next_history_date(page, *now)
+    @wiki.should_receive(:history).with(page, 1).and_return([
+      { :author => "author2", :date => Time.local(*now), :oldid => "oldid2" }
+    ])
+  end
+  
+  def next_history_empty(page)
+    @wiki.should_receive(:history).with(page, 1).and_return([])
+  end
+  
+  it "should detect active page when page history is recent" do
+    time_travel(2007, 10, 3, 23, 56, 12)
+    next_history_date("foo", 2007, 9, 26, 23, 57, 0)
+    @job.active?("foo").should == true
+  end
+  
+  it "should detect active page when page history is old but talk history is recent" do
+    time_travel(2007, 10, 3, 23, 56, 12)
+    next_history_date("foo", 2007, 9, 26, 23, 56, 0)
+    next_history_date("Discussion foo", 2007, 9, 26, 23, 57, 0)
+    @job.active?("foo").should == true
+  end
+  
+  it "should detect inactive page when both histories are old" do
+    time_travel(2007, 10, 3, 23, 56, 12)
+    next_history_date("foo", 2007, 9, 26, 23, 56, 0)
+    next_history_date("Discussion foo", 2007, 9, 25, 23, 57, 0)
+    @job.active?("foo").should == false
+  end
+  
+  it "should detect inactive page when page history is old and no talk page" do
+    time_travel(2007, 10, 3, 23, 56, 12)
+    next_history_date("foo", 2007, 9, 26, 23, 56, 0)
+    next_history_empty("Discussion foo")
+    @job.active?("foo").should == false
+  end
+  
+  it "should consider active if page history is empty (but shouldn't happend)" do
+    time_travel(2007, 10, 3, 23, 56, 12)
+    next_history_empty("foo")
+    @job.active?("foo").should == true
+  end
+  
+  it "should not empty page if active" do
+    @job.should_receive(:active?).with("foo").and_return(true)
+    @job.should_receive(:log).with("[[foo]] ignorée car active")
+    @job.should_not_receive(:empty_page)
+    @job.process_page("foo")
+  end
+
+  it "should empty page if inactive" do
+    @job.should_receive(:active?).with("foo").and_return(false)
+    @job.should_receive(:empty_page).with("foo")
+    @job.process_page("foo")
+  end
+  
+  it "should empty page" do
+    @job.should_receive(:log).with("Blanchiment de [[page]]")
+    @bot.should_receive(:notice).with("Devrait blanchir [[page]] mais inactif pour vérification")
+    Kernel.should_receive(:sleep).with(10)
+    @job.empty_page("page")
   end
 end
