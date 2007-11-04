@@ -238,13 +238,47 @@ describe LANN do
   it "should empty page if inactive" do
     @job.should_receive(:active?).with("foo").and_return(false)
     @job.should_receive(:empty_page).with("foo")
+    @job.should_receive(:empty_talk_page).with("foo")
     @job.process_page("foo")
     @job.changed?.should == true
   end
   
-  it "should empty page" do
-    @job.should_receive(:log).with("Blanchiment de [[page]]")
-    @bot.should_receive(:notice).with("Devrait blanchir [[page]] mais inactif pour vérification")
-    @job.empty_page("page")
+  it "should empty page with" do
+    page = "Wikipédia:Liste des articles non neutres/Bar"
+    
+    @wiki.should_receive(:history).with(page, 1).and_return([
+      { :author => "author2", :date => Time.now, :oldid => "123456" }
+    ])
+    
+    content = "{{subst:Blanchiment LANN | article = [[:Bar]] | oldid = 123456 }}"
+    comment = "[[Utilisateur:Piglobot/Travail#Blanchiment LANN|Blanchiment automatique de courtoisie]]"
+    
+    @job.should_receive(:log).with("Blanchiment de [[#{page}]]")
+    @wiki.should_receive(:post).with(page, content, comment)
+    @job.empty_page(page)
+  end
+  
+  it "should empty talk page" do
+    page = "Wikipédia:Liste des articles non neutres/Bar"
+    
+    @wiki.should_receive(:history).with("Discussion " + page, 1).and_return([
+      { :author => "author2", :date => Time.now, :oldid => "123456" }
+    ])
+    
+    content = "{{Blanchiment de courtoisie}}"
+    comment = "[[Utilisateur:Piglobot/Travail#Blanchiment LANN|Blanchiment automatique de courtoisie]]"
+    
+    @job.should_receive(:log).with("Blanchiment de [[Discussion #{page}]]")
+    @wiki.should_receive(:post).with("Discussion " + page, content, comment)
+    @job.empty_talk_page(page)
+  end
+  
+  it "should not empty inexistant talk page" do
+    page = "Wikipédia:Liste des articles non neutres/Bar"
+    
+    @wiki.should_receive(:history).with("Discussion " + page, 1).and_return([])
+    
+    @job.should_receive(:log).with("Blanchiment inutile de [[Discussion #{page}]]")
+    @job.empty_talk_page(page)
   end
 end

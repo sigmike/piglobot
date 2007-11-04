@@ -130,12 +130,32 @@ class LANN < Piglobot::Job
       @bot.notice("[[WP:LANN]] : [[#{page}]] non blanchie car active")
     else
       empty_page(page)
+      empty_talk_page(page)
     end
     @changed = true
   end
   
   def empty_page(page)
     log("Blanchiment de [[#{page}]]")
-    @bot.notice("Devrait blanchir [[#{page}]] mais inactif pour vérification")
+    history = @wiki.history(page, 1)
+    oldid = history.first[:oldid]
+    article = page.sub(%r{\A.+?/}, "")
+    content = "{{subst:Blanchiment LANN | article = [[:#{article}]] | oldid = #{oldid} }}"
+    comment = "[[Utilisateur:Piglobot/Travail#Blanchiment LANN|Blanchiment automatique de courtoisie]]"
+    @wiki.post(page, content, comment)
+  end
+
+  def empty_talk_page(page)
+    talk_page = "Discussion " + page
+    history = @wiki.history(talk_page, 1)
+    if history.empty?
+      log("Blanchiment inutile de [[#{talk_page}]]")
+    else
+      log("Blanchiment de [[#{talk_page}]]")
+      oldid = history.first[:oldid]
+      content = "{{Blanchiment de courtoisie}}"
+      comment = "[[Utilisateur:Piglobot/Travail#Blanchiment LANN|Blanchiment automatique de courtoisie]]"
+      @wiki.post(talk_page, content, comment)
+    end
   end
 end
