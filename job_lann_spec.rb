@@ -63,6 +63,7 @@ describe LANN do
     category = "Wikipédia:Archives Articles non neutres"
     @wiki.should_receive(:category).with(category).and_return(items)
     @job.should_receive(:log).with("3 articles dans la catégorie")
+    @bot.should_receive(:notice).with("[[WP:LANN]] : 3 pages dans la [[:Catégorie:Wikipédia:Archives Articles non neutres]]")
     @job.get_pages
     @job.pages.should == items
   end
@@ -78,6 +79,7 @@ describe LANN do
       "Modèle:Wikipédia:Liste des articles non neutres/Foo",
     ]
     @job.should_receive(:log).with("3 articles avec un nom valide")
+    @bot.should_receive(:notice).with("[[WP:LANN]] : 3 pages avec un nom valide")
     @job.remove_bad_names
     @job.pages.should == [
       "Wikipédia:Liste des articles non neutres/Foo",
@@ -99,6 +101,7 @@ describe LANN do
     @wiki.should_receive(:get).with("Wikipédia:Liste des articles non neutres").and_return("content")
     parser_should_return("content", links)
     @job.should_receive(:log).with("1 articles non cités")
+    @bot.should_receive(:notice).with("[[WP:LANN]] : 1 pages non mentionnées dans [[WP:LANN]]")
     @job.remove_cited
     @job.pages.should == ["Wikipédia:Liste des articles non neutres/Bar"]
   end
@@ -107,13 +110,14 @@ describe LANN do
     @job.pages = ["Foo", "Bar"]
     @wiki.should_receive(:get).with("Wikipédia:Liste des articles non neutres").and_return("content")
     parser_should_return("content", ["Baz", "Bob"])
-    lambda { @job.remove_cited }.should raise_error(Piglobot::ErrorPrevention, "Aucun article de la catégorie n'est cité dans [[WP:LANN]]")
+    lambda { @job.remove_cited }.should raise_error(Piglobot::ErrorPrevention, "Aucune page de la catégorie n'est cité dans [[WP:LANN]]")
   end
   
   it "should remove already done" do
     @job.pages = ["Foo", "Bar", "Baz"]
     @wiki.should_receive(:links).with("Modèle:Archive LANN").and_return(["Foo", "bar", "Baz"])
     @job.should_receive(:log).with("1 articles non traités")
+    @bot.should_receive(:notice).with("[[WP:LANN]] : 1 pages ne contenant pas le [[Modèle:Archive LANN]]")
     @job.remove_already_done
     @job.pages.should == ["Bar"]
   end

@@ -28,12 +28,14 @@ class LANN < Piglobot::Job
   
   def get_pages
     @pages = @wiki.category("Wikipédia:Archives Articles non neutres")
-    log "#{pages.size} articles dans la catégorie"
+    log "#{@pages.size} articles dans la catégorie"
+    @bot.notice("[[WP:LANN]] : #{@pages.size} pages dans la [[:Catégorie:Wikipédia:Archives Articles non neutres]]")
   end
   
   def remove_bad_names
     @pages.delete_if { |name| name !~ /\AWikipédia:Liste des articles non neutres\// }
     log "#{pages.size} articles avec un nom valide"
+    @bot.notice("[[WP:LANN]] : #{@pages.size} pages avec un nom valide")
   end
   
   def remove_cited
@@ -50,15 +52,17 @@ class LANN < Piglobot::Job
     old_pages = @pages
     @pages -= links
     if @pages.size == old_pages.size
-      raise Piglobot::ErrorPrevention, "Aucun article de la catégorie n'est cité dans [[WP:LANN]]"
+      raise Piglobot::ErrorPrevention, "Aucune page de la catégorie n'est cité dans [[WP:LANN]]"
     end
     log "#{pages.size} articles non cités"
+    @bot.notice("[[WP:LANN]] : #{@pages.size} pages non mentionnées dans [[WP:LANN]]")
   end
   
   def remove_already_done
     links = @wiki.links("Modèle:Archive LANN")
     @pages -= links
     log "#{pages.size} articles non traités"
+    @bot.notice("[[WP:LANN]] : #{@pages.size} pages ne contenant pas le [[Modèle:Archive LANN]]")
   end
   
   def remove_active
