@@ -112,7 +112,7 @@ class Piglobot
   end
 
   def process
-    changes = false
+    job = nil
     load_data
     data = @data
     if data.nil?
@@ -123,11 +123,10 @@ class Piglobot
       job.data = data[data_id]
       job.process
       data[data_id] = job.data
-      changes = job.changed?
     end
     @data = data
     save_data
-    changes
+    job
   end
   
   def safety_check
@@ -161,21 +160,26 @@ class Piglobot
   end
   
   def step
-    changes = true
     begin
       if safety_check
         begin
-          changes = process
+          job = process
+          if job.done?
+            raise Interrupt
+          else
+            if job.changed?
+              sleep
+            else
+              short_sleep
+            end
+          end
         rescue Interrupt, MediaWiki::InternalServerError
           raise
         rescue Exception => e
           log_error(e)
         end
-      end
-      if changes
-        sleep
       else
-        short_sleep
+        sleep
       end
     rescue MediaWiki::InternalServerError
       long_sleep

@@ -38,6 +38,10 @@ class Piglobot
     def process
       raise "No process defined in this job"
     end
+    
+    def done?
+      true
+    end
   end
   
   class HomonymPrevention < Job
@@ -45,6 +49,10 @@ class Piglobot
       "Homonymes"
     end
   
+    def done?
+      false
+    end
+    
     def process
       changes = false
       data = @data
@@ -87,6 +95,10 @@ class Piglobot
   class InfoboxRewriter < Job
     attr_accessor :links, :infobox
   
+    def done?
+      false
+    end
+    
     def data_id
       @infobox
     end

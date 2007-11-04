@@ -1,9 +1,26 @@
+describe Piglobot::Job do
+  before do
+    @bot = mock("bot")
+    @wiki = mock("wiki")
+    @bot.should_receive(:wiki).and_return(@wiki)
+    @job = Piglobot::Job.new(@bot)
+  end
+  
+  it "should always be done" do
+    @job.done?.should == true
+  end
+end
+
 describe Piglobot::HomonymPrevention do
   before do
     @bot = mock("bot")
     @wiki = mock("wiki")
     @bot.should_receive(:wiki).with().and_return(@wiki)
     @job = Piglobot::HomonymPrevention.new(@bot)
+  end
+  
+  it "should never be done" do
+    @job.done?.should == false
   end
   
   it "should find new links" do
@@ -53,6 +70,10 @@ describe Piglobot::InfoboxRewriter do
     @link = "link"
     @links = [@link]
     @rewriter = Piglobot::InfoboxRewriter.new(@bot, @name, @links)
+  end
+  
+  it "should never be done" do
+    @rewriter.done?.should == false
   end
   
   it "should get infobox links when data is empty" do

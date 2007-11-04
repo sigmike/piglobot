@@ -94,7 +94,7 @@ describe Piglobot, "using data" do
 
   class FakeJob
   end
-
+  
   it "should use job class on process" do
     job = mock("job")
     @bot.should_receive(:job_class).with("job name").and_return(FakeJob)
@@ -106,12 +106,11 @@ describe Piglobot, "using data" do
     job.should_receive(:data=).with("data")
     job.should_receive(:process)
     job.should_receive(:data).with().and_return("result data")
-    job.should_receive(:changed?).with().and_return("changed?")
     @bot.should_receive(:save_data).with() do
       @bot.data.should == {"foo" => "bar", "data id" => "result data"}
     end
     @bot.job = "job name"
-    @bot.process.should == "changed?"
+    @bot.process.should == job
   end
 end
 
@@ -120,6 +119,7 @@ describe Piglobot, :shared => true do
   
   before do
     create_bot
+    @job = mock("job")
   end
   
   it "should initialize data on first process" do
@@ -129,18 +129,16 @@ describe Piglobot, :shared => true do
     @bot.should_receive(:save_data) do
       @bot.data.should == {}
     end
-    @bot.process.should == false
+    @bot.process.should == nil
   end
   
   it "should fail when job is nil" do
     @bot.job = nil
-    @bot.should_receive(:load_data).and_return({})
     lambda { @bot.process }.should raise_error(RuntimeError, "Invalid job: nil")
   end
 
   it "should fail when job is invalid" do
     @bot.job = "Foo"
-    @bot.should_receive(:load_data).and_return({})
     lambda { @bot.process }.should raise_error(RuntimeError, "Invalid job: \"Foo\"")
   end
 
@@ -213,16 +211,34 @@ describe Piglobot, :shared => true do
   
   it "should safety_check, process and sleep on step" do
     @bot.should_receive(:safety_check).with().once.and_return(true)
-    @bot.should_receive(:process).with().once.and_return(true)
+    @bot.should_receive(:process).with().once.and_return(nil)
     @bot.should_receive(:sleep).with().once
     @bot.step
   end
   
-  it "should short_sleep if process returned false" do
+  it "should short_sleep if process job has not changed anything" do
     @bot.should_receive(:safety_check).with().once.and_return(true)
-    @bot.should_receive(:process).with().once.and_return(false)
+    @job.should_receive(:done?).with().and_return(false)
+    @job.should_receive(:changed?).with().and_return(false)
+    @bot.should_receive(:process).with().once.and_return(@job)
     @bot.should_receive(:short_sleep).with().once
     @bot.step
+  end
+  
+  it "should sleep normally if job has changed something" do
+    @bot.should_receive(:safety_check).with().once.and_return(true)
+    @job.should_receive(:done?).with().and_return(false)
+    @job.should_receive(:changed?).with().and_return(true)
+    @bot.should_receive(:process).with().once.and_return(@job)
+    @bot.should_receive(:sleep).with().once
+    @bot.step
+  end
+  
+  it "should raise Interrupt if job has done" do
+    @bot.should_receive(:safety_check).with().once.and_return(true)
+    @job.should_receive(:done?).with().and_return(true)
+    @bot.should_receive(:process).with().once.and_return(@job)
+    lambda { @bot.step }.should raise_error(Interrupt)
   end
   
   it "should not process if safety_check failed" do

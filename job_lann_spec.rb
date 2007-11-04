@@ -221,4 +221,8 @@ describe LANN do
     Kernel.should_receive(:sleep).with(10)
     @job.empty_page("page")
   end
+
+  it "should always be done" do
+    @job.done?.should == true
+  end
 end
