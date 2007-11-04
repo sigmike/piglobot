@@ -5,15 +5,25 @@ class LANN < Piglobot::Job
   def log(text)
     Piglobot::Tools.log(text)
   end
+  
+  def done?
+    @done
+  end
 
   def process
-    get_pages
-    remove_bad_names
-    remove_cited
-    remove_already_done
-    @pages.each do |page|
+    if @data.nil? or @data[:pages].empty?
+      get_pages
+      remove_bad_names
+      remove_cited
+      remove_already_done
+      @bot.notice("[[WP:LANN]] : #{@pages.size} pages à traiter")
+    else
+      @pages = @data[:pages]
+      page = @pages.shift
       process_page page
     end
+    @done = (@pages.empty?)
+    @data = { :pages => @pages }
   end
   
   def get_pages
@@ -117,14 +127,15 @@ class LANN < Piglobot::Job
   def process_page(page)
     if active? page
       log("[[#{page}]] ignorée car active")
+      @bot.notice("[[WP:LANN]] : [[#{page}]] non blanchie car active")
     else
       empty_page(page)
     end
+    @changed = true
   end
   
   def empty_page(page)
     log("Blanchiment de [[#{page}]]")
     @bot.notice("Devrait blanchir [[#{page}]] mais inactif pour vérification")
-    Kernel.sleep(10)
   end
 end

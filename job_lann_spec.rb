@@ -23,15 +23,39 @@ describe LANN do
     @job.should be_kind_of(Piglobot::Job)
   end
   
-  it "should process steps" do
-    @job.should_receive(:get_pages).with()
-    @job.should_receive(:remove_bad_names).with()
-    @job.should_receive(:remove_cited).with()
-    @job.should_receive(:remove_already_done).with()
-    @job.pages = ["Foo", "Bar"]
-    @job.should_receive(:process_page).with("Foo")
-    @job.should_receive(:process_page).with("Bar")
+  [
+    nil,
+    { :pages => [] },
+  ].each do |initial_data|
+    it "should get pages when data is #{initial_data.inspect}" do
+      @job.data = initial_data
+      @job.should_receive(:get_pages).with()
+      @job.should_receive(:remove_bad_names).with()
+      @job.should_receive(:remove_cited).with()
+      @job.should_receive(:remove_already_done).with() do
+        @job.pages = ["foo", "bar", "baz"]
+      end
+      @bot.should_receive(:notice).with("[[WP:LANN]] : 3 pages à traiter")
+      @job.process
+      @job.data[:pages].should == ["foo", "bar", "baz"]
+      @job.done?.should == false
+    end
+  end
+  
+  it "should process first page if pages filled" do
+    @job.data = { :pages => ["foo", "bar"] }
+    @job.should_receive(:process_page).with("foo")
     @job.process
+    @job.data.should == { :pages => ["bar"] }
+    @job.done?.should == false
+  end
+  
+  it "should be done when pages are empty" do
+    @job.data = { :pages => ["bar"] }
+    @job.should_receive(:process_page).with("bar")
+    @job.process
+    @job.data.should == { :pages => [] }
+    @job.done?.should == true
   end
   
   it "should get pages" do
@@ -204,25 +228,23 @@ describe LANN do
   
   it "should not empty page if active" do
     @job.should_receive(:active?).with("foo").and_return(true)
+    @bot.should_receive(:notice).with("[[WP:LANN]] : [[foo]] non blanchie car active")
     @job.should_receive(:log).with("[[foo]] ignorée car active")
     @job.should_not_receive(:empty_page)
     @job.process_page("foo")
+    @job.changed?.should == true
   end
 
   it "should empty page if inactive" do
     @job.should_receive(:active?).with("foo").and_return(false)
     @job.should_receive(:empty_page).with("foo")
     @job.process_page("foo")
+    @job.changed?.should == true
   end
   
   it "should empty page" do
     @job.should_receive(:log).with("Blanchiment de [[page]]")
     @bot.should_receive(:notice).with("Devrait blanchir [[page]] mais inactif pour vérification")
-    Kernel.should_receive(:sleep).with(10)
     @job.empty_page("page")
-  end
-
-  it "should always be done" do
-    @job.done?.should == true
   end
 end
