@@ -107,7 +107,7 @@ class Piglobot
     when "Infobox Logiciel" then InfoboxSoftware
     when "Infobox Aire protégée" then InfoboxProtectedArea
     when "LANN" then LANN
-    else raise "Invalid job: #{job}"
+    else raise "Invalid job: #{job.inspect}"
     end
   end
 
@@ -164,19 +164,24 @@ class Piglobot
       if safety_check
         begin
           job = process
-          if job.done?
-            raise Interrupt
-          else
-            if job.changed?
-              sleep
+          if job
+            if job.done?
+              raise Interrupt, "Terminé"
             else
-              short_sleep
+              if job.changed?
+                sleep
+              else
+                short_sleep
+              end
             end
+          else
+            sleep
           end
         rescue Interrupt, MediaWiki::InternalServerError
           raise
         rescue Exception => e
           log_error(e)
+          sleep
         end
       else
         sleep

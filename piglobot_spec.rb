@@ -114,7 +114,7 @@ describe Piglobot, "using data" do
   end
 end
 
-describe Piglobot, :shared => true do
+describe Piglobot do
   include PiglobotHelper
   
   before do
@@ -238,7 +238,7 @@ describe Piglobot, :shared => true do
     @bot.should_receive(:safety_check).with().once.and_return(true)
     @job.should_receive(:done?).with().and_return(true)
     @bot.should_receive(:process).with().once.and_return(@job)
-    lambda { @bot.step }.should raise_error(Interrupt)
+    lambda { @bot.step }.should raise_error(Interrupt, "Terminé")
   end
   
   it "should not process if safety_check failed" do
@@ -283,7 +283,9 @@ describe Piglobot, :shared => true do
   
   it "should abort on Interrupt during sleep" do
     @bot.should_receive(:safety_check).with().once.and_return(true)
-    @bot.should_receive(:process).with().once.and_return(true)
+    @job.should_receive(:done?).with().and_return(false)
+    @job.should_receive(:changed?).with().and_return(true)
+    @bot.should_receive(:process).with().once.and_return(@job)
     @bot.should_receive(:sleep).with().once.and_raise(Interrupt.new("interrupt"))
     lambda { @bot.step }.should raise_error(Interrupt)
   end
@@ -302,13 +304,6 @@ describe Piglobot, :shared => true do
     text = "[[article name]] : foo bar"
     @wiki.should_receive(:append).with(@bot.log_page, "* ~~~~~ : #{text}", text)
     @bot.notice "foo bar", "article name"
-  end
-
-  it "should append link to current_article on notice with link" do
-    text = "[[current article name]] : foo bar"
-    @wiki.should_receive(:append).with(@bot.log_page, "* ~~~~~ : #{text}", text)
-    @bot.current_article = "current article name"
-    @bot.notice "foo bar"
   end
 end
 
