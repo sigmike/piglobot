@@ -19,4 +19,8 @@ describe Piglobot::Wiki, " live" do
   it "should find Ruby in links to Infobox Langage de programmation" do
     @wiki.links("Modèle:Infobox Langage de programmation").should include("Ruby")
   end
+  
+  it "should find Linux in Modèle:Portail informatique" do
+    @wiki.links("Modèle:Portail informatique").should include("Linux")
+  end
 end
