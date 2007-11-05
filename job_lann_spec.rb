@@ -122,62 +122,6 @@ describe LANN do
     @job.pages.should == ["Bar"]
   end
   
-  it "should remove active" do
-    @job.pages = ["Foo", "Bar"]
-    Time.should_receive(:now).with().and_return(Time.local(2007, 10, 3, 23, 56, 12, 13456))
-    @wiki.should_receive(:history).with("Foo", 1).and_return([
-      { :author => "author", :date => Time.local(2007, 9, 26, 23, 56, 13, 0), :oldid => "oldid" }
-    ])
-    @wiki.should_receive(:history).with("Bar", 1).and_return([
-      { :author => "author2", :date => Time.local(2007, 9, 26, 23, 56, 12, 0), :oldid => "oldid2" }
-    ])
-    @job.should_receive(:log).with("[[Bar]] ignoré car actif")
-    @job.should_receive(:log).with("1 articles inactifs")
-    @job.remove_active
-    @job.pages.should == ["Foo"]
-  end
-  
-  it "should remove if history is empty" do
-    @job.pages = ["Foo", "Bar"]
-    Time.should_receive(:now).with().and_return(Time.local(2007, 10, 3, 23, 56, 12, 13456))
-    @wiki.should_receive(:history).with("Foo", 1).and_return([])
-    @wiki.should_receive(:history).with("Bar", 1).and_return([
-      { :author => "author2", :date => Time.local(2007, 9, 26, 23, 56, 13, 0), :oldid => "oldid2" }
-    ])
-    @job.should_receive(:log).with("[[Foo]] ignoré car sans historique")
-    @job.should_receive(:log).with("1 articles inactifs")
-    @job.remove_active
-    @job.pages.should == ["Bar"]
-  end
-  
-  it "should remove active talk" do
-    @job.pages = ["Foo", "Bar"]
-    now = 
-    Time.should_receive(:now).with().and_return(Time.local(2007, 10, 3, 23, 56, 12))
-    @wiki.should_receive(:history).with("Discussion Foo", 1).and_return([
-      { :author => "author", :date => Time.local(2007, 9, 26, 23, 57, 0), :oldid => "oldid" }
-    ])
-    @wiki.should_receive(:history).with("Discussion Bar", 1).and_return([
-      { :author => "author2", :date => Time.local(2007, 9, 26, 23, 56, 0), :oldid => "oldid2" }
-    ])
-    @job.should_receive(:log).with("[[Bar]] ignoré car discussion active")
-    @job.should_receive(:log).with("1 articles avec discussion inactive")
-    @job.remove_active_talk
-    @job.pages.should == ["Foo"]
-  end
-  
-  it "should not remove if talk history is empty" do
-    @job.pages = ["Foo", "Bar"]
-    Time.stub!(:now).and_return(Time.local(2007, 10, 3, 23, 56, 12))
-    @wiki.should_receive(:history).with("Discussion Foo", 1).and_return([])
-    @wiki.should_receive(:history).with("Discussion Bar", 1).and_return([
-      { :author => "author2", :date => Time.local(2007, 9, 26, 23, 57, 0), :oldid => "oldid2" }
-    ])
-    @job.should_receive(:log).with("2 articles avec discussion inactive")
-    @job.remove_active_talk
-    @job.pages.should == ["Foo", "Bar"]
-  end
-  
   it "should use Piglobot::Tools.log on log" do
     Piglobot::Tools.should_receive(:log).with("text")
     @job.log("text")

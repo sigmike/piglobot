@@ -65,47 +65,6 @@ class LANN < Piglobot::Job
     @bot.notice("[[WP:LANN]] : #{@pages.size} pages ne contenant pas le [[Modèle:Archive LANN]]")
   end
   
-  def remove_active
-    now = Time.now
-    limit = now - 7 * 24 * 3600
-    @pages.delete_if do |page|
-      history = @wiki.history(page, 1)
-      if history.empty?
-        log "[[#{page}]] ignoré car sans historique"
-        true
-      else
-        date = history.first[:date]
-        if date < limit
-          log "[[#{page}]] ignoré car actif"
-          true
-        else
-          false
-        end
-      end
-    end
-    log "#{pages.size} articles inactifs"
-  end
-  
-  def remove_active_talk
-    now = Time.now
-    limit = now - 7 * 24 * 3600
-    @pages.delete_if do |page|
-      history = @wiki.history("Discussion " + page, 1)
-      if history.empty?
-        false
-      else
-        date = history.first[:date]
-        if date < limit
-          log "[[#{page}]] ignoré car discussion active"
-          true
-        else
-          false
-        end
-      end
-    end
-    log "#{pages.size} articles avec discussion inactive"
-  end
-  
   def active?(page)
     now = Time.now
     limit = now - 7 * 24 * 3600

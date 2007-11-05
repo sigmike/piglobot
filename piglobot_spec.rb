@@ -64,7 +64,6 @@ describe Piglobot, "using data" do
 
   it "should save data" do
     data = "bar"
-    text = "<source lang=\"text\">\n" + data.to_yaml + "</source" + ">"
     file = mock("file")
     File.should_receive(:open).with("data.yaml", "w").and_yield(file)
     file.should_receive(:write).with(data.to_yaml)
