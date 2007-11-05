@@ -38,17 +38,24 @@ module Piglobot::Tools
     }
   end
   
+  MONTHS = %w(janvier février mars avril mai juin
+              juillet août septembre octobre novembre décembre)
   
   def parse_time(text)
-    months = %w(janvier février mars avril mai juin
-                juillet août septembre octobre novembre décembre)
     if text =~ /\A(\d+) (\S+) (\d{4}) à (\d{2}):(\d{2})\Z/
-      month = months.index($2)
+      month = MONTHS.index($2)
       if month
         return Time.local($3.to_i, month + 1, $1.to_i, $4.to_i, $5.to_i, 0)
       end
     end
     raise ArgumentError, "Invalid time: #{text.inspect}"
+  end
+  
+  def write_date(time)
+    day = time.day
+    month = MONTHS[time.month - 1]
+    year = time.year
+    "{{date|#{day}|#{month}|#{year}}}"
   end
 end
 

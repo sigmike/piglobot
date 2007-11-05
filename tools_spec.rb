@@ -79,4 +79,9 @@ describe Piglobot::Tools do
         Time.local(2007, expected_month, 25, 17, 17, 0)
     end
   end
+  
+  months.each_with_index do |month, i|
+    time = Time.local(2007, i + 1, 3, 11, 23, 3)
+    Piglobot::Tools.write_date(time).should == "{{date|3|#{month}|2007}}"
+  end
 end

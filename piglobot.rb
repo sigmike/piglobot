@@ -31,6 +31,7 @@ require 'tools'
 require 'wiki'
 require 'job'
 require 'job_lann'
+require 'suivi_portail_informatique'
 
 class Piglobot
   class Disabled < RuntimeError; end
@@ -55,6 +56,8 @@ class Piglobot
   
   def code_files
     %w(
+      suivi_portail_informatique.rb
+      suivi_portail_informatique_spec.rb
       job_lann_spec.rb
       job_lann.rb
       job_spec.rb
@@ -107,6 +110,7 @@ class Piglobot
     when "Infobox Logiciel" then InfoboxSoftware
     when "Infobox Aire protégée" then InfoboxProtectedArea
     when "LANN" then LANN
+    when "SuiviPortailInformatique" then SuiviPortailInformatique
     else raise "Invalid job: #{job.inspect}"
     end
   end
