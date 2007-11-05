@@ -166,6 +166,7 @@ class Piglobot
           job = process
           if job
             if job.done?
+              notice("#{job.name} : terminé")
               raise Interrupt, "Terminé"
             else
               if job.changed?

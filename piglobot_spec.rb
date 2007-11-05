@@ -234,10 +234,12 @@ describe Piglobot do
     @bot.step
   end
   
-  it "should raise Interrupt if job has done" do
+  it "should notice and raise Interrupt if job has done" do
     @bot.should_receive(:safety_check).with().once.and_return(true)
     @job.should_receive(:done?).with().and_return(true)
     @bot.should_receive(:process).with().once.and_return(@job)
+    @job.should_receive(:name).with().and_return("foo")
+    @bot.should_receive(:notice).with("foo : terminé")
     lambda { @bot.step }.should raise_error(Interrupt, "Terminé")
   end
   

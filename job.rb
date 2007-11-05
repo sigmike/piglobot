@@ -42,6 +42,10 @@ class Piglobot
     def done?
       true
     end
+    
+    def name
+      self.class.name
+    end
   end
   
   class HomonymPrevention < Job

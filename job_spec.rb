@@ -9,6 +9,10 @@ describe Piglobot::Job do
   it "should always be done" do
     @job.done?.should == true
   end
+
+  it "should have a name" do
+    @job.name.should == @job.class.name
+  end
 end
 
 describe Piglobot::HomonymPrevention do
