@@ -142,6 +142,44 @@ describe MediaWiki, " with fake MiniBrowser" do
     result.should include("Ruby")
     result.should include("YaBasic")
   end
+  
+  it "should retreive links" do
+    result = File.read("sample_links.html")
+    url = @uri.path + "index.php?title=#{CGI.escape 'Special:Whatlinkshere/Foo:Bàr'}"
+    url << "&limit=500&from=0"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items, next_id = @wiki.links("Foo:Bàr")
+    items.size.should == 20
+    items.first.should == "Algorithmique"
+    items.should include("Amstrad CPC 6128")
+    items.should include("Apple I")
+    items.last.should == "Carte mère"
+    next_id.should == "635"
+  end
+
+  it "should retreive links with offset" do
+    result = File.read("sample_links.html")
+    url = @uri.path + "index.php?title=#{CGI.escape 'Special:Whatlinkshere/Foo:Bàr'}"
+    url << "&limit=500&from=offset"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items, next_id = @wiki.links("Foo:Bàr", "offset")
+  end
+  
+  it "should detect last page" do
+    result = File.read("sample_links_end.html")
+    url = @uri.path + "index.php?title=#{CGI.escape 'Special:Whatlinkshere/Foo:Bàr'}"
+    url << "&limit=500&from=offset"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items, next_id = @wiki.links("Foo:Bàr", "offset")
+    next_id.should == nil
+  end
+  
+  it "should retreive all links pages" do
+    @wiki.should_receive(:links).with("foo", "0").and_return([["bar", "baz"], "123"])
+    @wiki.should_receive(:links).with("foo", "123").and_return([["bob", "baz"], "456"])
+    @wiki.should_receive(:links).with("foo", "456").and_return([["mock"], nil])
+    @wiki.full_links("foo").should == ["bar", "baz", "bob", "baz", "mock"]
+  end
 end
 
 =begin

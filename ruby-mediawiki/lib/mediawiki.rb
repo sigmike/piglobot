@@ -247,6 +247,34 @@ module MediaWiki
       end
       res
     end
+  
+    def links(page, offset = "0")
+      res = []
+      count = 500
+      url = article_url("Special:Whatlinkshere/#{page}")
+      url << "&limit=#{count}" if count
+      url << "&from=#{offset}"
+      content = @browser.get_content(url)
+      items = content.scan(%r{<li><a href=".+?" title="(.+?)">.+?</a>.+?</li>}).flatten.map { |title|
+        REXML::Text.unnormalize(title)
+      }
+      next_id = nil
+      if content =~ %r{<a href="[^"]+&amp;limit=\d+&amp;from=(\d+)&amp;back=\d+" title="Special:Whatlinkshere/[^"]+">\d+ suivants</a>}
+        next_id = $1
+      end
+      [items, next_id]
+    end
+    
+    def full_links(page)
+      result = []
+      next_id = "0"
+      loop do
+        items, next_id = links(page, next_id)
+        result += items
+        break unless next_id
+      end
+      result
+    end
   end
 end
 

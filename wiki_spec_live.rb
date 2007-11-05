@@ -15,4 +15,8 @@ describe Piglobot::Wiki, " live" do
       { :oldid => "18253294", :author => "Tavernier", :date => Time.local(2007, 6, 25, 19, 52, 0) },
     ]
   end
+  
+  it "should find Ruby in links to Infobox Langage de programmation" do
+    @wiki.links("Modèle:Infobox Langage de programmation").should include("Ruby")
+  end
 end

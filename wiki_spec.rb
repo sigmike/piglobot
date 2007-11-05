@@ -55,13 +55,12 @@ describe Piglobot::Wiki do
     @wiki.internal_append("Article name", "new text", "append comment")
   end
   
-  it "should use fast_what_links_here on links" do
+  it "should use full_links on links" do
     name = "Article name"
     links = ["Foo", "Bar", "Foo:Bar", "Hello:Bob", "Baz"]
     expected_links = links
     Piglobot::Tools.should_receive(:log).with("What links to [[Article name]]")
-    @mediawiki.should_receive(:article).with(name).once.and_return(@article)
-    @article.should_receive(:fast_what_links_here).with(5000).and_return(links)
+    @mediawiki.should_receive(:full_links).with(name).once.and_return(links)
     @wiki.internal_links(name).should == expected_links
   end
   
