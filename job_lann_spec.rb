@@ -224,16 +224,27 @@ describe LANN do
     @job.active?("foo").should == false
   end
   
-  it "should consider active if page history is empty (but shouldn't happend)" do
+  it "should raise an error if page history is empty (but shouldn't happend)" do
     time_travel(2007, 10, 3, 23, 56, 12)
     next_history_empty("foo")
-    @job.active?("foo").should == true
+    lambda { @job.active?("foo") }.should raise_error(RuntimeError, "La page n'existe pas")
   end
   
   it "should not empty page if active" do
     @job.should_receive(:active?).with("foo").and_return(true)
     @bot.should_receive(:notice).with("[[WP:LANN]] : [[foo]] non blanchie car active")
     @job.should_receive(:log).with("[[foo]] ignorée car active")
+    @job.should_not_receive(:empty_page)
+    @job.process_page("foo")
+    @job.changed?.should == true
+  end
+
+  it "should not empty page on error" do
+    e = RuntimeError.new("error")
+    e.set_backtrace(["foo", "bar"])
+    @job.should_receive(:active?).with("foo").and_raise(e)
+    @bot.should_receive(:notice).with("[[WP:LANN]] : [[foo]] non blanchie car une erreur s'est produite : error")
+    @job.should_receive(:log).with("Erreur pour [[foo]] : error\nfoo\nbar")
     @job.should_not_receive(:empty_page)
     @job.process_page("foo")
     @job.changed?.should == true

@@ -110,7 +110,7 @@ class LANN < Piglobot::Job
     now = Time.now
     limit = now - 7 * 24 * 3600
     history = @wiki.history(page, 1)
-    return true if history.empty?
+    raise "La page n'existe pas" if history.empty?
     
     date = history.first[:date]
     if date > limit
@@ -129,12 +129,17 @@ class LANN < Piglobot::Job
   end
   
   def process_page(page)
-    if active? page
-      log("[[#{page}]] ignorée car active")
-      @bot.notice("[[WP:LANN]] : [[#{page}]] non blanchie car active")
-    else
-      empty_page(page)
-      empty_talk_page(page)
+    begin
+      if active? page
+        log("[[#{page}]] ignorée car active")
+        @bot.notice("[[WP:LANN]] : [[#{page}]] non blanchie car active")
+      else
+        empty_page(page)
+        empty_talk_page(page)
+      end
+    rescue => e
+      @bot.notice("[[WP:LANN]] : [[#{page}]] non blanchie car une erreur s'est produite : #{e.message}")
+      log("Erreur pour [[#{page}]] : #{e.message}\n#{e.backtrace.join("\n")}")
     end
     @changed = true
   end

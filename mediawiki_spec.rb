@@ -102,6 +102,16 @@ describe MediaWiki, " with fake MiniBrowser" do
     next_id.should == "Wikip%C3%A9dia%3AListe+des+articles+non+neutres%2FCannelle+%28ourse%29"
   end
 
+  it "should retreive category article with amp" do
+    result = File.read("sample_category_with_amp.html")
+    @browser.should_receive(:get_content).with(@uri.path + "index.php?title=#{CGI.escape 'Category:Category_name'}").and_return(result)
+    items, next_id = @wiki.category_slice("Category name")
+    items.size.should == 200
+    items.delete_if { |item| item !~ /Associ/ }
+    items.should_not include("Wikipédia:Liste des articles non neutres/Frémeaux &amp; Associés")
+    items.should include("Wikipédia:Liste des articles non neutres/Frémeaux & Associés")
+  end
+
   it "should retreive next category articles" do
     result = File.read("sample_category.html")
     @browser.should_receive(:get_content).with(@uri.path + "index.php?title=#{CGI.escape 'Category:Category_name'}&from=néxt_id").and_return(result)

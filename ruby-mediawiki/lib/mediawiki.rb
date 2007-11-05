@@ -226,7 +226,9 @@ module MediaWiki
       content = @browser.get_content(url)
       res = []
       content.scan(%r{<li><a href=".+?" title="(.+?)">(.+?)</a></li>}).each do |title, text|
-        res << title if title == text
+        if title == text
+          res << title.gsub("&amp;", "&")
+        end
       end
       next_id = nil
       content.scan(%r{<a href=".+?&amp;from=([^&]+?)" title=".+?">}).each do |id,|
