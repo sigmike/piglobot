@@ -17,10 +17,15 @@ describe LANN do
     @parser = mock("parser")
     @bot.should_receive(:wiki) { @wiki }
     @job = LANN.new(@bot)
+    @name = "[[WP:LANN]]"
   end
   
   it "should be a job" do
     @job.should be_kind_of(Piglobot::Job)
+  end
+  
+  it "should have a name" do
+    @job.name.should == @name
   end
   
   [
@@ -35,7 +40,7 @@ describe LANN do
       @job.should_receive(:remove_already_done).with() do
         @job.pages = ["foo", "bar", "baz"]
       end
-      @bot.should_receive(:notice).with("[[WP:LANN]] : 3 pages à traiter")
+      @bot.should_receive(:notice).with("#{@name} : 3 pages à traiter")
       @job.process
       @job.data[:pages].should == ["foo", "bar", "baz"]
       @job.done?.should == false
@@ -63,7 +68,7 @@ describe LANN do
     category = "Wikipédia:Archives Articles non neutres"
     @wiki.should_receive(:category).with(category).and_return(items)
     @job.should_receive(:log).with("3 articles dans la catégorie")
-    @bot.should_receive(:notice).with("[[WP:LANN]] : 3 pages dans la [[:Catégorie:Wikipédia:Archives Articles non neutres]]")
+    @bot.should_receive(:notice).with("#@name : 3 pages dans la [[:Catégorie:Wikipédia:Archives Articles non neutres]]")
     @job.get_pages
     @job.pages.should == items
   end
@@ -101,7 +106,7 @@ describe LANN do
     @wiki.should_receive(:get).with("Wikipédia:Liste des articles non neutres").and_return("content")
     parser_should_return("content", links)
     @job.should_receive(:log).with("1 articles non cités")
-    @bot.should_receive(:notice).with("[[WP:LANN]] : 1 pages non mentionnées dans [[WP:LANN]]")
+    @bot.should_receive(:notice).with("#@name : 1 pages non mentionnées dans [[WP:LANN]]")
     @job.remove_cited
     @job.pages.should == ["Wikipédia:Liste des articles non neutres/Bar"]
   end
@@ -117,7 +122,7 @@ describe LANN do
     @job.pages = ["Foo", "Bar", "Baz"]
     @wiki.should_receive(:links).with("Modèle:Archive LANN").and_return(["Foo", "bar", "Baz"])
     @job.should_receive(:log).with("1 articles non traités")
-    @bot.should_receive(:notice).with("[[WP:LANN]] : 1 pages ne contenant pas le [[Modèle:Archive LANN]]")
+    @bot.should_receive(:notice).with("#@name : 1 pages ne contenant pas le [[Modèle:Archive LANN]]")
     @job.remove_already_done
     @job.pages.should == ["Bar"]
   end
@@ -176,7 +181,7 @@ describe LANN do
   
   it "should not empty page if active" do
     @job.should_receive(:active?).with("foo").and_return(true)
-    @bot.should_receive(:notice).with("[[WP:LANN]] : [[foo]] non blanchie car active")
+    @bot.should_receive(:notice).with("#@name : [[foo]] non blanchie car active")
     @job.should_receive(:log).with("[[foo]] ignorée car active")
     @job.should_not_receive(:empty_page)
     @job.process_page("foo")
@@ -187,7 +192,7 @@ describe LANN do
     e = RuntimeError.new("error")
     e.set_backtrace(["foo", "bar"])
     @job.should_receive(:active?).with("foo").and_raise(e)
-    @bot.should_receive(:notice).with("[[WP:LANN]] : [[foo]] non blanchie car une erreur s'est produite : error")
+    @bot.should_receive(:notice).with("#@name : [[foo]] non blanchie car une erreur s'est produite : error")
     @job.should_receive(:log).with("Erreur pour [[foo]] : error\nfoo\nbar")
     @job.should_not_receive(:empty_page)
     @job.process_page("foo")

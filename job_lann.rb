@@ -2,6 +2,10 @@
 class LANN < Piglobot::Job
   attr_accessor :pages
 
+  def name
+    "[[WP:LANN]]"
+  end
+
   def log(text)
     Piglobot::Tools.log(text)
   end
