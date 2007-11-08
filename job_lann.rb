@@ -21,7 +21,7 @@ class LANN < Piglobot::Job
       remove_bad_names
       remove_cited
       remove_already_done
-      @bot.notice("[[WP:LANN]] : #{@pages.size} pages à traiter")
+      notice("#{@pages.size} pages à traiter")
     else
       @pages = @data[:pages]
       page = @pages.shift
@@ -34,13 +34,13 @@ class LANN < Piglobot::Job
   def get_pages
     @pages = @wiki.category("Wikipédia:Archives Articles non neutres")
     log "#{@pages.size} articles dans la catégorie"
-    @bot.notice("[[WP:LANN]] : #{@pages.size} pages dans la [[:Catégorie:Wikipédia:Archives Articles non neutres]]")
+    notice("#{@pages.size} pages dans la [[:Catégorie:Wikipédia:Archives Articles non neutres]]")
   end
   
   def remove_bad_names
     @pages.delete_if { |name| name !~ /\AWikipédia:Liste des articles non neutres\// }
     log "#{pages.size} articles avec un nom valide"
-    @bot.notice("[[WP:LANN]] : #{@pages.size} pages avec un nom valide")
+    notice("#{@pages.size} pages avec un nom valide")
   end
   
   def remove_cited
@@ -60,14 +60,14 @@ class LANN < Piglobot::Job
       raise Piglobot::ErrorPrevention, "Aucune page de la catégorie n'est cité dans [[WP:LANN]]"
     end
     log "#{pages.size} articles non cités"
-    @bot.notice("[[WP:LANN]] : #{@pages.size} pages non mentionnées dans [[WP:LANN]]")
+    notice("#{@pages.size} pages non mentionnées dans [[WP:LANN]]")
   end
   
   def remove_already_done
     links = @wiki.links("Modèle:Archive LANN")
     @pages -= links
     log "#{pages.size} articles non traités"
-    @bot.notice("[[WP:LANN]] : #{@pages.size} pages ne contenant pas le [[Modèle:Archive LANN]]")
+    notice("#{@pages.size} pages ne contenant pas le [[Modèle:Archive LANN]]")
   end
   
   def active?(page)
@@ -96,13 +96,13 @@ class LANN < Piglobot::Job
     begin
       if active? page
         log("[[#{page}]] ignorée car active")
-        @bot.notice("[[WP:LANN]] : [[#{page}]] non blanchie car active")
+        notice("[[#{page}]] non blanchie car active")
       else
         empty_page(page)
         empty_talk_page(page)
       end
     rescue => e
-      @bot.notice("[[WP:LANN]] : [[#{page}]] non blanchie car une erreur s'est produite : #{e.message}")
+      notice("[[#{page}]] non blanchie car une erreur s'est produite : #{e.message}")
       log("Erreur pour [[#{page}]] : #{e.message}\n#{e.backtrace.join("\n")}")
     end
     @changed = true
@@ -130,5 +130,12 @@ class LANN < Piglobot::Job
       comment = "[[Utilisateur:Piglobot/Travail#Blanchiment LANN|Blanchiment automatique de courtoisie]]"
       @wiki.post(talk_page, content, comment)
     end
+  end
+end
+
+class AaC < LANN
+  def initialize(*args)
+    super
+    @name = "[[WP:AàC]]"
   end
 end
