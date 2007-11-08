@@ -110,6 +110,7 @@ class Piglobot
     when "Infobox Logiciel" then InfoboxSoftware
     when "Infobox Aire protégée" then InfoboxProtectedArea
     when "LANN" then LANN
+    when "AàC" then AaC
     when "SuiviPortailInformatique" then SuiviPortailInformatique
     else raise "Invalid job: #{job.inspect}"
     end

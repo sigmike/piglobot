@@ -1,10 +1,14 @@
 
 class LANN < Piglobot::Job
-  attr_accessor :pages
+  attr_accessor :pages, :category, :title, :cite_pages, :done_model, :empty_comment
 
   def initialize(*args)
     super
     @name = "[[WP:LANN]]"
+    @category = "Wikipédia:Archives Articles non neutres"
+    @title = "Wikipédia:Liste des articles non neutres/"
+    @done_model = "Modèle:Archive LANN"
+    @empty_comment = "[[Utilisateur:Piglobot/Travail#Blanchiment LANN|Blanchiment automatique de courtoisie]]"
   end
 
   def log(text)
@@ -32,13 +36,13 @@ class LANN < Piglobot::Job
   end
   
   def get_pages
-    @pages = @wiki.category("Wikipédia:Archives Articles non neutres")
+    @pages = @wiki.category(@category)
     log "#{@pages.size} articles dans la catégorie"
-    notice("#{@pages.size} pages dans la [[:Catégorie:Wikipédia:Archives Articles non neutres]]")
+    notice("#{@pages.size} pages dans la [[:Catégorie:#@category]]")
   end
   
   def remove_bad_names
-    @pages.delete_if { |name| name !~ /\AWikipédia:Liste des articles non neutres\// }
+    @pages.delete_if { |name| name !~ /\A#{Regexp.escape @title}./ }
     log "#{pages.size} articles avec un nom valide"
     notice("#{@pages.size} pages avec un nom valide")
   end
@@ -64,10 +68,10 @@ class LANN < Piglobot::Job
   end
   
   def remove_already_done
-    links = @wiki.links("Modèle:Archive LANN")
+    links = @wiki.links(@done_model)
     @pages -= links
     log "#{pages.size} articles non traités"
-    notice("#{@pages.size} pages ne contenant pas le [[Modèle:Archive LANN]]")
+    notice("#{@pages.size} pages ne contenant pas le [[#{@done_model}]]")
   end
   
   def active?(page)
@@ -127,7 +131,7 @@ class LANN < Piglobot::Job
       log("Blanchiment de [[#{talk_page}]]")
       oldid = history.first[:oldid]
       content = "{{Blanchiment de courtoisie}}"
-      comment = "[[Utilisateur:Piglobot/Travail#Blanchiment LANN|Blanchiment automatique de courtoisie]]"
+      comment = @empty_comment
       @wiki.post(talk_page, content, comment)
     end
   end
@@ -137,5 +141,32 @@ class AaC < LANN
   def initialize(*args)
     super
     @name = "[[WP:AàC]]"
+    @category = "Archives Appel à commentaires"
+    @title = "Wikipédia:Appel à commentaires/"
+    @done_model = "Modèle:Blanchiment de courtoisie"
+    @empty_comment = "[[Utilisateur:Piglobot/Travail#Blanchiment AàC|Blanchiment automatique de courtoisie]]"
   end
+
+  def remove_cited
+    parser = Piglobot::Parser.new
+    
+    content = @wiki.get("Wikipédia:Appel à commentaires/Article")
+    links = parser.internal_links(content)
+    
+    content = @wiki.get("Wikipédia:Appel à commentaires/Utilisateur")
+    links += parser.internal_links(content)
+    
+    old_pages = @pages
+    @pages -= links
+    log "#{pages.size} articles non cités"
+    notice("#{@pages.size} pages non mentionnées dans les pages de maintenance")
+  end
+  
+  def empty_page(page)
+    log("Blanchiment de [[#{page}]]")
+    content = "{{subst:Blanchiment Appel à Commentaire}}"
+    comment = "[[Utilisateur:Piglobot/Travail#Blanchiment AàC|Blanchiment automatique de courtoisie]]"
+    @wiki.post(page, content, comment)
+  end
+
 end

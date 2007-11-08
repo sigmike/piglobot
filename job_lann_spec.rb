@@ -1,12 +1,19 @@
 
 require 'piglobot'
 
-describe Piglobot, " on LANN job" do
+describe Piglobot, " on clean job" do
   it "should know LANN job" do
     @wiki = mock("wiki")
     Piglobot::Wiki.should_receive(:new).with().and_return(@wiki)
     @bot = Piglobot.new
     @bot.job_class("LANN").should == LANN
+  end
+
+  it "should know AàC job" do
+    @wiki = mock("wiki")
+    Piglobot::Wiki.should_receive(:new).with().and_return(@wiki)
+    @bot = Piglobot.new
+    @bot.job_class("AàC").should == AaC
   end
 end
 
@@ -24,6 +31,22 @@ describe "Page cleaner", :shared => true do
   
   it "should have a name" do
     @job.name.should == @name
+  end
+  
+  it "should have a category" do
+    @job.category.should == @category
+  end
+  
+  it "should have a title" do
+    @job.title.should == @title
+  end
+  
+  it "should have a done_model" do
+    @job.done_model.should == @done_model
+  end
+  
+  it "should have a empty comment" do
+    @job.empty_comment.should == @empty_comment
   end
   
   [
@@ -63,31 +86,30 @@ describe "Page cleaner", :shared => true do
   
   it "should get pages" do
     items = ["Foo", "Bar", "Baz:Baz"]
-    category = "Wikipédia:Archives Articles non neutres"
-    @wiki.should_receive(:category).with(category).and_return(items)
+    @wiki.should_receive(:category).with(@category).and_return(items)
     @job.should_receive(:log).with("3 articles dans la catégorie")
-    @job.should_receive(:notice).with("3 pages dans la [[:Catégorie:Wikipédia:Archives Articles non neutres]]")
+    @job.should_receive(:notice).with("3 pages dans la [[:Catégorie:#@category]]")
     @job.get_pages
     @job.pages.should == items
   end
   
   it "should remove bad names" do
     @job.pages = [
-      "Wikipédia:Liste des articles non neutres/Foo",
+      "#{@title}Foo",
       "Foo",
       "Liste des articles non neutres/Foo",
-      "Wikipédia:Liste des articles non neutres/Baz",
-      "Wikipédia:Liste des articles non neutres",
-      "Wikipédia:Liste des articles non neutres/Bar",
+      "#{@title}Baz",
+      "#{@title}",
+      "#{@title}Bar",
       "Modèle:Wikipédia:Liste des articles non neutres/Foo",
     ]
     @job.should_receive(:log).with("3 articles avec un nom valide")
     @job.should_receive(:notice).with("3 pages avec un nom valide")
     @job.remove_bad_names
     @job.pages.should == [
-      "Wikipédia:Liste des articles non neutres/Foo",
-      "Wikipédia:Liste des articles non neutres/Baz",
-      "Wikipédia:Liste des articles non neutres/Bar",
+      "#{@title}Foo",
+      "#{@title}Baz",
+      "#{@title}Bar",
     ]
   end
   
@@ -97,30 +119,11 @@ describe "Page cleaner", :shared => true do
     parser.should_receive(:internal_links).with(content).and_return(links)
   end
   
-  it "should remove cited" do
-    links = ["/Foo", "Bar"]
-    @job.pages = ["Wikipédia:Liste des articles non neutres/Foo", "Wikipédia:Liste des articles non neutres/Bar"]
-    
-    @wiki.should_receive(:get).with("Wikipédia:Liste des articles non neutres").and_return("content")
-    parser_should_return("content", links)
-    @job.should_receive(:log).with("1 articles non cités")
-    @job.should_receive(:notice).with("1 pages non mentionnées dans [[WP:LANN]]")
-    @job.remove_cited
-    @job.pages.should == ["Wikipédia:Liste des articles non neutres/Bar"]
-  end
-  
-  it "should raise an error if none are cited" do
-    @job.pages = ["Foo", "Bar"]
-    @wiki.should_receive(:get).with("Wikipédia:Liste des articles non neutres").and_return("content")
-    parser_should_return("content", ["Baz", "Bob"])
-    lambda { @job.remove_cited }.should raise_error(Piglobot::ErrorPrevention, "Aucune page de la catégorie n'est cité dans [[WP:LANN]]")
-  end
-  
   it "should remove already done" do
     @job.pages = ["Foo", "Bar", "Baz"]
-    @wiki.should_receive(:links).with("Modèle:Archive LANN").and_return(["Foo", "bar", "Baz"])
+    @wiki.should_receive(:links).with(@done_model).and_return(["Foo", "bar", "Baz"])
     @job.should_receive(:log).with("1 articles non traités")
-    @job.should_receive(:notice).with("1 pages ne contenant pas le [[Modèle:Archive LANN]]")
+    @job.should_receive(:notice).with("1 pages ne contenant pas le [[#{@done_model}]]")
     @job.remove_already_done
     @job.pages.should == ["Bar"]
   end
@@ -205,21 +208,6 @@ describe "Page cleaner", :shared => true do
     @job.changed?.should == true
   end
   
-  it "should empty page with" do
-    page = "Wikipédia:Liste des articles non neutres/Bar"
-    
-    @wiki.should_receive(:history).with(page, 1).and_return([
-      { :author => "author2", :date => Time.now, :oldid => "123456" }
-    ])
-    
-    content = "{{subst:Blanchiment LANN | article = [[:Bar]] | oldid = 123456 }}"
-    comment = "[[Utilisateur:Piglobot/Travail#Blanchiment LANN|Blanchiment automatique de courtoisie]]"
-    
-    @job.should_receive(:log).with("Blanchiment de [[#{page}]]")
-    @wiki.should_receive(:post).with(page, content, comment)
-    @job.empty_page(page)
-  end
-  
   it "should empty talk page" do
     page = "Wikipédia:Liste des articles non neutres/Bar"
     
@@ -228,7 +216,7 @@ describe "Page cleaner", :shared => true do
     ])
     
     content = "{{Blanchiment de courtoisie}}"
-    comment = "[[Utilisateur:Piglobot/Travail#Blanchiment LANN|Blanchiment automatique de courtoisie]]"
+    comment = @empty_comment
     
     @job.should_receive(:log).with("Blanchiment de [[Discussion #{page}]]")
     @wiki.should_receive(:post).with("Discussion " + page, content, comment)
@@ -251,7 +239,46 @@ describe LANN do
   before do
     @job = LANN.new(@bot)
     @name = "[[WP:LANN]]"
+    @category = "Wikipédia:Archives Articles non neutres"
+    @title = "Wikipédia:Liste des articles non neutres/"
+    @done_model = "Modèle:Archive LANN"
+    @empty_comment = "[[Utilisateur:Piglobot/Travail#Blanchiment LANN|Blanchiment automatique de courtoisie]]"
   end
+
+  it "should remove cited" do
+    links = ["/Foo", "Bar"]
+    @job.pages = ["Wikipédia:Liste des articles non neutres/Foo", "Wikipédia:Liste des articles non neutres/Bar"]
+    
+    @wiki.should_receive(:get).with("Wikipédia:Liste des articles non neutres").and_return("content")
+    parser_should_return("content", links)
+    @job.should_receive(:log).with("1 articles non cités")
+    @job.should_receive(:notice).with("1 pages non mentionnées dans [[WP:LANN]]")
+    @job.remove_cited
+    @job.pages.should == ["Wikipédia:Liste des articles non neutres/Bar"]
+  end
+  
+  it "should raise an error if none are cited" do
+    @job.pages = ["Foo", "Bar"]
+    @wiki.should_receive(:get).with("Wikipédia:Liste des articles non neutres").and_return("content")
+    parser_should_return("content", ["Baz", "Bob"])
+    lambda { @job.remove_cited }.should raise_error(Piglobot::ErrorPrevention, "Aucune page de la catégorie n'est cité dans [[WP:LANN]]")
+  end
+  
+  it "should empty page with oldid" do
+    page = "Wikipédia:Liste des articles non neutres/Bar"
+    
+    @wiki.should_receive(:history).with(page, 1).and_return([
+      { :author => "author2", :date => Time.now, :oldid => "123456" }
+    ])
+    
+    content = "{{subst:Blanchiment LANN | article = [[:Bar]] | oldid = 123456 }}"
+    comment = "[[Utilisateur:Piglobot/Travail#Blanchiment LANN|Blanchiment automatique de courtoisie]]"
+    
+    @job.should_receive(:log).with("Blanchiment de [[#{page}]]")
+    @wiki.should_receive(:post).with(page, content, comment)
+    @job.empty_page(page)
+  end
+  
 end
 
 describe AaC do
@@ -260,6 +287,41 @@ describe AaC do
   before do
     @job = AaC.new(@bot)
     @name = "[[WP:AàC]]"
+    @category = "Archives Appel à commentaires"
+    @title = "Wikipédia:Appel à commentaires/"
+    @done_model = "Modèle:Blanchiment de courtoisie"
+    @empty_comment = "[[Utilisateur:Piglobot/Travail#Blanchiment AàC|Blanchiment automatique de courtoisie]]"
+  end
+
+  it "should remove cited" do
+    parser = mock("parser")
+    Piglobot::Parser.should_receive(:new).with().and_return(parser)
+    
+    links1 = ["page 1", "page 23"]
+    links2 = ["page 5", "page 3"]
+    @job.pages = ["page 1", "page 2", "page 3", "page 4"]
+    
+    @wiki.should_receive(:get).with("Wikipédia:Appel à commentaires/Article").and_return("content")
+    parser.should_receive(:internal_links).with("content").and_return(links1)
+    
+    @wiki.should_receive(:get).with("Wikipédia:Appel à commentaires/Utilisateur").and_return("content2")
+    parser.should_receive(:internal_links).with("content2").and_return(links2)
+    
+    @job.should_receive(:log).with("2 articles non cités")
+    @job.should_receive(:notice).with("2 pages non mentionnées dans les pages de maintenance")
+    @job.remove_cited
+    @job.pages.should == ["page 2", "page 4"]
+  end
+  
+  it "should empty page" do
+    page = "Wikipédia:Appel à commentaire/Utilisateur/Bar"
+    
+    content = "{{subst:Blanchiment Appel à Commentaire}}"
+    comment = "[[Utilisateur:Piglobot/Travail#Blanchiment AàC|Blanchiment automatique de courtoisie]]"
+    
+    @job.should_receive(:log).with("Blanchiment de [[#{page}]]")
+    @wiki.should_receive(:post).with(page, content, comment)
+    @job.empty_page(page)
   end
 end
 
