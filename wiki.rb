@@ -41,9 +41,14 @@ class Piglobot::Wiki
     article.submit(comment)
   end
   
-  def internal_links(name)
-    Piglobot::Tools.log("What links to [[#{name}]]")
-    @wiki.full_links(name)
+  def internal_links(name, namespace = nil)
+    if namespace
+      Piglobot::Tools.log("What links to [[#{name}]] in namespace #{namespace}")
+      @wiki.full_links(name, namespace)
+    else
+      Piglobot::Tools.log("What links to [[#{name}]]")
+      @wiki.full_links(name)
+    end
   end
   
   def internal_category(category)

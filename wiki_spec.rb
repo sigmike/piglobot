@@ -64,6 +64,15 @@ describe Piglobot::Wiki do
     @wiki.internal_links(name).should == expected_links
   end
   
+  it "should accept namespace on links" do
+    name = "Article"
+    links = ["Foo", "Bar"]
+    expected_links = links
+    Piglobot::Tools.should_receive(:log).with("What links to [[Article]] in namespace 1")
+    @mediawiki.should_receive(:full_links).with(name, 1).once.and_return(links)
+    @wiki.internal_links(name, 1).should == expected_links
+  end
+  
   it "should use full_category on category" do
     category = "A category"
     result = ["Foo", "Bar", "Foo:Bar", "Hello:Bob", "Baz"]

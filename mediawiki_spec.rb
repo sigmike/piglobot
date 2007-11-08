@@ -165,6 +165,15 @@ describe MediaWiki, " with fake MiniBrowser" do
     items, next_id = @wiki.links("Foo:Bàr", "offset")
   end
   
+  it "should retreive links with offset and namespace" do
+    result = File.read("sample_links.html")
+    url = @uri.path + "index.php?title=#{CGI.escape 'Special:Whatlinkshere/Foo:Bàr'}"
+    url << "&limit=500&from=offset"
+    url << "&namespace=0"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items, next_id = @wiki.links("Foo:Bàr", "offset", 0)
+  end
+  
   it "should detect last page" do
     result = File.read("sample_links_end.html")
     url = @uri.path + "index.php?title=#{CGI.escape 'Special:Whatlinkshere/Foo:Bàr'}"
@@ -179,6 +188,13 @@ describe MediaWiki, " with fake MiniBrowser" do
     @wiki.should_receive(:links).with("foo", "123").and_return([["bob", "baz"], "456"])
     @wiki.should_receive(:links).with("foo", "456").and_return([["mock"], nil])
     @wiki.full_links("foo").should == ["bar", "baz", "bob", "baz", "mock"]
+  end
+
+  it "should retreive all links pages with namespace" do
+    @wiki.should_receive(:links).with("foo", "0", 4).and_return([["bar", "baz"], "123"])
+    @wiki.should_receive(:links).with("foo", "123", 4).and_return([["bob", "baz"], "456"])
+    @wiki.should_receive(:links).with("foo", "456", 4).and_return([["mock"], nil])
+    @wiki.full_links("foo", 4).should == ["bar", "baz", "bob", "baz", "mock"]
   end
 end
 

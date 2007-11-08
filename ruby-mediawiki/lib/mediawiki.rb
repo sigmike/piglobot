@@ -248,12 +248,13 @@ module MediaWiki
       res
     end
   
-    def links(page, offset = "0")
+    def links(page, offset = "0", namespace = nil)
       res = []
       count = 500
       url = article_url("Special:Whatlinkshere/#{page}")
       url << "&limit=#{count}" if count
       url << "&from=#{offset}"
+      url << "&namespace=#{namespace}" if namespace
       content = @browser.get_content(url)
       items = content.scan(%r{<li><a href=".+?" title="(.+?)">.+?</a>.+?</li>}).flatten.map { |title|
         REXML::Text.unnormalize(title)
@@ -265,11 +266,13 @@ module MediaWiki
       [items, next_id]
     end
     
-    def full_links(page)
+    def full_links(page, namespace = nil)
       result = []
       next_id = "0"
       loop do
-        items, next_id = links(page, next_id)
+        args = [page, next_id]
+        args << namespace if namespace
+        items, next_id = links(*args)
         result += items
         break unless next_id
       end

@@ -13,6 +13,12 @@ describe Piglobot::Job do
   it "should have a name" do
     @job.name.should == @job.class.name
   end
+  
+  it "should notice with name" do 
+    @job.name = "foo"
+    @bot.should_receive(:notice).with("foo : text")
+    @job.notice("text")
+  end
 end
 
 describe Piglobot::HomonymPrevention do

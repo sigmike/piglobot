@@ -18,13 +18,14 @@
 
 class Piglobot
   class Job
-    attr_accessor :data
+    attr_accessor :data, :name
     
     def initialize(bot)
       @bot = bot
       @wiki = bot.wiki
       @changed = false
       @data = nil
+      @name = self.class.name
     end
     
     def data_id
@@ -43,8 +44,8 @@ class Piglobot
       true
     end
     
-    def name
-      self.class.name
+    def notice(text)
+      @bot.notice("#@name : #{text}")
     end
   end
   
