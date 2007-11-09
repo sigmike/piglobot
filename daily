@@ -1,0 +1,7 @@
+#!/bin/sh
+
+./piglobot.rb LANN
+./piglobot.rb AàC
+./piglobot.rb SuiviPortailInformatique
+./piglobot.rb change
+
