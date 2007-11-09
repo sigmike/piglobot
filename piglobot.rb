@@ -110,11 +110,11 @@ class Piglobot
   
   def job_class job
     case job
-    when "Homonymes" then HomonymPrevention
-    when "Infobox Logiciel" then InfoboxSoftware
-    when "Infobox Aire protégée" then InfoboxProtectedArea
-    when "LANN" then LANN
-    when "AàC" then AaC
+    when "Homonymes" then require 'homonym_prevention'; HomonymPrevention
+    when "Infobox Logiciel" then require 'infobox_rewriter'; InfoboxSoftware
+    when "Infobox Aire protégée" then require 'infobox_rewriter'; InfoboxProtectedArea
+    when "LANN" then require 'job_lann'; LANN
+    when "AàC" then require 'job_lann'; AaC
     when "SuiviPortailInformatique" then SuiviPortailInformatique
     else
       if job.is_a? Class and job.superclass == Piglobot::Job
