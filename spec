@@ -30,6 +30,9 @@ ARGV.replace %w(
   job_lann_spec.rb
   parser_spec.rb
   suivi_portail_informatique_spec.rb
+  infobox_rewriter_spec.rb
+  homonym_prevention_spec.rb
+  change_spec.rb
 ) if ARGV.empty?
 ARGV << "--diff"
 

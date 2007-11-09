@@ -1,4 +1,4 @@
-require 'piglobot'
+require 'suivi_portail_informatique'
 
 describe Piglobot, " on SuiviPortailInformatique" do
   it "should know job" do

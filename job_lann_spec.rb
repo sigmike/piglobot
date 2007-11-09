@@ -1,5 +1,5 @@
 
-require 'piglobot'
+require 'job_lann'
 
 describe Piglobot, " on clean job" do
   it "should know LANN job" do

@@ -30,8 +30,6 @@ require 'parser'
 require 'tools'
 require 'wiki'
 require 'job'
-require 'job_lann'
-require 'suivi_portail_informatique'
 
 class Piglobot
   class Disabled < RuntimeError; end
@@ -56,6 +54,12 @@ class Piglobot
   
   def code_files
     %w(
+      change.rb
+      change_spec.rb
+      homonym_prevention.rb
+      homonym_prevention_spec.rb
+      infobox_rewriter.rb
+      infobox_rewriter_spec.rb
       suivi_portail_informatique.rb
       suivi_portail_informatique_spec.rb
       job_lann_spec.rb
@@ -112,7 +116,18 @@ class Piglobot
     when "LANN" then LANN
     when "AàC" then AaC
     when "SuiviPortailInformatique" then SuiviPortailInformatique
-    else raise "Invalid job: #{job.inspect}"
+    else
+      if job.is_a? Class and job.superclass == Piglobot::Job
+        job
+      else
+        begin
+          require job
+          class_name = job.capitalize.gsub(/_([a-z])/) { $1.upcase }
+          Object.const_get(class_name)
+        rescue NameError, TypeError, LoadError
+          raise "Invalid job: #{job.inspect}"
+        end
+      end
     end
   end
 

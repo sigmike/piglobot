@@ -77,21 +77,23 @@ describe Piglobot, "using data" do
     @bot.data.should == nil
   end
   
-  [
-    ["Homonymes", Piglobot::HomonymPrevention],
-    ["Infobox Logiciel", Piglobot::InfoboxSoftware],
-    ["Infobox Aire protégée", Piglobot::InfoboxProtectedArea],
-  ].each do |job, klass|
-    it "should find job class for job #{job.inspect}" do
-      @bot.job_class(job).should == klass
-    end
-  end
-  
   it "should raise exception on unknown job" do
     lambda { @bot.job_class("invalid job") }.should raise_error(RuntimeError)
   end
 
-  class FakeJob
+  class FakeJob < Piglobot::Job
+  end
+  
+  it "should accept a class as job" do
+    @bot.job_class(FakeJob).should == FakeJob
+  end
+  
+  class FooBar
+  end
+  
+  it "should accept a file as job" do
+    @bot.should_receive(:require).with("fake_job")
+    @bot.job_class("fake_job").should == FakeJob
   end
   
   it "should use job class on process" do
