@@ -56,27 +56,18 @@ class Piglobot
     %w(
       change.rb
       change_spec.rb
-      homonym_prevention.rb
-      homonym_prevention_spec.rb
       infobox_rewriter.rb
       infobox_rewriter_spec.rb
+      editor_spec.rb
+      editor.rb
       suivi_portail_informatique.rb
       suivi_portail_informatique_spec.rb
       job_lann_spec.rb
       job_lann.rb
-      job_spec.rb
-      job.rb
-      piglobot_spec.rb
-      piglobot.rb
-      editor_spec.rb
-      editor.rb
+      homonym_prevention.rb
+      homonym_prevention_spec.rb
       tools_spec.rb
       tools.rb
-      wiki_spec_live.rb
-      wiki_spec.rb
-      wiki.rb
-      parser.rb
-      helper.rb
     )
   end
 
