@@ -1,14 +1,5 @@
 require 'suivi_portail_informatique'
 
-describe Piglobot, " on SuiviPortailInformatique" do
-  it "should know job" do
-    @wiki = mock("wiki")
-    Piglobot::Wiki.should_receive(:new).with().and_return(@wiki)
-    @bot = Piglobot.new
-    @bot.job_class("SuiviPortailInformatique").should == SuiviPortailInformatique
-  end
-end
-
 describe SuiviPortailInformatique do
   before do
     @bot = mock("bot")
