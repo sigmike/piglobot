@@ -31,8 +31,21 @@ class LANN < Piglobot::Job
       page = @pages.shift
       process_page page
     end
-    @done = (@pages.empty?)
-    @data = { :pages => @pages }
+    if @pages.empty?
+      @done = true
+      if @data and @data[:done] and !@data[:done].empty?
+        pages = @data[:done].map { |page| "[[#{page}]]" }.join(", ")
+        notice("Pages blanchies : " + pages)
+        @data[:done] = []
+      else
+        notice("Aucune page blanchie")
+      end
+    else
+      @done = false
+    end
+    done_pages = []
+    done_pages = (@data[:done] || []) if @data
+    @data = { :pages => @pages, :done => done_pages }
   end
   
   def get_pages
@@ -100,16 +113,25 @@ class LANN < Piglobot::Job
     begin
       if active? page
         log("[[#{page}]] ignorée car active")
-        notice("[[#{page}]] non blanchie car active")
+        @changed = false
       else
-        empty_page(page)
-        empty_talk_page(page)
+        done = []
+        done = @data[:done] if @data and @data[:done]
+        if empty_page(page)
+          done << page
+        end
+        if empty_talk_page(page)
+          done << "Discussion #{page}"
+        end
+        @data ||= {}
+        @data[:done] = done
+        @changed = true
       end
     rescue => e
-      notice("[[#{page}]] non blanchie car une erreur s'est produite : #{e.message}")
       log("Erreur pour [[#{page}]] : #{e.message}\n#{e.backtrace.join("\n")}")
+      notice("[[#{page}]] non blanchie car une erreur s'est produite : #{e.message}")
+      @changed = true
     end
-    @changed = true
   end
   
   def empty_page(page)
@@ -120,6 +142,7 @@ class LANN < Piglobot::Job
     content = "{{subst:Blanchiment LANN | article = [[:#{article}]] | oldid = #{oldid} }}"
     comment = "[[Utilisateur:Piglobot/Travail#Blanchiment LANN|Blanchiment automatique de courtoisie]]"
     @wiki.post(page, content, comment)
+    true
   end
 
   def empty_talk_page(page)
@@ -127,12 +150,14 @@ class LANN < Piglobot::Job
     history = @wiki.history(talk_page, 1)
     if history.empty?
       log("Blanchiment inutile de [[#{talk_page}]]")
+      false
     else
       log("Blanchiment de [[#{talk_page}]]")
       oldid = history.first[:oldid]
       content = "{{Blanchiment de courtoisie}}"
       comment = @empty_comment
       @wiki.post(talk_page, content, comment)
+      true
     end
   end
 end
@@ -167,6 +192,7 @@ class AaC < LANN
     content = "{{subst:Blanchiment Appel à Commentaire}}"
     comment = "[[Utilisateur:Piglobot/Travail#Blanchiment AàC|Blanchiment automatique de courtoisie]]"
     @wiki.post(page, content, comment)
+    true
   end
 
 end

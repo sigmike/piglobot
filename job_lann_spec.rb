@@ -64,6 +64,7 @@ describe "Page cleaner", :shared => true do
       @job.should_receive(:notice).with("3 pages à traiter")
       @job.process
       @job.data[:pages].should == ["foo", "bar", "baz"]
+      @job.data[:done].should == []
       @job.done?.should == false
     end
   end
@@ -72,15 +73,25 @@ describe "Page cleaner", :shared => true do
     @job.data = { :pages => ["foo", "bar"] }
     @job.should_receive(:process_page).with("foo")
     @job.process
-    @job.data.should == { :pages => ["bar"] }
+    @job.data.should == { :pages => ["bar"], :done => [] }
     @job.done?.should == false
   end
   
   it "should be done when pages are empty" do
     @job.data = { :pages => ["bar"] }
     @job.should_receive(:process_page).with("bar")
+    @job.should_receive(:notice).with("Aucune page blanchie")
     @job.process
-    @job.data.should == { :pages => [] }
+    @job.data.should == { :pages => [], :done => [] }
+    @job.done?.should == true
+  end
+  
+  it "should notice pages done" do
+    @job.data = { :pages => ["bar"], :done => ["foo", "Discussion foo", "baz"] }
+    @job.should_receive(:process_page).with("bar")
+    @job.should_receive(:notice).with("Pages blanchies : [[foo]], [[Discussion foo]], [[baz]]")
+    @job.process
+    @job.data.should == { :pages => [], :done => [] }
     @job.done?.should == true
   end
   
@@ -182,11 +193,11 @@ describe "Page cleaner", :shared => true do
   
   it "should not empty page if active" do
     @job.should_receive(:active?).with("foo").and_return(true)
-    @job.should_receive(:notice).with("[[foo]] non blanchie car active")
+    @job.should_not_receive(:notice).with("[[foo]] non blanchie car active")
     @job.should_receive(:log).with("[[foo]] ignorée car active")
     @job.should_not_receive(:empty_page)
     @job.process_page("foo")
-    @job.changed?.should == true
+    @job.changed?.should == false
   end
 
   it "should not empty page on error" do
@@ -202,10 +213,20 @@ describe "Page cleaner", :shared => true do
 
   it "should empty page if inactive" do
     @job.should_receive(:active?).with("foo").and_return(false)
-    @job.should_receive(:empty_page).with("foo")
-    @job.should_receive(:empty_talk_page).with("foo")
+    @job.should_receive(:empty_page).with("foo").and_return(true)
+    @job.should_receive(:empty_talk_page).with("foo").and_return(true)
     @job.process_page("foo")
     @job.changed?.should == true
+    @job.data[:done].should == ["foo", "Discussion foo"]
+  end
+  
+  it "should append emptied pages to done" do
+    @job.data = { :done => ["bar"] }
+    @job.should_receive(:active?).and_return(false)
+    @job.should_receive(:empty_page).with("foo").and_return(true)
+    @job.should_receive(:empty_talk_page).with("foo").and_return(false)
+    @job.process_page("foo")
+    @job.data[:done].should == ["bar", "foo"]
   end
   
   it "should empty talk page" do
@@ -220,7 +241,7 @@ describe "Page cleaner", :shared => true do
     
     @job.should_receive(:log).with("Blanchiment de [[Discussion #{page}]]")
     @wiki.should_receive(:post).with("Discussion " + page, content, comment)
-    @job.empty_talk_page(page)
+    @job.empty_talk_page(page).should == true
   end
   
   it "should not empty inexistant talk page" do
@@ -229,7 +250,7 @@ describe "Page cleaner", :shared => true do
     @wiki.should_receive(:history).with("Discussion " + page, 1).and_return([])
     
     @job.should_receive(:log).with("Blanchiment inutile de [[Discussion #{page}]]")
-    @job.empty_talk_page(page)
+    @job.empty_talk_page(page).should == false
   end
 end
 
@@ -276,7 +297,7 @@ describe LANN do
     
     @job.should_receive(:log).with("Blanchiment de [[#{page}]]")
     @wiki.should_receive(:post).with(page, content, comment)
-    @job.empty_page(page)
+    @job.empty_page(page).should == true
   end
   
 end
@@ -321,7 +342,7 @@ describe AaC do
     
     @job.should_receive(:log).with("Blanchiment de [[#{page}]]")
     @wiki.should_receive(:post).with(page, content, comment)
-    @job.empty_page(page)
+    @job.empty_page(page).should == true
   end
 end
 
