@@ -33,7 +33,7 @@ class Change < Piglobot::Job
     %w( EUR GBP JPY CAD CHF ).each do |name|
       value = @currencies[name]
       if value
-        notice("[[Modèle:Change/#{name}]] : #{value}")
+        @wiki.post("Modèle:Change/#{name}", value, "[[Utilisateur:Piglobot/Travail#Change|Mise à jour automatique]]")
       else
         notice("[[Modèle:Change/#{name}]] : Aucune donnée")
       end

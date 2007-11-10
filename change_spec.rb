@@ -48,7 +48,7 @@ describe Change do
       "CHF" => "1.1320",
     }
     @job.currencies.each do |name, value|
-      @job.should_receive(:notice).with("[[Modèle:Change/#{name}]] : #{value}")
+      @wiki.should_receive(:post).with("Modèle:Change/#{name}", value, "[[Utilisateur:Piglobot/Travail#Change|Mise à jour automatique]]")
     end
     @job.publish_data
   end
