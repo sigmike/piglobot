@@ -50,6 +50,8 @@ describe Change do
     @job.currencies.each do |name, value|
       @wiki.should_receive(:post).with("Modèle:Change/#{name}", value, "[[Utilisateur:Piglobot/Travail#Change|Mise à jour automatique]]")
     end
+    Time.should_receive(:now).with().and_return(Time.local(2007, 11, 10, 1, 51, 12))
+    @wiki.should_receive(:post).with("Modèle:Change/Màj", "10 novembre 2007", "[[Utilisateur:Piglobot/Travail#Change|Mise à jour automatique]]")
     @job.publish_data
   end
   
@@ -58,6 +60,21 @@ describe Change do
     %w( EUR GBP JPY CAD CHF ).each do |name|
       @job.should_receive(:notice).with("[[Modèle:Change/#{name}]] : Aucune donnée")
     end
+    @job.should_receive(:notice).with("Mise à jour annulée car il manque des données")
+    @job.publish_data
+  end
+  
+  it "should not update when one data is missing" do
+    @job.currencies = {
+      "EUR" => "0.6818",
+      "JPY" => "113.6364",
+      "CAD" => "0.9293",
+      "CHF" => "1.1320",
+    }
+    %w( GBP ).each do |name|
+      @job.should_receive(:notice).with("[[Modèle:Change/#{name}]] : Aucune donnée")
+    end
+    @job.should_receive(:notice).with("Mise à jour annulée car il manque des données")
     @job.publish_data
   end
   
