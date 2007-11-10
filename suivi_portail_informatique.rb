@@ -1,5 +1,10 @@
 
 class SuiviPortailInformatique < Piglobot::Job
+  def initialize(*args)
+    super
+    @name = "[[Projet:Informatique/Suivi]]"
+  end
+
   def process
     pages = @wiki.links("Modèle:Portail informatique")
     now = Time.now

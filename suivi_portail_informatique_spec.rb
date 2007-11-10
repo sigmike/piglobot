@@ -13,6 +13,10 @@ describe SuiviPortailInformatique do
     @job.should be_kind_of(Piglobot::Job)
   end
   
+  it "should have a better name" do
+    @job.name.should == "[[Projet:Informatique/Suivi]]"
+  end
+  
   it "should retreive links and post them" do
     @wiki.should_receive(:links).with("Modèle:Portail informatique").and_return(["foo", "bar"])
     time = mock("time")
