@@ -1,0 +1,20 @@
+{{Infobox Aire protégée
+| nom = Arches
+| catégorie iucn = II
+| localisation x = 70
+| localisation y = 84
+| carte = US Locator Blank.svg
+| situation = [[Utah]] ([[États-Unis]])
+| ville proche = [[Moab (Utah)|Moab]]
+| coordonnées = {{coord|38|45|00|N|109|37|00|W}}
+| superficie = {{unité|310|km|2}}
+| création = {{date|12|novembre|1971}}
+| visiteurs = 755 987
+| visiteurs année = 2003
+| administration = [[National Park Service]]
+| site web = [http://www.nps.gov/arch/index.htm Arches National Park]
+| remarque = déclaré [[Monument national américain|Monument national]] en [[1929]]
+}}
+
+Situé en [[Utah]], dans l’ouest des [[États-Unis]], le '''parc national des Arches''' (''Arches National Park'') est connu pour sa formidable concentration d’arches rocheuses naturelles.
+
