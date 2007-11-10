@@ -115,7 +115,6 @@ class Piglobot
     when "Infobox Aire protégée" then require 'infobox_rewriter'; InfoboxProtectedArea
     when "LANN" then require 'job_lann'; LANN
     when "AàC" then require 'job_lann'; AaC
-    when "SuiviPortailInformatique" then SuiviPortailInformatique
     else
       if job.is_a? Class and job.superclass == Piglobot::Job
         job

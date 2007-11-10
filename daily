@@ -2,6 +2,6 @@
 
 ./piglobot.rb LANN
 ./piglobot.rb AàC
-./piglobot.rb SuiviPortailInformatique
+./piglobot.rb suivi_portail_informatique
 ./piglobot.rb change
 
