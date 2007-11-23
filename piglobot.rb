@@ -54,6 +54,8 @@ class Piglobot
   
   def code_files
     %w(
+      user_category.rb
+      user_category_spec.rb
       change.rb
       change_spec.rb
       infobox_rewriter.rb

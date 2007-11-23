@@ -278,6 +278,40 @@ module MediaWiki
       end
       result
     end
+  
+    def all_pages(offset, namespace)
+      res = []
+      url = article_url("Special:Allpages")
+      url << "&from=#{offset}"
+      url << "&namespace=#{namespace}"
+      content = @browser.get_content(url)
+      table = content.scan(%r{<table style="background: inherit;" border="0" width="100%">(.+?)</table>}m).first
+      raise "Table not found in AllPages" if table.nil? or table.empty?
+      items = table.first.scan(%r{<td><a href=".+?" title="(.+?)">.+?</a></td>}).flatten.map { |title|
+        REXML::Text.unnormalize(title)
+      }
+      next_id = nil
+      if content =~ %r{<a href="[^"]+title=Special:Allpages&amp;from=([^&]+)&amp;namespace=[^"]+" title="Special:Allpages">Page suivante \(.+?\)</a>}
+        next_id = $1
+      end
+      [items, next_id]
+    end
+    
+    def full_all_pages(namespace)
+      result = []
+      next_id = ""
+      loop do
+        args = [next_id, namespace]
+        puts "All pages starting at #{next_id.inspect}"
+        items, next_id = all_pages(*args)
+        result += items
+        break unless next_id
+      end
+      puts "All pages done"
+      result
+    end
+  
+
   end
 end
 

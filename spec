@@ -33,6 +33,7 @@ ARGV.replace %w(
   infobox_rewriter_spec.rb
   homonym_prevention_spec.rb
   change_spec.rb
+  user_category_spec.rb
 ) if ARGV.empty?
 ARGV << "--diff"
 

@@ -196,6 +196,67 @@ describe MediaWiki, " with fake MiniBrowser" do
     @wiki.should_receive(:links).with("foo", "456", 4).and_return([["mock"], nil])
     @wiki.full_links("foo", 4).should == ["bar", "baz", "bob", "baz", "mock"]
   end
+  
+  it "should retreive all pages" do
+    result = File.read("sample_all_pages_1.html")
+    url = @uri.path + "index.php?title=#{CGI.escape 'Special:Allpages'}"
+    url << "&from=(from)&namespace=(namespace)"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items, next_id = @wiki.all_pages("(from)", "(namespace)")
+    items.size.should == 960
+    items[0].should == "Catégorie:-1"
+    items[1].should == "Catégorie:-10"
+    items[2].should == "Catégorie:-100"
+    items[3].should == "Catégorie:-1000"
+    items.should include("Catégorie:.NET Framework")
+    items.should include("Catégorie:10e arrondissement de Paris")
+    items.should include("Catégorie:106")
+    items.last.should == "Catégorie:1109"
+    next_id.should == "111"
+  end
+
+  it "should retreive all pages on second page" do
+    result = File.read("sample_all_pages_2.html")
+    url = @uri.path + "index.php?title=#{CGI.escape 'Special:Allpages'}"
+    url << "&from=(from)&namespace=(namespace)"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items, next_id = @wiki.all_pages("(from)", "(namespace)")
+    items.size.should == 960
+    items[0].should == "Catégorie:111"
+    items.should include("Catégorie:1201")
+    items.should include("Catégorie:1535 en Tunisie")
+    items.last.should == "Catégorie:1867 au Canada"
+    next_id.should == "1867_en_musique"
+  end
+
+  it "should retreive all pages on last page" do
+    result = File.read("sample_all_pages_last.html")
+    url = @uri.path + "index.php?title=#{CGI.escape 'Special:Allpages'}"
+    url << "&from=(from)&namespace=(namespace)"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items, next_id = @wiki.all_pages("(from)", "(namespace)")
+    items[0].should == "Catégorie:Đà Nẵng"
+    items.should_not include("Catégorie:Œuvre médiévale galloise") # redirect
+    items.should include("Catégorie:Œuvre de Gluck")
+    items.should include("Catégorie:Œuvre épique médiévale")
+    items.should include("Catégorie:Œuvre médiévale hongroise")
+    items.should include("Catégorie:Œuvre médiévale française")
+    items.should include("Catégorie:Œuvre de Martinů")
+    items.last.should == "Catégorie:Œuvres de Flavius Josèphe"
+    items.size.should == 274 - 1 # 1 redirect
+    next_id.should == nil
+  end
+
+  it "should retreive full all pages" do
+    @wiki.should_receive(:puts).with("All pages starting at \"\"")
+    @wiki.should_receive(:all_pages).with("", "14").and_return([["bar", "baz"], "123"])
+    @wiki.should_receive(:puts).with("All pages starting at \"123\"")
+    @wiki.should_receive(:all_pages).with("123", "14").and_return([["bob", "baz"], "456"])
+    @wiki.should_receive(:puts).with("All pages starting at \"456\"")
+    @wiki.should_receive(:all_pages).with("456", "14").and_return([["mock"], nil])
+    @wiki.should_receive(:puts).with("All pages done")
+    @wiki.full_all_pages("14").should == ["bar", "baz", "bob", "baz", "mock"]
+  end
 end
 
 =begin

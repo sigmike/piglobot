@@ -65,6 +65,11 @@ class Piglobot::Wiki
     history
   end
   
+  def internal_all_pages(namespace)
+    Piglobot::Tools.log("AllPages in namespace #{namespace}")
+    @wiki.full_all_pages(namespace)
+  end
+  
   def retry(method, *args)
     begin
       send(method, *args)
@@ -75,7 +80,7 @@ class Piglobot::Wiki
     end
   end
   
-  %w( get post append links category history ).each do |method|
+  %w( get post append links category history all_pages ).each do |method|
     define_method(method.intern) do |*args|
       self.retry("internal_#{method}".intern, *args)
     end

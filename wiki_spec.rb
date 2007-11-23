@@ -82,6 +82,15 @@ describe Piglobot::Wiki do
     @wiki.internal_category(category).should == expected
   end
   
+  it "should use full_all_pages on all_pages" do
+    namespace = "15"
+    pages = ["Foo", "Bar", "Foo:Bar", "Hello:Bob", "Baz"]
+    expected_pages = pages
+    Piglobot::Tools.should_receive(:log).with("AllPages in namespace 15")
+    @mediawiki.should_receive(:full_all_pages).with(namespace).once.and_return(pages)
+    @wiki.internal_all_pages(namespace).should == expected_pages
+  end
+  
   it "should wait 10 minutes and retry on error" do
     step = 0
     steps = rand(30) + 2
@@ -123,7 +132,7 @@ describe Piglobot::Wiki do
     @wiki.internal_history("foo", 5, "123456")
   end
   
-  %w( get post append links category history ).each do |method|
+  %w( get post append links category history all_pages ).each do |method|
     it "should call retry with internal on #{method}" do
       @wiki.should_receive(:retry).with("internal_#{method}".intern, "foo", :bar).and_return("baz")
       @wiki.send(method, "foo", :bar).should == "baz"

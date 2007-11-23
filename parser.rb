@@ -136,10 +136,16 @@ class Piglobot::Parser
                     'lineStart' => ((pieceStart > 0) && (text[pieceStart-1].chr == "\n")),
                     }
           # finally we can call a user callback and replace piece of text
-          object, method = matchingCallback
           before = text[0, pieceStart]
           after = text[pieceEnd..-1]
-          replaceWith = object.send(method, cbArgs, before, after)
+          case matchingCallback
+          when Proc
+            replaceWith = matchingCallback.call(cbArgs, before, after)
+          else
+            object, method = matchingCallback
+            replaceWith = object.send(method, cbArgs, before, after)
+          end
+          
           if replaceWith
             text = before + replaceWith + after
             i = pieceStart + replaceWith.length
@@ -229,8 +235,8 @@ class Piglobot::Parser
     text
   end
   
-  def internal_links(text)
-    @links = []
+  def internal_links(text, keep_args = false)
+    links = []
     callbacks = {
       '{' => {
         'end' => '}',
@@ -240,13 +246,24 @@ class Piglobot::Parser
       },
       '[' => {
         'end' => ']',
-        'cb' => { 2 => [self, 'linkSubstitution'] },
+        'cb' => { 2 => lambda { |args, before, after|
+          if keep_args
+            links << [args["title"]] + (args["parts"] || [])
+          else
+            links << args["title"]
+          end
+          nil
+        } },
         'min' => 2,
         'max' => 2,
       }
     }
     replace_callback(text, callbacks)
-    @links
+    links
+  end
+
+  def internal_links_with_args(text)
+    internal_links(text, true)
   end
 
   
