@@ -26,6 +26,7 @@ class Piglobot
       @changed = false
       @data = nil
       @name = self.class.name
+      @done = true
     end
     
     def data_id
@@ -41,7 +42,7 @@ class Piglobot
     end
     
     def done?
-      true
+      @done
     end
     
     def notice(text)
