@@ -7,6 +7,12 @@ class UserCategory < Piglobot::Job
   end
   
   def process
+    10.times do
+      step
+    end
+  end
+  
+  def step
     @done = false
     @data ||= {}
     categories = @data[:categories]

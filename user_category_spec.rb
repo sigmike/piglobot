@@ -8,9 +8,14 @@ describe UserCategory do
     @job = UserCategory.new(@bot)
   end
   
+  it "should step 10 times at each process" do
+    @job.should_receive(:step).with().exactly(10).times
+    @job.process
+  end
+  
   it "should retreive categories" do
     @wiki.should_receive(:all_pages).with("14").and_return(["foo", "bar"])
-    @job.process
+    @job.step
     @job.data.should == { :categories => ["foo", "bar"] }
     @job.changed?.should == true
     @job.done?.should == false
@@ -20,7 +25,7 @@ describe UserCategory do
     @job.data = { :categories => ["foo", "bar"] }
     @wiki.should_not_receive(:all_pages)
     @job.should_receive(:process_category).with("foo")
-    @job.process
+    @job.step
     @job.data.should == { :categories => ["bar"] }
     @job.changed?.should == false
     @job.done?.should == false
@@ -31,7 +36,7 @@ describe UserCategory do
     @wiki.should_not_receive(:all_pages)
     @job.should_receive(:process_category).with("foo")
     @job.should_not_receive(:notice)
-    @job.process
+    @job.step
     @job.data.should == nil
     @job.done?.should == true
   end
@@ -59,7 +64,7 @@ describe UserCategory do
       else
         @job.should_not_receive(:notice)
       end
-      @job.process
+      @job.step
     end
   end
     
