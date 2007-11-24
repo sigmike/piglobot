@@ -19,5 +19,10 @@ describe Piglobot::Job do
     @bot.should_receive(:notice).with("foo : text")
     @job.notice("text")
   end
+
+  it "should use Piglobot::Tools.log on log" do
+    Piglobot::Tools.should_receive(:log).with("text")
+    @job.log("text")
+  end
 end
 

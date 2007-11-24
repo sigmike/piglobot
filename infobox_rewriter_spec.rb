@@ -176,12 +176,13 @@ describe Piglobot, " on real case" do
       comment.should =~ /Infobox Logiciel/
     end
     file = mock("file")
-    File.should_receive(:open).with("data.yaml", "w").and_yield(file)
+    File.should_receive(:open).with("data.yaml.new", "w").and_yield(file)
     file.should_receive(:write).with({
       "Foo" => "Bar",
       "Infobox Logiciel" => ["GNU Emacs"],
       "Infobox Aire protégée" => ["Foo"],
     }.to_yaml)
+    File.should_receive(:rename).with("data.yaml.new", "data.yaml")
     
     @bot.process
   end

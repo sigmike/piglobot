@@ -65,14 +65,21 @@ describe Piglobot, "using data" do
   it "should save data" do
     data = "bar"
     file = mock("file")
-    File.should_receive(:open).with("data.yaml", "w").and_yield(file)
+    File.should_receive(:open).ordered.with("data.yaml.new", "w").and_yield(file)
     file.should_receive(:write).with(data.to_yaml)
+    File.should_receive(:rename).with("data.yaml.new", "data.yaml")
     @bot.data = data
     @bot.save_data
   end
   
   it "should load nil when no data" do
     File.should_receive(:read).with("data.yaml").and_raise(Errno::ENOENT)
+    @bot.load_data
+    @bot.data.should == nil
+  end
+  
+  it "should load nil when empty" do
+    File.should_receive(:read).with("data.yaml").and_return("")
     @bot.load_data
     @bot.data.should == nil
   end

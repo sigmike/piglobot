@@ -93,12 +93,15 @@ class Piglobot
     rescue Errno::ENOENT
       nil
     end
+    @data = nil if data == false
+    @data
   end
 
   def save_data
-    File.open("data.yaml", "w") do |f|
+    File.open("data.yaml.new", "w") do |f|
       f.write @data.to_yaml
     end
+    File.rename("data.yaml.new", "data.yaml")
   end
   
   def job_class job

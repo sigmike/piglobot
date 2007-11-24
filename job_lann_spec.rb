@@ -139,11 +139,6 @@ describe "Page cleaner", :shared => true do
     @job.pages.should == ["Bar"]
   end
   
-  it "should use Piglobot::Tools.log on log" do
-    Piglobot::Tools.should_receive(:log).with("text")
-    @job.log("text")
-  end
-  
   def time_travel(*now)
     Time.should_receive(:now).and_return(Time.local(*now))
   end

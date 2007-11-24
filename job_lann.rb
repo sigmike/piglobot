@@ -11,10 +11,6 @@ class LANN < Piglobot::Job
     @empty_comment = "[[Utilisateur:Piglobot/Travail#Blanchiment LANN|Blanchiment automatique de courtoisie]]"
   end
 
-  def log(text)
-    Piglobot::Tools.log(text)
-  end
-  
   def done?
     @done
   end

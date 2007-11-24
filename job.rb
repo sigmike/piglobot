@@ -48,6 +48,9 @@ class Piglobot
     def notice(text)
       @bot.notice("#@name : #{text}")
     end
-  end
   
+    def log(text)
+      Piglobot::Tools.log(text)
+    end
+  end
 end
