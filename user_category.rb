@@ -24,6 +24,8 @@ class UserCategory < Piglobot::Job
       if categories.empty?
         @done = true
         @data = nil
+      elsif categories.size % 100 == 0
+        notice("#{categories.size} catégories à traiter (dernière : [[:#{category}]])")
       end
     end
   end
@@ -42,7 +44,7 @@ class UserCategory < Piglobot::Job
   
   def process_valid_category(name)
     pages = @wiki.category(name)
-    pages.delete_if { |page| page !~ /^Utilisateur:/ }
+    pages.delete_if { |page| page !~ /^Utilisateur:/ and page !~ /^Discussion Utilisateur:/ }
     if pages.empty?
       log "Aucune page utilisateur dans #{name}"
     else

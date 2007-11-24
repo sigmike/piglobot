@@ -30,10 +30,39 @@ describe UserCategory do
     @job.data = { :categories => ["foo"] }
     @wiki.should_not_receive(:all_pages)
     @job.should_receive(:process_category).with("foo")
+    @job.should_not_receive(:notice)
     @job.process
     @job.data.should == nil
     @job.done?.should == true
   end
+  
+  [
+    [100, true],
+    [200, true],
+    [500, true],
+    [800, true],
+    [1100, true],
+    [1, false],
+    [2, false],
+    [9, false],
+    [10, false],
+    [99, false],
+    [101, false],
+    [199, false],
+    [201, false],
+  ].each do |count, notice|
+    it "should #{notice ? '' : 'not' } notice when on #{count} categories remaining" do
+      @job.data = { :categories => ["foo", "bar"] + ["baz"] * (count - 1) }
+      @job.should_receive(:process_category).with("foo")
+      if notice
+        @job.should_receive(:notice).with("#{count} catégories à traiter (dernière : [[:foo]])")
+      else
+        @job.should_not_receive(:notice)
+      end
+      @job.process
+    end
+  end
+    
   
   [
     "Catégorie:Utilisateur/foo",
@@ -69,8 +98,8 @@ describe UserCategory do
   end
   
   it "should detect user pages on valid category" do
-    @wiki.should_receive(:category).with("cat").and_return(["foo", "Utilisateur:foo", "bar", "Utilisateur:bob/panda"])
-    @job.should_receive(:post_user_category).with("cat", ["Utilisateur:foo", "Utilisateur:bob/panda"])
+    @wiki.should_receive(:category).with("cat").and_return(["foo", "Utilisateur:foo", "bar", "Utilisateur:bob/panda", "Discussion Utilisateur:test/test"])
+    @job.should_receive(:post_user_category).with("cat", ["Utilisateur:foo", "Utilisateur:bob/panda", "Discussion Utilisateur:test/test"])
     @job.process_valid_category("cat")
   end
   
