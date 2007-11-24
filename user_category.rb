@@ -30,7 +30,7 @@ class UserCategory < Piglobot::Job
       if categories.empty?
         @done = true
         @data = nil
-      elsif categories.size % 100 == 0
+      elsif categories.size % 1000 == 0
         notice("#{categories.size} catégories à traiter (dernière : [[:#{category}]])")
       end
     end

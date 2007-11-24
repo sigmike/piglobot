@@ -42,19 +42,14 @@ describe UserCategory do
   end
   
   [
-    [100, true],
-    [200, true],
-    [500, true],
-    [800, true],
-    [1100, true],
+    [100, false],
+    [1000, true],
     [1, false],
-    [2, false],
     [9, false],
     [10, false],
     [99, false],
-    [101, false],
-    [199, false],
-    [201, false],
+    [999, false],
+    [1001, false],
   ].each do |count, notice|
     it "should #{notice ? '' : 'not' } notice when on #{count} categories remaining" do
       @job.data = { :categories => ["foo", "bar"] + ["baz"] * (count - 1) }
