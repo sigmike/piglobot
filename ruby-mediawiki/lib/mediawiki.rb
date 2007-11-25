@@ -223,6 +223,7 @@ module MediaWiki
       url_name = CGI::escape("Category:" + name.gsub(' ', '_'))
       url = "#{@url.path}index.php?title=#{url_name}"
       url << "&from=#{next_id}" if next_id
+      puts url if $VERBOSE
       content = @browser.get_content(url)
       res = []
       content.scan(%r{<li><a href=".+?" title="(.+?)">(.+?)</a></li>}).each do |title, text|
@@ -231,7 +232,7 @@ module MediaWiki
         end
       end
       next_id = nil
-      content.scan(%r{<a href=".+?&amp;from=([^&]+?)" title=".+?">}).each do |id,|
+      content.scan(%r{\(<a href=".+?\?title=.+?&amp;from=(.+?)" title=".+?">200 suivants</a>\)}).each do |id,|
         next_id = id
       end
       [res, next_id]
@@ -241,6 +242,9 @@ module MediaWiki
       res = []
       next_id = nil
       loop do
+        msg = "Getting pages in category #{name}"
+        msg << " starting at #{next_id.inspect}" if next_id
+        puts msg
         items, next_id = category_slice(name, next_id)
         res += items
         break unless next_id

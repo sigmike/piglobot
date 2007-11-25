@@ -118,11 +118,21 @@ describe MediaWiki, " with fake MiniBrowser" do
     @wiki.category_slice("Category name", "néxt_id")
   end
   
+  it "should retreive no next category in category_buggy.html" do
+    result = File.read("sample_category_buggy.html")
+    @browser.should_receive(:get_content).and_return(result)
+    items, next_id = @wiki.category_slice("name", "next")
+    next_id.should == nil
+  end
+  
   it "should retreive full category" do
     name = mock("name")
-    @wiki.should_receive(:category_slice).with(name, nil).and_return([["foo"], "bar"])
-    @wiki.should_receive(:category_slice).with(name, "bar").and_return([["bar"], "baz"])
-    @wiki.should_receive(:category_slice).with(name, "baz").and_return([["baz"], nil])
+    @wiki.should_receive(:puts).ordered.with("Getting pages in category #{name}")
+    @wiki.should_receive(:category_slice).ordered.with(name, nil).and_return([["foo"], "bar"])
+    @wiki.should_receive(:puts).ordered.with("Getting pages in category #{name} starting at \"bar\"")
+    @wiki.should_receive(:category_slice).ordered.with(name, "bar").and_return([["bar"], "baz"])
+    @wiki.should_receive(:puts).ordered.with("Getting pages in category #{name} starting at \"baz\"")
+    @wiki.should_receive(:category_slice).ordered.with(name, "baz").and_return([["baz"], nil])
     @wiki.full_category(name).should == ["foo", "bar", "baz"]
   end
   
@@ -137,6 +147,8 @@ describe MediaWiki, " with fake MiniBrowser" do
       "index.php?title=Category%3ALangage_de_programmation&from=Visual+Basic+for+Applications"
     content = File.read("sample_category_programming_2.html")
     @browser.should_receive(:get_content).with(url).and_return(content)
+    
+    @wiki.should_receive(:puts).twice
     
     result = @wiki.full_category(name)
     result.should include("Ruby")
