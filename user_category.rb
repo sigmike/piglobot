@@ -25,6 +25,8 @@ class UserCategory < Piglobot::Job
       @data[:categories] = @wiki.all_pages("14").select { |page|
         valid_category?(page)
       }
+      @data[:empty] = []
+      @data[:one] = []
       
       @changed = true
     else
@@ -36,6 +38,12 @@ class UserCategory < Piglobot::Job
       @changed = false
       process_category(category)
       if categories.empty?
+        [
+          [@data[:empty], "Catégories vides"],
+          [@data[:one], "Catégories avec une seule page"],
+        ].each do |pages, title|
+          @wiki.post("Utilisateur:Piglobot/#{title}", pages.map { |page| "* [[:#{page}]]\n" }.join, "Mise à jour")
+        end
         @done = true
         @data = nil
       elsif categories.size % 1000 == 0
@@ -59,6 +67,11 @@ class UserCategory < Piglobot::Job
   def process_valid_category(name)
     pages = @wiki.category(name.split(":", 2).last)
     log("#{pages.size} pages dans #{name}")
+    if pages.size == 0
+      @data[:empty] << name
+    elsif pages.size == 1
+      @data[:one] << name
+    end
     pages.delete_if { |page| page !~ /^Utilisateur:/ and page !~ /^Discussion Utilisateur:/ }
     if pages.empty?
       log "Aucune page utilisateur dans #{name}"

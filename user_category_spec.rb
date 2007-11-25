@@ -25,7 +25,7 @@ describe UserCategory do
     @job.should_receive(:valid_category?).ordered.with("bar").and_return(true)
     @job.should_receive(:valid_category?).ordered.with("baz").and_return(false)
     @job.step
-    @job.data.should == { :categories => ["foo", "bar"] }
+    @job.data.should == { :categories => ["foo", "bar"], :empty => [], :one => [] }
     @job.changed?.should == true
     @job.done?.should == false
   end
@@ -40,11 +40,13 @@ describe UserCategory do
     @job.done?.should == false
   end
   
-  it "should be done when out of category" do
-    @job.data = { :categories => ["foo"] }
+  it "should be done and save special categories when out of category" do
+    @job.data = { :categories => ["foo"], :empty => ["foo", "bar"], :one => ["baz", "bob"] }
     @wiki.should_not_receive(:all_pages)
     @job.should_receive(:process_category).with("foo")
     @job.should_not_receive(:notice)
+    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Catégories vides", "* [[:foo]]\n* [[:bar]]\n", "Mise à jour")
+    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Catégories avec une seule page", "* [[:baz]]\n* [[:bob]]\n", "Mise à jour")
     @job.step
     @job.data.should == nil
     @job.done?.should == true
@@ -132,5 +134,23 @@ describe UserCategory do
     @wiki.should_receive(:append).with(page, text, "2 pages dans [[:Catégorie:cat]]")
     @job.post_user_category("Catégorie:cat", ["foo", "Utilisateur:bob/panda"])
     @job.changed?.should == true
+  end
+  
+  it "should save empty category" do
+    @job.data = {}
+    @job.data[:empty] = mock("empty list")
+    @job.data[:empty].should_receive(:<<).with("Catégorie:foo")
+    @wiki.should_receive(:category).with("foo").and_return([])
+    @job.should_receive(:log).twice
+    @job.process_valid_category("Catégorie:foo")
+  end
+
+  it "should save category with one item" do
+    @job.data = {}
+    @job.data[:one] = mock("empty list")
+    @job.data[:one].should_receive(:<<).with("Catégorie:foo")
+    @wiki.should_receive(:category).with("foo").and_return(["foo"])
+    @job.should_receive(:log).twice
+    @job.process_valid_category("Catégorie:foo")
   end
 end
