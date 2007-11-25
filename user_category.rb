@@ -7,9 +7,14 @@ class UserCategory < Piglobot::Job
   end
   
   def process
-    10.times do
-      step
+    20.times do
+      step_and_sleep
     end
+  end
+  
+  def step_and_sleep
+    step
+    sleep 2
   end
   
   def step
@@ -17,7 +22,10 @@ class UserCategory < Piglobot::Job
     @data ||= {}
     categories = @data[:categories]
     if categories.nil?
-      @data[:categories] = @wiki.all_pages("14")
+      @data[:categories] = @wiki.all_pages("14").select { |page|
+        valid_category?(page)
+      }
+      
       @changed = true
     else
       category = nil
@@ -49,7 +57,8 @@ class UserCategory < Piglobot::Job
   end
   
   def process_valid_category(name)
-    pages = @wiki.category(name)
+    pages = @wiki.category(name.split(":", 2).last)
+    log("#{pages.size} pages dans #{name}")
     pages.delete_if { |page| page !~ /^Utilisateur:/ and page !~ /^Discussion Utilisateur:/ }
     if pages.empty?
       log "Aucune page utilisateur dans #{name}"
@@ -59,8 +68,10 @@ class UserCategory < Piglobot::Job
   end
   
   def post_user_category(name, pages)
-    @wiki.append("Utilisateur:Piglobot/Utilisateurs catégorisés dans main",
-      "== [[:#{name}]] ==\n" + pages.map { |page| "* [[:#{page}]]\n" }.join + "\n")
+    list_page = "Utilisateur:Piglobot/Utilisateurs catégorisés dans main"
+    text = "== [[:#{name}]] ==\n" + pages.map { |page| "* [[:#{page}]]\n" }.join + "\n"
+    comment = "#{pages.size} pages dans [[:#{name}]]"
+    @wiki.append(list_page, text, comment)
     @changed = true
   end
 end

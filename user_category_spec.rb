@@ -8,13 +8,22 @@ describe UserCategory do
     @job = UserCategory.new(@bot)
   end
   
-  it "should step 10 times at each process" do
-    @job.should_receive(:step).with().exactly(10).times
+  it "should step 20 times at each process" do
+    @job.should_receive(:step_and_sleep).with().exactly(20).times
     @job.process
   end
   
+  it "should step and sleep" do
+    @job.should_receive(:step).ordered
+    @job.should_receive(:sleep).ordered.with(2)
+    @job.step_and_sleep
+  end
+  
   it "should retreive categories" do
-    @wiki.should_receive(:all_pages).with("14").and_return(["foo", "bar"])
+    @wiki.should_receive(:all_pages).with("14").and_return(["foo", "bar", "baz"])
+    @job.should_receive(:valid_category?).ordered.with("foo").and_return(true)
+    @job.should_receive(:valid_category?).ordered.with("bar").and_return(true)
+    @job.should_receive(:valid_category?).ordered.with("baz").and_return(false)
     @job.step
     @job.data.should == { :categories => ["foo", "bar"] }
     @job.changed?.should == true
@@ -85,41 +94,43 @@ describe UserCategory do
   end
   
   it "should not process invalid category" do
-    @job.should_receive(:valid_category?).with("cat").and_return(false)
-    @job.should_receive(:log).with("Catégorie ignorée : cat")
-    @job.process_category("cat")
+    @job.should_receive(:valid_category?).with("Catégorie:cat").and_return(false)
+    @job.should_receive(:log).with("Catégorie ignorée : Catégorie:cat")
+    @job.process_category("Catégorie:cat")
     @job.changed?.should == false
   end
   
   it "should process valid category" do
-    @job.should_receive(:valid_category?).with("cat").and_return(true)
-    @job.should_receive(:process_valid_category).with("cat")
-    @job.process_category("cat")
+    @job.should_receive(:valid_category?).with("Catégorie:cat").and_return(true)
+    @job.should_receive(:process_valid_category).with("Catégorie:cat")
+    @job.process_category("Catégorie:cat")
   end
   
   it "should detect user pages on valid category" do
     @wiki.should_receive(:category).with("cat").and_return(["foo", "Utilisateur:foo", "bar", "Utilisateur:bob/panda", "Discussion Utilisateur:test/test"])
-    @job.should_receive(:post_user_category).with("cat", ["Utilisateur:foo", "Utilisateur:bob/panda", "Discussion Utilisateur:test/test"])
-    @job.process_valid_category("cat")
+    @job.should_receive(:log).with("5 pages dans Catégorie:cat")
+    @job.should_receive(:post_user_category).with("Catégorie:cat", ["Utilisateur:foo", "Utilisateur:bob/panda", "Discussion Utilisateur:test/test"])
+    @job.process_valid_category("Catégorie:cat")
   end
   
   it "should do nothing when no user page in category" do
     @wiki.should_receive(:category).with("cat").and_return(["foo", "foo Utilisateur:foo", "bar"])
-    @job.should_receive(:log).with("Aucune page utilisateur dans cat")
-    @job.process_valid_category("cat")
+    @job.should_receive(:log).with("3 pages dans Catégorie:cat")
+    @job.should_receive(:log).with("Aucune page utilisateur dans Catégorie:cat")
+    @job.process_valid_category("Catégorie:cat")
   end
   
   it "should post user category" do
     page = "Utilisateur:Piglobot/Utilisateurs catégorisés dans main"
     text = [
-      "== [[:cat]] ==",
+      "== [[:Catégorie:cat]] ==",
       "* [[:foo]]",
       "* [[:Utilisateur:bob/panda]]",
       "",
     ].map { |x| x + "\n" }.join
     
-    @wiki.should_receive(:append).with(page, text)
-    @job.post_user_category("cat", ["foo", "Utilisateur:bob/panda"])
+    @wiki.should_receive(:append).with(page, text, "2 pages dans [[:Catégorie:cat]]")
+    @job.post_user_category("Catégorie:cat", ["foo", "Utilisateur:bob/panda"])
     @job.changed?.should == true
   end
 end
