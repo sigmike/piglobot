@@ -44,6 +44,7 @@ class UserCategory < Piglobot::Job
         ].each do |pages, title|
           @wiki.post("Utilisateur:Piglobot/#{title}", pages.map { |page| "* [[:#{page}]]\n" }.join, "Mise à jour")
         end
+        post_user_categories(@data[:users]) if @data[:users]
         @done = true
         @data = nil
       elsif categories.size % 1000 == 0
@@ -76,15 +77,23 @@ class UserCategory < Piglobot::Job
     if pages.empty?
       log "Aucune page utilisateur dans #{name}"
     else
-      post_user_category(name, pages)
+      log "#{pages.size} pages utilisateur dans #{name}"
+      add_user_category(name, pages)
     end
   end
   
-  def post_user_category(name, pages)
+  def post_user_categories(categories)
     list_page = "Utilisateur:Piglobot/Utilisateurs catégorisés dans main"
-    text = "== [[:#{name}]] ==\n" + pages.map { |page| "* [[:#{page}]]\n" }.join + "\n"
-    comment = "#{pages.size} pages dans [[:#{name}]]"
-    @wiki.append(list_page, text, comment)
+    text = ""
+    categories.sort_by { |name, pages| name.downcase }.each do |name, pages|
+      text << "== [[:#{name}]] ==\n" + pages.map { |page| "* [[:#{page}]]\n" }.join + "\n"
+    end
+    @wiki.append(list_page, text, "Mise à jour")
     @changed = true
+  end
+  
+  def add_user_category(name, pages)
+    @data[:users] ||= {}
+    @data[:users][name] = pages
   end
 end

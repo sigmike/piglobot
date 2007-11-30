@@ -41,14 +41,40 @@ describe UserCategory do
   end
   
   it "should be done and save special categories when out of category" do
-    @job.data = { :categories => ["foo"], :empty => ["foo", "bar"], :one => ["baz", "bob"] }
+    initial_data = { :categories => ["foo"], :empty => ["foo", "bar"], :one => ["baz", "bob"], :users => { "Catégorie:cat" => ["foo", "Utilisateur:bob/panda"], "bar" => ["baz"] } }
+    @job.data = initial_data.dup
     @wiki.should_not_receive(:all_pages)
     @job.should_receive(:process_category).with("foo")
     @job.should_not_receive(:notice)
     @wiki.should_receive(:post).with("Utilisateur:Piglobot/Catégories vides", "* [[:foo]]\n* [[:bar]]\n", "Mise à jour")
     @wiki.should_receive(:post).with("Utilisateur:Piglobot/Catégories avec une seule page", "* [[:baz]]\n* [[:bob]]\n", "Mise à jour")
+    page = "Utilisateur:Piglobot/Utilisateurs catégorisés dans main"
+    text = [
+      "== [[:bar]] ==",
+      "* [[:baz]]",
+      "",
+      "== [[:Catégorie:cat]] ==",
+      "* [[:foo]]",
+      "* [[:Utilisateur:bob/panda]]",
+      "",
+    ].map { |x| x + "\n" }.join
+    
+    @wiki.should_receive(:append).with(page, text, "Mise à jour")
     @job.step
-    @job.data.should == nil
+    
+    done_data = initial_data.dup
+    done_data[:done] = true
+    
+    @job.data.should == done_data
+    @job.done?.should == true
+  end
+  
+  it "should do nothing on step when done" do
+    @job.data = { :done => true }
+    @wiki.should_not_receive(:all_pages)
+    @job.should_not_receive(:process_category)
+    @job.should_receive(:log).with("Toutes les catégories ont été traitées")
+    @job.step
     @job.done?.should == true
   end
   
@@ -111,7 +137,8 @@ describe UserCategory do
   it "should detect user pages on valid category" do
     @wiki.should_receive(:category).with("cat").and_return(["foo", "Utilisateur:foo", "bar", "Utilisateur:bob/panda", "Discussion Utilisateur:test/test"])
     @job.should_receive(:log).with("5 pages dans Catégorie:cat")
-    @job.should_receive(:post_user_category).with("Catégorie:cat", ["Utilisateur:foo", "Utilisateur:bob/panda", "Discussion Utilisateur:test/test"])
+    @job.should_receive(:log).with("3 pages utilisateur dans Catégorie:cat")
+    @job.should_receive(:add_user_category).with("Catégorie:cat", ["Utilisateur:foo", "Utilisateur:bob/panda", "Discussion Utilisateur:test/test"])
     @job.process_valid_category("Catégorie:cat")
   end
   
@@ -122,18 +149,17 @@ describe UserCategory do
     @job.process_valid_category("Catégorie:cat")
   end
   
-  it "should post user category" do
-    page = "Utilisateur:Piglobot/Utilisateurs catégorisés dans main"
-    text = [
-      "== [[:Catégorie:cat]] ==",
-      "* [[:foo]]",
-      "* [[:Utilisateur:bob/panda]]",
-      "",
-    ].map { |x| x + "\n" }.join
-    
-    @wiki.should_receive(:append).with(page, text, "2 pages dans [[:Catégorie:cat]]")
-    @job.post_user_category("Catégorie:cat", ["foo", "Utilisateur:bob/panda"])
-    @job.changed?.should == true
+  it "should create user category data" do
+    @job.data = {}
+    @job.add_user_category("Catégorie:cat", ["foo", "Utilisateur:bob/panda"])
+    @job.data.should == { :users => { "Catégorie:cat" => ["foo", "Utilisateur:bob/panda"] } }
+    @job.changed?.should == false
+  end
+  
+  it "should append new user category" do
+    @job.data = { :users => { "foo" => ["bar"] }}
+    @job.add_user_category("cat", ["baz", "bob"])
+    @job.data.should == { :users => { "foo" => ["bar"], "cat" => ["baz", "bob"] } }
   end
   
   it "should save empty category" do
