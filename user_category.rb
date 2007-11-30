@@ -20,6 +20,13 @@ class UserCategory < Piglobot::Job
   def step
     @done = false
     @data ||= {}
+    
+    if @data[:done]
+      @done = true
+      log("Toutes les catégories ont été traitées")
+      return
+    end
+    
     categories = @data[:categories]
     if categories.nil?
       @data[:categories] = @wiki.all_pages("14").select { |page|
@@ -46,7 +53,7 @@ class UserCategory < Piglobot::Job
         end
         post_user_categories(@data[:users]) if @data[:users]
         @done = true
-        @data = nil
+        @data[:done] = true
       elsif categories.size % 1000 == 0
         notice("#{categories.size} catégories à traiter (dernière : [[:#{category}]])")
       end
