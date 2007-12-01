@@ -32,7 +32,7 @@ class UserCategory < Piglobot::Job
   
   def step_and_sleep
     step
-    sleep 2
+    sleep 5
   end
   
   def step

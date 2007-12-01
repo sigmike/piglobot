@@ -33,7 +33,7 @@ describe UserCategory do
   
   it "should step and sleep" do
     @job.should_receive(:step).ordered
-    @job.should_receive(:sleep).ordered.with(2)
+    @job.should_receive(:sleep).ordered.with(5)
     @job.step_and_sleep
   end
   
