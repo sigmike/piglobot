@@ -315,7 +315,51 @@ module MediaWiki
       result
     end
   
-
+    def page_url(name, data)
+      "/w/index.php?title=" +
+        CGI.escape(name.gsub(" ", "_")).gsub("%3A", ":").gsub("%2F", "/") +
+        "&" + data.map { |name, value| CGI.escape(name) + "=" + CGI.escape(value) }.join("&")
+    end
+    
+    def raw_get(name)
+      url = page_url(name, "action" => "edit")
+      content = @browser.get_content(url)
+    end
+    
+    def fast_get(name)
+      content = raw_get(name)
+      result = content.scan(%r{<textarea tabindex='1' accesskey="," name="wpTextbox1" id="wpTextbox1" rows='25'
+cols='80' >(.+?)</textarea>}m).first
+      raise "textbox not found in #{url}" if result.empty?
+      result.first
+    end
+  
+    def fast_post(name, text, comment)
+      c = raw_get(name)
+      data = {
+        "wpEditToken" => c.scan(%r{<input type='hidden' value="(.+?)" name="wpEditToken" />}).first.first,
+        "wpStarttime" => c.scan(%r{<input type='hidden' value="(.+?)" name="wpStarttime" />}).first.first,
+        "wpEdittime" => c.scan(%r{<input type='hidden' value="(.+?)" name="wpEdittime" />}).first.first,
+       "wpTextbox1" => text,
+       "wpSummary" => comment,
+      }
+      url = page_url(name, "action" => "submit")
+      @browser.post_content(url, data)
+    end
+  
+    def fast_append(name, text, comment)
+      c = raw_get(name)
+      data = {
+        "wpEditToken" => c.scan(%r{<input type='hidden' value="(.+?)" name="wpEditToken" />}).first.first,
+        "wpStarttime" => c.scan(%r{<input type='hidden' value="(.+?)" name="wpStarttime" />}).first.first,
+        "wpEdittime" => c.scan(%r{<input type='hidden' value="(.+?)" name="wpEdittime" />}).first.first,
+       "wpTextbox1" => c.scan(%r{<textarea tabindex='1' accesskey="," name="wpTextbox1" id="wpTextbox1" rows='25'
+cols='80' >(.+?)</textarea>}m).first.first + text,
+       "wpSummary" => comment,
+      }
+      url = page_url(name, "action" => "submit")
+      @browser.post_content(url, data)
+    end
   end
 end
 

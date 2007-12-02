@@ -41,4 +41,13 @@ describe Piglobot::Wiki, " live" do
   it "should find Linux in Modèle:Portail informatique" do
     @wiki.links("Modèle:Portail informatique").should include("Linux")
   end
+  
+  it "should get test page" do
+    @wiki.get("Utilisateur:Piglobot/Page de test").should == "page de test\n\nbla bla\n"
+  end
+  
+  it "should post quickly" do
+    @wiki.post("Utilisateur:Piglobot/Bac à sable", "* foo bar\n" * 100, "test")
+    @wiki.get("Utilisateur:Piglobot/Bac à sable").should == "* foo bar\n" * 100
+  end
 end

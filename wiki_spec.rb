@@ -32,25 +32,19 @@ describe Piglobot::Wiki do
   end
   
   it "should post text" do
-    @mediawiki.should_receive(:article).with("Article name").once.and_return(@article)
-    @article.should_receive(:text=).with("article content")
-    @article.should_receive(:submit).with("comment")
+    @mediawiki.should_receive(:fast_post).with("Article name", "article content", "comment").once
     Piglobot::Tools.should_receive(:log).with("Post [[Article name]] (comment)")
     @wiki.internal_post "Article name", "article content", "comment"
   end
   
   it "should get text" do
-    @mediawiki.should_receive(:article).with("Article name").once.and_return(@article)
-    @article.should_receive(:text).with().and_return("content")
+    @mediawiki.should_receive(:fast_get).with("Article name").once.and_return("content")
     Piglobot::Tools.should_receive(:log).with("Get [[Article name]]")
     @wiki.internal_get("Article name").should == "content"
   end
   
   it "should append text" do
-    @mediawiki.should_receive(:article).with("Article name").once.and_return(@article)
-    @article.should_receive(:text).with().and_return("content")
-    @article.should_receive(:text=).with("contentnew text")
-    @article.should_receive(:submit).with("append comment")
+    @mediawiki.should_receive(:fast_append).with("Article name", "new text", "append comment").once
     Piglobot::Tools.should_receive(:log).with("Append [[Article name]] (append comment)")
     @wiki.internal_append("Article name", "new text", "append comment")
   end

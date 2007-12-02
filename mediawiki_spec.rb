@@ -287,6 +287,69 @@ describe MediaWiki, " with fake MiniBrowser" do
     @wiki.should_receive(:puts).with("All pages done")
     @wiki.full_all_pages("14").should == ["bar", "baz", "bob", "baz", "mock"]
   end
+  
+  [
+    [
+      "Utilisateur:Piglobot/Page de test",
+      {"action" => "edit"},
+      "/w/index.php?title=Utilisateur:Piglobot/Page_de_test&action=edit"
+    ],
+    [
+      "Discussion Modèle:Référence nécessaire",
+      {"action" => "edit"},
+      "/w/index.php?title=Discussion_Mod%C3%A8le:R%C3%A9f%C3%A9rence_n%C3%A9cessaire&action=edit",
+    ],
+    [
+      "Utilisateur:Piglobot/Page de test",
+      {"action" => "submit"},
+      "/w/index.php?title=Utilisateur:Piglobot/Page_de_test&action=submit"
+    ],
+  ].each do |name, data, url|
+    it "should know the url for #{name} and #{data.inspect}" do
+      @wiki.page_url(name, data).should == url
+    end
+  end
+
+  it "should get fast on fast_get" do
+    result = File.read("samples/edit.html")
+    @wiki.should_receive(:page_url).with("page", "action" => "edit").and_return("url")
+    @browser.should_receive(:get_content).with("url").and_return(result)
+    result = @wiki.fast_get("page")
+    result.should == "page de test\n\nbla bla\n"
+  end
+  
+  it "should post fast on fast_post" do
+    result = File.read("samples/edit.html")
+    @wiki.should_receive(:page_url).with("page", "action"=>"edit").and_return("edit url")
+    @browser.should_receive(:get_content).with("edit url").and_return(result)
+    @wiki.should_receive(:page_url).with("page", "action"=>"submit").and_return("submit url")
+    data = {
+      "wpTextbox1" => "text",
+      "wpEdittime" => "20071202151254",
+      "wpStarttime" => "20071202151407",
+      "wpEditToken" => "+\\",
+      "wpSummary" => "comment",
+    }
+    @browser.should_receive(:post_content).with("submit url", data).and_return(result)
+    @wiki.fast_post("page", "text", "comment")
+  end
+  
+  it "should append fast on fast_append" do
+    result = File.read("samples/edit.html")
+    @wiki.should_receive(:page_url).with("page", "action"=>"edit").and_return("edit url")
+    @browser.should_receive(:get_content).with("edit url").and_return(result)
+    @wiki.should_receive(:page_url).with("page", "action"=>"submit").and_return("submit url")
+    data = {
+      "wpTextbox1" => "page de test\n\nbla bla\ntext",
+      "wpEdittime" => "20071202151254",
+      "wpStarttime" => "20071202151407",
+      "wpEditToken" => "+\\",
+      "wpSummary" => "comment",
+    }
+    @browser.should_receive(:post_content).with("submit url", data).and_return(result)
+    @wiki.fast_append("page", "text", "comment")
+  end
+  
 end
 
 =begin

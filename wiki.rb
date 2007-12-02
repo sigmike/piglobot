@@ -22,23 +22,18 @@ class Piglobot::Wiki
   end
   
   def internal_post(article_name, text, comment)
-    article = @wiki.article(article_name)
-    article.text = text
     Piglobot::Tools.log("Post [[#{article_name}]] (#{comment})")
-    article.submit(comment)
+    @wiki.fast_post(article_name, text, comment)
   end
 
   def internal_get(article_name)
-    article = @wiki.article(article_name)
     Piglobot::Tools.log("Get [[#{article_name}]]")
-    article.text
+    @wiki.fast_get(article_name)
   end
   
   def internal_append(article_name, text, comment)
-    article = @wiki.article(article_name)
-    article.text += text
     Piglobot::Tools.log("Append [[#{article_name}]] (#{comment})")
-    article.submit(comment)
+    @wiki.fast_append(article_name, text, comment)
   end
   
   def internal_links(name, namespace = nil)
