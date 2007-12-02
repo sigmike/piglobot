@@ -179,11 +179,7 @@ describe Piglobot, " on real case" do
     @bot = Piglobot.new
     @bot.job = "Infobox Logiciel"
     
-    File.should_receive(:read).with("data.yaml").and_return({
-      "Foo" => "Bar",
-      "Infobox Logiciel" => ["Blender", "GNU Emacs"],
-      "Infobox Aire protégée" => ["Foo"],
-    }.to_yaml)
+    File.should_receive(:read).with("Infobox Logiciel.yaml").and_return(["Blender", "GNU Emacs"].to_yaml)
     
     @wiki.should_receive(:get).with("Blender").and_return("{{Infobox Logiciel | name = Blender }}\nBlender...")
     @wiki.should_receive(:post) do |article, content, comment|
@@ -193,13 +189,9 @@ describe Piglobot, " on real case" do
       comment.should =~ /Infobox Logiciel/
     end
     file = mock("file")
-    File.should_receive(:open).with("data.yaml.new", "w").and_yield(file)
-    file.should_receive(:write).with({
-      "Foo" => "Bar",
-      "Infobox Logiciel" => ["GNU Emacs"],
-      "Infobox Aire protégée" => ["Foo"],
-    }.to_yaml)
-    File.should_receive(:rename).with("data.yaml.new", "data.yaml")
+    File.should_receive(:open).with("Infobox Logiciel.yaml.new", "w").and_yield(file)
+    file.should_receive(:write).with(["GNU Emacs"].to_yaml)
+    File.should_receive(:rename).with("Infobox Logiciel.yaml.new", "Infobox Logiciel.yaml")
     
     @bot.process
   end

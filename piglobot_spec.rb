@@ -57,30 +57,30 @@ describe Piglobot, "using data" do
   
   it "should load data" do
     data = "foo"
-    File.should_receive(:read).with("data.yaml").and_return(data.to_yaml)
-    @bot.load_data
+    File.should_receive(:read).with("sample data id.yaml").and_return(data.to_yaml)
+    @bot.load_data("sample data id")
     @bot.data.should == data
   end
 
   it "should save data" do
     data = "bar"
     file = mock("file")
-    File.should_receive(:open).ordered.with("data.yaml.new", "w").and_yield(file)
+    File.should_receive(:open).ordered.with("another data id.yaml.new", "w").and_yield(file)
     file.should_receive(:write).with(data.to_yaml)
-    File.should_receive(:rename).with("data.yaml.new", "data.yaml")
+    File.should_receive(:rename).with("another data id.yaml.new", "another data id.yaml")
     @bot.data = data
-    @bot.save_data
+    @bot.save_data("another data id")
   end
   
   it "should load nil when no data" do
-    File.should_receive(:read).with("data.yaml").and_raise(Errno::ENOENT)
-    @bot.load_data
+    File.should_receive(:read).with("id.yaml").and_raise(Errno::ENOENT)
+    @bot.load_data("id")
     @bot.data.should == nil
   end
   
   it "should load nil when empty" do
-    File.should_receive(:read).with("data.yaml").and_return("")
-    @bot.load_data
+    File.should_receive(:read).with("id.yaml").and_return("")
+    @bot.load_data("id")
     @bot.data.should == nil
   end
   
@@ -108,14 +108,14 @@ describe Piglobot, "using data" do
     @bot.should_receive(:job_class).with("job name").and_return(FakeJob)
     FakeJob.should_receive(:new).with(@bot).and_return(job)
     job.should_receive(:data_id).with().and_return("data id")
-    @bot.should_receive(:load_data).with() do
+    @bot.should_receive(:load_data).with("data id") do
       @bot.data = {"foo" => "bar", "data id" => "data" }
     end
-    job.should_receive(:data=).with("data")
+    job.should_receive(:data=).with({"foo" => "bar", "data id" => "data" })
     job.should_receive(:process)
     job.should_receive(:data).with().and_return("result data")
-    @bot.should_receive(:save_data).with() do
-      @bot.data.should == {"foo" => "bar", "data id" => "result data"}
+    @bot.should_receive(:save_data).with("data id") do
+      @bot.data.should == "result data"
     end
     @bot.job = "job name"
     @bot.process.should == job
@@ -128,16 +128,6 @@ describe Piglobot do
   before do
     create_bot
     @job = mock("job")
-  end
-  
-  it "should initialize data on first process" do
-    @bot.should_receive(:load_data) do
-      @bot.data = nil
-    end
-    @bot.should_receive(:save_data) do
-      @bot.data.should == {}
-    end
-    @bot.process.should == nil
   end
   
   it "should fail when job is nil" do

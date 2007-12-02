@@ -87,9 +87,9 @@ class Piglobot
     @wiki.post("Utilisateur:Piglobot/Code", content, comment)
   end
   
-  def load_data
+  def load_data(data_id)
     @data = begin
-      YAML.load File.read("data.yaml")
+      YAML.load File.read("#{data_id}.yaml")
     rescue Errno::ENOENT
       nil
     end
@@ -97,11 +97,13 @@ class Piglobot
     @data
   end
 
-  def save_data
-    File.open("data.yaml.new", "w") do |f|
+  def save_data(data_id)
+    filename = "#{data_id}.yaml"
+    new_filename = "#{filename}.new"
+    File.open(new_filename, "w") do |f|
       f.write @data.to_yaml
     end
-    File.rename("data.yaml.new", "data.yaml")
+    File.rename(new_filename, filename)
   end
   
   def job_class job
@@ -128,19 +130,13 @@ class Piglobot
 
   def process
     job = nil
-    load_data
-    data = @data
-    if data.nil?
-      data = {}
-    else
-      job = job_class(@job).new(self)
-      data_id = job.data_id
-      job.data = data[data_id]
-      job.process
-      data[data_id] = job.data
-    end
-    @data = data
-    save_data
+    job = job_class(@job).new(self)
+    data_id = job.data_id
+    load_data(data_id)
+    job.data = @data
+    job.process
+    @data = job.data
+    save_data(data_id)
     job
   end
   
