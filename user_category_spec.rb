@@ -58,26 +58,13 @@ describe UserCategory do
     @job.done?.should == false
   end
   
-  it "should be done and save special categories when out of category" do
+  it "should be done and write data when out of category" do
     initial_data = { :categories => ["foo"], :empty => ["foo", "bar"], :one => ["baz", "bob"], :users => { "Catégorie:cat" => ["foo", "Utilisateur:bob/panda"], "bar" => ["baz"] } }
     @job.data = initial_data.dup
     @wiki.should_not_receive(:all_pages)
     @job.should_receive(:process_category).with("foo")
     @job.should_not_receive(:notice)
-    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Catégories vides", "* [[:foo]]\n* [[:bar]]\n", "Mise à jour")
-    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Catégories avec une seule page", "* [[:baz]]\n* [[:bob]]\n", "Mise à jour")
-    page = "Utilisateur:Piglobot/Utilisateurs catégorisés dans main"
-    text = [
-      "== [[:bar]] ==",
-      "* [[:baz]]",
-      "",
-      "== [[:Catégorie:cat]] ==",
-      "* [[:foo]]",
-      "* [[:Utilisateur:bob/panda]]",
-      "",
-    ].map { |x| x + "\n" }.join
-    
-    @wiki.should_receive(:append).with(page, text, "Mise à jour")
+    @job.should_receive(:write_data)
     @job.step
     
     done_data = initial_data.dup
@@ -96,6 +83,27 @@ describe UserCategory do
     @job.done?.should == true
   end
   
+  it "should write data" do
+    initial_data = { :categories => ["foo"], :empty => ["foo", "bar"], :one => ["baz", "bob"], :users => { "Catégorie:cat" => ["foo", "Utilisateur:bob/panda"], "bar" => ["baz"] } }
+    @job.data = initial_data.dup
+    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Catégories vides", "* [[:foo]]\n* [[:bar]]\n", "Mise à jour")
+    @wiki.should_receive(:append).with("Utilisateur:Piglobot/Catégories avec une seule page", "* [[:baz]]\n* [[:bob]]\n", "Mise à jour")
+    page = "Utilisateur:Piglobot/Utilisateurs catégorisés dans main"
+    text = [
+      "== [[:bar]] ==",
+      "* [[:baz]]",
+      "",
+      "== [[:Catégorie:cat]] ==",
+      "* [[:foo]]",
+      "* [[:Utilisateur:bob/panda]]",
+      "",
+    ].map { |x| x + "\n" }.join
+    
+    @wiki.should_receive(:append).with(page, text, "Mise à jour")
+    @job.write_data
+    @job.data.should == {:categories => ["foo"], :empty => [], :one => [], :users => {}}
+  end
+  
   [
     [100, false],
     [1000, true],
@@ -110,6 +118,7 @@ describe UserCategory do
       @job.data = { :categories => ["foo", "bar"] + ["baz"] * (count - 1) }
       @job.should_receive(:process_category).with("foo")
       if notice
+        @job.should_receive(:write_data)
         @job.should_receive(:notice).with("#{count} catégories à traiter (dernière : [[:foo]])")
       else
         @job.should_not_receive(:notice)

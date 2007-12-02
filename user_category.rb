@@ -63,19 +63,27 @@ class UserCategory < Piglobot::Job
       @changed = false
       process_category(category)
       if categories.empty?
-        [
-          [@data[:empty], "Catégories vides"],
-          [@data[:one], "Catégories avec une seule page"],
-        ].each do |pages, title|
-          @wiki.post("Utilisateur:Piglobot/#{title}", pages.map { |page| "* [[:#{page}]]\n" }.join, "Mise à jour")
-        end
-        post_user_categories(@data[:users]) if @data[:users]
+        write_data
         @done = true
         @data[:done] = true
       elsif categories.size % 1000 == 0
+        write_data
         notice("#{categories.size} catégories à traiter (dernière : [[:#{category}]])")
       end
     end
+  end
+  
+  def write_data
+    [
+      [@data[:empty], "Catégories vides"],
+      [@data[:one], "Catégories avec une seule page"],
+    ].each do |pages, title|
+      @wiki.append("Utilisateur:Piglobot/#{title}", pages.map { |page| "* [[:#{page}]]\n" }.join, "Mise à jour")
+    end
+    post_user_categories(@data[:users]) if @data[:users]
+    @data[:empty] = []
+    @data[:one] = []
+    @data[:users] = {}
   end
   
   def valid_category?(name)
