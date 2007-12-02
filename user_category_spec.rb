@@ -64,20 +64,6 @@ describe UserCategory do
     @wiki.should_not_receive(:all_pages)
     @job.should_receive(:process_category).with("foo")
     @job.should_not_receive(:notice)
-    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Catégories vides", "* [[:foo]]\n* [[:bar]]\n", "Mise à jour")
-    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Catégories avec une seule page", "* [[:baz]]\n* [[:bob]]\n", "Mise à jour")
-    page = "Utilisateur:Piglobot/Utilisateurs catégorisés dans main"
-    text = [
-      "== [[:bar]] ==",
-      "* [[:baz]]",
-      "",
-      "== [[:Catégorie:cat]] ==",
-      "* [[:foo]]",
-      "* [[:Utilisateur:bob/panda]]",
-      "",
-    ].map { |x| x + "\n" }.join
-    
-    @wiki.should_receive(:append).with(page, text, "Mise à jour")
     @job.step
     
     done_data = initial_data.dup
