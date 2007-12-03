@@ -189,7 +189,7 @@ class Piglobot
           else
             sleep
           end
-        rescue Interrupt, MediaWiki::InternalServerError
+        rescue Interrupt, MediaWiki::InternalServerError, Timeout::Error
           raise
         rescue Exception => e
           log_error(e)
@@ -198,7 +198,7 @@ class Piglobot
       else
         sleep
       end
-    rescue MediaWiki::InternalServerError
+    rescue MediaWiki::InternalServerError, Timeout::Error => e
       long_sleep
     end
   end

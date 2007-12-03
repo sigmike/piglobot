@@ -260,6 +260,19 @@ describe Piglobot do
     @bot.step
   end
   
+  it "should long_sleep on Timeout::Error during process" do
+    @bot.should_receive(:safety_check).with().once.and_return(true)
+    @bot.should_receive(:process).with().once.and_raise(Timeout::Error.new("test"))
+    @bot.should_receive(:long_sleep).with().once
+    @bot.step
+  end
+  
+  it "should long_sleep on Timeout::Error during safety_check" do
+    @bot.should_receive(:safety_check).with().once.and_raise(Timeout::Error.new("test"))
+    @bot.should_receive(:long_sleep).with().once
+    @bot.step
+  end
+  
   class AnyError < Exception; end
   it "should log exceptions during process" do
     @bot.should_receive(:safety_check).with().once.and_return(true)
