@@ -120,7 +120,7 @@ class UserCategory < Piglobot::Job
   end
   
   def write_data
-    post_user_categories(@data[:users]) if @data[:users]
+    post_user_categories(@data[:users]) if @data[:users] and !data[:users].empty?
     @data[:users] = {}
   end
 end

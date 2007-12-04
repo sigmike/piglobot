@@ -213,4 +213,12 @@ describe UserCategory do
     @job.write_data
     @job.data.should == {:categories => ["foo"], :empty => ["foo", "bar"], :one => ["baz", "bob"], :users => {}}
   end
+  
+  it "should write nothing when data is empty" do
+    initial_data = { :categories => ["foo"], :empty => ["foo", "bar"], :one => ["baz", "bob"], :users => {} }
+    @job.data = initial_data.dup
+    @wiki.should_not_receive(:append)
+    @job.write_data
+    @job.data.should == {:categories => ["foo"], :empty => ["foo", "bar"], :one => ["baz", "bob"], :users => {}}
+  end
 end
