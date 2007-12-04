@@ -42,6 +42,7 @@ class UserCategory < Piglobot::Job
     if @data[:done]
       @done = true
       log("Toutes les catégories ont été traitées")
+      write_data
       return
     end
     
@@ -104,6 +105,9 @@ class UserCategory < Piglobot::Job
     list_page = "Utilisateur:Piglobot/Utilisateurs catégorisés dans main"
     text = ""
     categories.sort_by { |name, pages| name.downcase }.each do |name, pages|
+      if pages.size > 10
+        pages = pages[0..9] + ["#{name}|..."]
+      end
       text << "== [[:#{name}]] ==\n" + pages.map { |page| "* [[:#{page}]]\n" }.join + "\n"
     end
     @wiki.append(list_page, text, "Mise à jour")
@@ -113,5 +117,10 @@ class UserCategory < Piglobot::Job
   def add_user_category(name, pages)
     @data[:users] ||= {}
     @data[:users][name] = pages
+  end
+  
+  def write_data
+    post_user_categories(@data[:users]) if @data[:users]
+    @data[:users] = {}
   end
 end

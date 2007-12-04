@@ -73,11 +73,12 @@ describe UserCategory do
     @job.done?.should == true
   end
   
-  it "should do nothing on step when done" do
+  it "should write data on step when done" do
     @job.data = { :done => true }
     @wiki.should_not_receive(:all_pages)
     @job.should_not_receive(:process_category)
     @job.should_receive(:log).with("Toutes les catégories ont été traitées")
+    @job.should_receive(:write_data).once
     @job.step
     @job.done?.should == true
   end
@@ -182,5 +183,34 @@ describe UserCategory do
     @wiki.should_receive(:category).with("foo").and_return(["foo"])
     @job.should_receive(:log).twice
     @job.process_valid_category("Catégorie:foo")
+  end
+  
+  it "should write data" do
+    initial_data = { :categories => ["foo"], :empty => ["foo", "bar"], :one => ["baz", "bob"], :users => { "Catégorie:cat" => ["foo", "Utilisateur:bob/panda"], "bar" => (1..13).map { |x| x.to_s } } }
+    @job.data = initial_data.dup
+    page = "Utilisateur:Piglobot/Utilisateurs catégorisés dans main"
+    text = [
+      "== [[:bar]] ==",
+      "* [[:1]]",
+      "* [[:2]]",
+      "* [[:3]]",
+      "* [[:4]]",
+      "* [[:5]]",
+      "* [[:6]]",
+      "* [[:7]]",
+      "* [[:8]]",
+      "* [[:9]]",
+      "* [[:10]]",
+      "* [[:bar|...]]",
+      "",
+      "== [[:Catégorie:cat]] ==",
+      "* [[:foo]]",
+      "* [[:Utilisateur:bob/panda]]",
+      "",
+    ].map { |x| x + "\n" }.join
+    
+    @wiki.should_receive(:append).with(page, text, "Mise à jour")
+    @job.write_data
+    @job.data.should == {:categories => ["foo"], :empty => ["foo", "bar"], :one => ["baz", "bob"], :users => {}}
   end
 end
