@@ -360,6 +360,31 @@ cols='80' >(.+?)</textarea>}m).first.first + text,
       url = page_url(name, "action" => "submit")
       @browser.post_content(url, data)
     end
+    
+    def list_users(group, offset = nil)
+      items = []
+      next_id = nil
+      options = { "limit" => "50", "group" => group }
+      options["offset"] = CGI.unescape(offset) if offset
+      url = page_url("Special:Listusers", options)
+      content = @browser.get_content(url)
+      res = content.scan(%r{<li><a href="/wiki/Utilisateur:.+?" title="Utilisateur:.+?">(.+?)</a>})
+      items = res.map { |match| match.first }
+      
+      next_id = content.scan(%r{offset=([^&]+)&amp;group=#{group}" title="Special:Listusers">50 suivants</a>}).first
+      next_id = next_id.first if next_id
+      
+      [items, next_id]
+    end
+    
+    def list_all_users(group)
+      items, offset = list_users(group)
+      while offset do
+        new_items, offset = list_users(group, offset)
+        items += new_items
+      end
+      items
+    end
   end
 end
 

@@ -350,6 +350,51 @@ describe MediaWiki, " with fake MiniBrowser" do
     @wiki.fast_append("page", "text", "comment")
   end
   
+  it "should list users on page 1" do
+    result = File.read("samples/admin_list_1.html")
+    url = "/w/index.php?title=Special:Listusers&group=sysop&limit=50"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items, next_id = @wiki.list_users("sysop")
+    items[0].should == "ADM"
+    items[1].should == "Alchemica"
+    items.should include("Cary Bass")
+    items.should include("Céréales Killer")
+    items.should include("David.Monniaux")
+    items.last.should == "Gdgourou"
+    items.size.should == 50
+    next_id.should == "Gdgourou"
+  end
+
+  it "should list users on page 2" do
+    result = File.read("samples/admin_list_2.html")
+    url = "/w/index.php?title=Special:Listusers&offset=an+offset&group=sysop&limit=50"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items, next_id = @wiki.list_users("sysop", "an+offset")
+    items[0].should == "Gemini1980"
+    items.should include("GôTô")
+    items.should include("K!roman")
+    items.last.should == "Nicolas Ray"
+    items.size.should == 50
+    next_id.should == "Nicolas+Ray"
+  end
+
+  it "should list users on last page" do
+    result = File.read("samples/admin_list_last.html")
+    url = "/w/index.php?title=Special:Listusers&offset=last+offset&group=sysop&limit=50"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items, next_id = @wiki.list_users("sysop", "last+offset")
+    items[0].should == "Turb"
+    items.last.should == "~Pyb"
+    items.size.should == 15
+    next_id.should == nil
+  end
+  
+  it "should get all users" do
+    @wiki.should_receive(:list_users).with("group").and_return([["foo", "bar"], "next"])
+    @wiki.should_receive(:list_users).with("group", "next").and_return([["baz"], "last"])
+    @wiki.should_receive(:list_users).with("group", "last").and_return([["bob", "mock"], nil])
+    @wiki.list_all_users("group").should == ["foo", "bar", "baz", "bob", "mock"]
+  end
 end
 
 =begin

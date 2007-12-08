@@ -65,6 +65,11 @@ class Piglobot::Wiki
     @wiki.full_all_pages(namespace)
   end
   
+  def internal_users(group)
+    Piglobot::Tools.log("User list in group #{group}")
+    @wiki.list_all_users(group)
+  end
+  
   def retry(method, *args)
     begin
       send(method, *args)
@@ -75,7 +80,7 @@ class Piglobot::Wiki
     end
   end
   
-  %w( get post append links category history all_pages ).each do |method|
+  %w( get post append links category history all_pages users ).each do |method|
     define_method(method.intern) do |*args|
       self.retry("internal_#{method}".intern, *args)
     end

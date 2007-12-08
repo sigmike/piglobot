@@ -126,7 +126,13 @@ describe Piglobot::Wiki do
     @wiki.internal_history("foo", 5, "123456")
   end
   
-  %w( get post append links category history all_pages ).each do |method|
+  it "should get _user list" do
+    Piglobot::Tools.should_receive(:log).with("User list in group foo")
+    @mediawiki.should_receive(:list_all_users).with("foo").once.and_return("result")
+    @wiki.internal_users("foo").should == "result"
+  end
+  
+  %w( get post append links category history all_pages users ).each do |method|
     it "should call retry with internal on #{method}" do
       @wiki.should_receive(:retry).with("internal_#{method}".intern, "foo", :bar).and_return("baz")
       @wiki.send(method, "foo", :bar).should == "baz"
