@@ -75,7 +75,7 @@ describe InactiveAdmins do
     Piglobot::Tools.should_receive(:write_date).with(now).and_return("date0")
     Piglobot::Tools.should_receive(:write_date).with(t2).and_return("date2")
     Piglobot::Tools.should_receive(:write_date).with(t1).and_return("date1")
-    @wiki.should_receive(:post).with("Utilisateur:Piglobot/Administrateurs inactifs",
+    @wiki.should_receive(:post).with("Wikipédia:Liste des administrateurs inactifs",
       "Liste des administrateurs inactifs depuis plus de 3 mois. Mise à jour le date0 par {{u|Piglobot}}.\n" +
       "* {{u|baz}}, dernière contribution le date2\n" +
       "* {{u|bar}}, dernière contribution le date1\n", "Mise à jour")
