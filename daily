@@ -5,4 +5,5 @@ cd $(dirname $0)
 ./piglobot.rb AàC
 ./piglobot.rb suivi_portail_informatique
 ./piglobot.rb change
+./piglobot.rb inactive_admins
 
