@@ -395,6 +395,43 @@ describe MediaWiki, " with fake MiniBrowser" do
     @wiki.should_receive(:list_users).with("group", "last").and_return([["bob", "mock"], nil])
     @wiki.list_all_users("group").should == ["foo", "bar", "baz", "bob", "mock"]
   end
+  
+  it "should get contributions" do
+    result = File.read("samples/contributions.html")
+    url = "/w/index.php?title=Special:Contributions&limit=14&target=username"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items = @wiki.contributions("username", 14)
+    items.should == [
+      { :date => "9 décembre 2007 à 06:36", :oldid => "23797511", :page => "Utilisateur:Piglobot/Journal" },
+      { :date => "9 décembre 2007 à 06:36", :oldid => "23797510", :page => "Modèle:Change/Màj" },
+      { :date => "9 décembre 2007 à 06:36", :oldid => "23797509", :page => "Modèle:Change/GBP" },
+    ]
+  end
+  
+  it "should parse minor edit in contributions_2" do
+    result = File.read("samples/contributions_2.html")
+    url = "/w/index.php?title=Special:Contributions&limit=1&target=bob"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items = @wiki.contributions("bob", 1)
+    items.should include(:date => "3 décembre 2007 à 15:17", :oldid => "23630249", :page => "PuTTY")
+  end
+  
+  it "should parse name with amp in contributions_3" do
+    result = File.read("samples/contributions_3.html")
+    url = "/w/index.php?title=Special:Contributions&limit=1&target=bob"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items = @wiki.contributions("bob", 1)
+    items.should include(:date => "6 décembre 2007 à 04:03", :oldid => "23705437", :page => "A&W")
+  end
+  
+  it "should parse name with quote in contributions_4" do
+    result = File.read("samples/contributions_4.html")
+    url = "/w/index.php?title=Special:Contributions&limit=1&target=bob"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items = @wiki.contributions("bob", 1)
+    items.find { |item| item[:oldid] == "22913326" }.should ==({:date => "13 novembre 2007 à 15:37", :oldid => "22913326", :page => "\"I Quit\" match"})
+  end
+  
 end
 
 =begin

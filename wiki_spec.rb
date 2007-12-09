@@ -132,7 +132,21 @@ describe Piglobot::Wiki do
     @wiki.internal_users("foo").should == "result"
   end
   
-  %w( get post append links category history all_pages users ).each do |method|
+  it "should get contributions" do
+    Piglobot::Tools.should_receive(:parse_time).with("time").and_return("parsed time")
+    Piglobot::Tools.should_receive(:parse_time).with("time 2").and_return("parsed time 2")
+    @mediawiki.should_receive(:contributions).with("username", 12).and_return([
+      { :oldid => "oldid", :page => "page", :date => "time" },
+      { :oldid => "oldid2", :page => "page2", :date => "time 2" },
+    ])
+    Piglobot::Tools.should_receive(:log).with("Contributions of username (12)")
+    @wiki.internal_contributions("username", 12).should == [
+      { :oldid => "oldid", :page => "page", :date => "parsed time" },
+      { :oldid => "oldid2", :page => "page2", :date => "parsed time 2" },
+    ]
+  end
+  
+  %w( get post append links category history all_pages users contributions ).each do |method|
     it "should call retry with internal on #{method}" do
       @wiki.should_receive(:retry).with("internal_#{method}".intern, "foo", :bar).and_return("baz")
       @wiki.send(method, "foo", :bar).should == "baz"

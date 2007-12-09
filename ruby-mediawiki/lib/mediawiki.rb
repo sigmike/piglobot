@@ -385,6 +385,22 @@ cols='80' >(.+?)</textarea>}m).first.first + text,
       end
       items
     end
+    
+    def unquote(text)
+      text.gsub("&amp;", "&").gsub("&quot;", "\"")
+    end
+  
+    def contributions(user, count)
+      items = []
+      options = { "limit" => count.to_s, "target" => user }
+      url = page_url("Special:Contributions", options)
+      content = @browser.get_content(url)
+      res = content.scan(%r{<li>(.+?) \(<a href="[^"]+" title="([^"]+)">hist</a>\) \(<a href=".+?&amp;oldid=([^"]+?)"})
+      items = res.map { |match| { :date => match[0], :page => unquote(match[1]), :oldid => match[2] } }
+      
+      items
+    end
+    
   end
 end
 

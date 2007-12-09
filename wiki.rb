@@ -60,6 +60,15 @@ class Piglobot::Wiki
     history
   end
   
+  def internal_contributions(name, count)
+    Piglobot::Tools.log("Contributions of #{name} (#{count})")
+    contribs = @wiki.contributions(name, count)
+    contribs.each do |result|
+      result[:date] = Piglobot::Tools.parse_time(result[:date])
+    end
+    contribs
+  end
+  
   def internal_all_pages(namespace)
     Piglobot::Tools.log("AllPages in namespace #{namespace}")
     @wiki.full_all_pages(namespace)
@@ -80,7 +89,7 @@ class Piglobot::Wiki
     end
   end
   
-  %w( get post append links category history all_pages users ).each do |method|
+  %w( get post append links category history all_pages users contributions ).each do |method|
     define_method(method.intern) do |*args|
       self.retry("internal_#{method}".intern, *args)
     end
