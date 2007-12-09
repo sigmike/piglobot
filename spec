@@ -22,6 +22,7 @@ require 'rubygems'
 require "ruby-debug"
 
 ARGV.replace %w(
+  inactive_admins_spec.rb
   piglobot_spec.rb
   editor_spec.rb
   tools_spec.rb

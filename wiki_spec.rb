@@ -126,7 +126,7 @@ describe Piglobot::Wiki do
     @wiki.internal_history("foo", 5, "123456")
   end
   
-  it "should get _user list" do
+  it "should get user list" do
     Piglobot::Tools.should_receive(:log).with("User list in group foo")
     @mediawiki.should_receive(:list_all_users).with("foo").once.and_return("result")
     @wiki.internal_users("foo").should == "result"
