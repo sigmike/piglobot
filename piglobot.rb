@@ -227,7 +227,6 @@ if __FILE__ == $0
   job = ARGV.shift
   if job.nil?
     puts "usage: #$0 <job>"
-    puts "Jobs: #{Piglobot.jobs.join(', ')}"
     exit 1
   end
   Piglobot.run(job)
