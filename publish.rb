@@ -18,13 +18,17 @@
     along with Piglobot.  If not, see <http://www.gnu.org/licenses/>.
 =end
 
+Dir.chdir File.dirname(__FILE__)
 require 'piglobot'
 
-system "./spec" or raise "Spec failed"
+repos = ARGV[0]
+rev = ARGV[1]
+raise "usage: #$0 <repos> <rev>" unless repos and rev
 
-comment = ARGV[0] || ""
-
-system("svn", "ci", "-m", comment) || exit(1)
+comment = %x(svnlook log #{repos} -r#{rev})
+comment = comment.split("\n").select { |line| !line.empty? }.join
+comment = comment.gsub("\n", " - ")
 
 bot = Piglobot.new
-bot.publish_code comment
+bot.notice("{{user:Piglobot/Rev|#{rev}|#{comment}}}")
+
