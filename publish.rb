@@ -23,6 +23,7 @@ require 'piglobot'
 
 repos = ARGV[0]
 rev = ARGV[1]
+
 raise "usage: #$0 <repos> <rev>" unless repos and rev
 
 comment = %x(svnlook log #{repos} -r#{rev})
