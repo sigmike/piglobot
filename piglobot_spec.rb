@@ -232,13 +232,14 @@ describe Piglobot do
     @bot.step
   end
   
-  it "should notice and raise Interrupt if job has done" do
+  it "should notice and log when job is done" do
     @bot.should_receive(:safety_check).with().once.and_return(true)
-    @job.should_receive(:done?).with().and_return(true)
     @bot.should_receive(:process).with().once.and_return(@job)
+    @job.should_receive(:done?).with().and_return(true)
     @job.should_receive(:name).with().and_return("foo")
-    @bot.should_receive(:notice).with("foo : terminé")
-    lambda { @bot.step }.should raise_error(Interrupt, "Terminé")
+    @bot.should_receive(:notice).with("foo : Terminé")
+    Piglobot::Tools.should_receive(:log).with("foo : Terminé").once
+    catch(:done) { @bot.step; true }.should == nil
   end
   
   it "should not process if safety_check failed" do
@@ -335,6 +336,18 @@ describe Piglobot, " running" do
       raise Interrupt.new("interrupt") if step == 3
     }
     lambda { Piglobot.run("foo") }.should raise_error(Interrupt)
+  end
+
+  it "should step continously until :done thrown on run" do
+    bot = mock("bot")
+    Piglobot.should_receive(:new).with().and_return(bot)
+    bot.should_receive(:job=).with("foo")
+    step = 0
+    bot.should_receive(:step).with().exactly(3).and_return {
+      step += 1
+      throw(:done) if step == 3
+    }
+    Piglobot.run("foo")
   end
 end
 

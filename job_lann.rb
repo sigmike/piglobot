@@ -38,7 +38,7 @@ class LANN < Piglobot::Job
       remove_bad_names
       remove_cited
       remove_already_done
-      notice("#{@pages.size} pages à traiter")
+      #notice("#{@pages.size} pages à traiter")
     else
       @pages = @data[:pages]
       page = @pages.shift
@@ -64,13 +64,13 @@ class LANN < Piglobot::Job
   def get_pages
     @pages = @wiki.category(@category)
     log "#{@pages.size} articles dans la catégorie"
-    notice("#{@pages.size} pages dans la [[:Catégorie:#@category]]")
+    #notice("#{@pages.size} pages dans la [[:Catégorie:#@category]]")
   end
   
   def remove_bad_names
     @pages.delete_if { |name| name !~ /\A#{Regexp.escape @title}./ }
     log "#{pages.size} articles avec un nom valide"
-    notice("#{@pages.size} pages avec un nom valide")
+    #notice("#{@pages.size} pages avec un nom valide")
   end
   
   def remove_cited
@@ -90,14 +90,14 @@ class LANN < Piglobot::Job
       raise Piglobot::ErrorPrevention, "Aucune page de la catégorie n'est cité dans [[WP:LANN]]"
     end
     log "#{pages.size} articles non cités"
-    notice("#{@pages.size} pages non mentionnées dans [[WP:LANN]]")
+    #notice("#{@pages.size} pages non mentionnées dans [[WP:LANN]]")
   end
   
   def remove_already_done
     links = @wiki.links(@done_model)
     @pages -= links
     log "#{pages.size} articles non traités"
-    notice("#{@pages.size} pages ne contenant pas le [[#{@done_model}]]")
+    #notice("#{@pages.size} pages ne contenant pas le [[#{@done_model}]]")
   end
   
   def active?(page)
@@ -197,7 +197,7 @@ class AaC < LANN
     old_pages = @pages
     @pages -= links
     log "#{pages.size} articles non cités"
-    notice("#{@pages.size} pages non mentionnées dans les pages de maintenance")
+    #notice("#{@pages.size} pages non mentionnées dans les pages de maintenance")
   end
   
   def empty_page(page)

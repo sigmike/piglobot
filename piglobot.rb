@@ -177,8 +177,10 @@ class Piglobot
           job = process
           if job
             if job.done?
-              notice("#{job.name} : terminé")
-              raise Interrupt, "Terminé"
+              msg = "#{job.name} : Terminé"
+              notice(msg)
+              Tools.log(msg)
+              throw :done
             else
               if job.changed?
                 sleep
@@ -213,8 +215,10 @@ class Piglobot
   def self.run(job)
     bot = new
     bot.job = job
-    loop do
-      bot.step
+    catch :done do
+      loop do
+        bot.step
+      end
     end
   end
 end

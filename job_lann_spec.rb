@@ -78,7 +78,7 @@ describe "Page cleaner", :shared => true do
       @job.should_receive(:remove_already_done).with() do
         @job.pages = ["foo", "bar", "baz"]
       end
-      @job.should_receive(:notice).with("3 pages à traiter")
+      @job.should_not_receive(:notice).with("3 pages à traiter")
       @job.process
       @job.data[:pages].should == ["foo", "bar", "baz"]
       @job.data[:done].should == []
@@ -116,7 +116,7 @@ describe "Page cleaner", :shared => true do
     items = ["Foo", "Bar", "Baz:Baz"]
     @wiki.should_receive(:category).with(@category).and_return(items)
     @job.should_receive(:log).with("3 articles dans la catégorie")
-    @job.should_receive(:notice).with("3 pages dans la [[:Catégorie:#@category]]")
+    @job.should_not_receive(:notice).with("3 pages dans la [[:Catégorie:#@category]]")
     @job.get_pages
     @job.pages.should == items
   end
@@ -132,7 +132,7 @@ describe "Page cleaner", :shared => true do
       "Modèle:Wikipédia:Liste des articles non neutres/Foo",
     ]
     @job.should_receive(:log).with("3 articles avec un nom valide")
-    @job.should_receive(:notice).with("3 pages avec un nom valide")
+    @job.should_not_receive(:notice).with("3 pages avec un nom valide")
     @job.remove_bad_names
     @job.pages.should == [
       "#{@title}Foo",
@@ -151,7 +151,7 @@ describe "Page cleaner", :shared => true do
     @job.pages = ["Foo", "Bar", "Baz"]
     @wiki.should_receive(:links).with(@done_model).and_return(["Foo", "bar", "Baz"])
     @job.should_receive(:log).with("1 articles non traités")
-    @job.should_receive(:notice).with("1 pages ne contenant pas le [[#{@done_model}]]")
+    @job.should_not_receive(:notice).with("1 pages ne contenant pas le [[#{@done_model}]]")
     @job.remove_already_done
     @job.pages.should == ["Bar"]
   end
@@ -285,7 +285,7 @@ describe LANN do
     @wiki.should_receive(:get).with("Wikipédia:Liste des articles non neutres").and_return("content")
     parser_should_return("content", links)
     @job.should_receive(:log).with("1 articles non cités")
-    @job.should_receive(:notice).with("1 pages non mentionnées dans [[WP:LANN]]")
+    @job.should_not_receive(:notice).with("1 pages non mentionnées dans [[WP:LANN]]")
     @job.remove_cited
     @job.pages.should == ["Wikipédia:Liste des articles non neutres/Bar"]
   end
@@ -341,7 +341,7 @@ describe AaC do
     parser.should_receive(:internal_links).with("content2").and_return(links2)
     
     @job.should_receive(:log).with("2 articles non cités")
-    @job.should_receive(:notice).with("2 pages non mentionnées dans les pages de maintenance")
+    @job.should_not_receive(:notice).with("2 pages non mentionnées dans les pages de maintenance")
     @job.remove_cited
     @job.pages.should == ["page 2", "page 4"]
   end
