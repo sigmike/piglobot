@@ -25,7 +25,7 @@ repos = ARGV[0]
 rev = ARGV[1]
 raise "usage: #$0 <repos> <rev>" unless repos and rev
 
-comment = %x(svnlook log #{repos} -r#{rev} | iconv -t UTF8 -f ISO_8859-15)
+comment = %x(svnlook log #{repos} -r#{rev})
 comment = comment.split("\n").select { |line| !line.empty? }.join
 comment = comment.gsub("\n", " - ")
 
