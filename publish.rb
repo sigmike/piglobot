@@ -27,8 +27,7 @@ rev = ARGV[1]
 raise "usage: #$0 <repos> <rev>" unless repos and rev
 
 comment = %x(svnlook log #{repos} -r#{rev})
-comment = comment.split("\n").select { |line| !line.empty? }.join
-comment = comment.gsub("\n", " - ")
+comment = comment.split("\n").select { |line| !line.empty? }.join(" - ")
 
 bot = Piglobot.new
 bot.notice("{{user:Piglobot/Rev|#{rev}|#{comment}}}")
