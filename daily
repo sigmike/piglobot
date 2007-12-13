@@ -1,9 +1,15 @@
-#!/bin/sh
+#!/usr/bin/env ruby
 
-cd $(dirname $0)
-./piglobot.rb LANN
-./piglobot.rb AàC
-./piglobot.rb suivi_portail_informatique
-./piglobot.rb change
-./piglobot.rb inactive_admins
+Dir.chdir File.dirname(__FILE__)
 
+def run_job(job)
+  system "./piglobot.rb", job
+end
+
+%w( LANN AàC suivi_portail_informatique change ).each do |job|
+  run_job job
+end
+
+if Time.now.wday == 0
+  run_job "inactive_admins"
+end
