@@ -28,6 +28,7 @@ describe InactiveAdmins do
   
   it "should process" do
     @job.should_receive(:get_admin_list)
+    @job.should_receive(:remove_excluded)
     @job.should_receive(:get_last_contribution)
     @job.should_receive(:remove_active)
     @job.should_receive(:publish_list)
@@ -38,6 +39,13 @@ describe InactiveAdmins do
     @wiki.should_receive(:users).with("sysop").and_return(["foo", "bar"])
     @job.get_admin_list
     @job.data.should == ["foo", "bar"]
+  end
+  
+  it "should remove excluded admins" do
+    @job.data = initial_admins = ["foo", "bob", "Bob", "Mock", "baz"]
+    @wiki.should_receive(:get).with("Wikipédia:Liste des administrateurs inactifs/Exclusions").and_return("foo\n* {{u|Bob}}\n*{{u|mock}}\n\nbar\n{{u|baz}}")
+    @job.remove_excluded
+    @job.data.should == initial_admins - ["Bob", "baz"]
   end
   
   it "should get_last_contribution" do
@@ -76,7 +84,7 @@ describe InactiveAdmins do
     Piglobot::Tools.should_receive(:write_date).with(t2).and_return("date2")
     Piglobot::Tools.should_receive(:write_date).with(t1).and_return("date1")
     @wiki.should_receive(:post).with("Wikipédia:Liste des administrateurs inactifs",
-      "Liste des administrateurs inactifs depuis plus de 3 mois. Mise à jour le date0 par {{u|Piglobot}}.\n" +
+      "Liste des administrateurs inactifs (hors [[Wikipédia:Liste des administrateurs inactifs/Exclusions exclusions]]) depuis plus de 3 mois. Mise à jour le date0 par {{u|Piglobot}}.\n" +
       "* {{u|baz}}, dernière contribution le date2\n" +
       "* {{u|bar}}, dernière contribution le date1\n", "Mise à jour")
     @job.publish_list

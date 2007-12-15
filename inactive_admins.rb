@@ -21,6 +21,7 @@ require 'job'
 class InactiveAdmins < Piglobot::Job
   def process
     get_admin_list
+    remove_excluded
     get_last_contribution
     remove_active
     publish_list
@@ -28,6 +29,12 @@ class InactiveAdmins < Piglobot::Job
   
   def get_admin_list
     @data = @wiki.users("sysop")
+  end
+  
+  def remove_excluded
+    excluded = @wiki.get("Wikipédia:Liste des administrateurs inactifs/Exclusions")
+    excluded = excluded.scan(%r"\{\{u\|(.+?)\}\}").map { |match| match.first }
+    @data.delete_if { |admin| excluded.include? admin }
   end
   
   def get_last_contribution
@@ -50,7 +57,7 @@ class InactiveAdmins < Piglobot::Job
   def publish_list
     now = Piglobot::Tools.write_date(Time.now)
     
-    text = "Liste des administrateurs inactifs depuis plus de 3 mois. Mise à jour le #{now} par {{u|Piglobot}}.\n"
+    text = "Liste des administrateurs inactifs (hors [[Wikipédia:Liste des administrateurs inactifs/Exclusions exclusions]]) depuis plus de 3 mois. Mise à jour le #{now} par {{u|Piglobot}}.\n"
     text << @data.sort_by { |user, date| date }.map { |user, date|
       date = Piglobot::Tools.write_date(date)
       "* {{u|#{user}}}, dernière contribution le #{date}\n"
