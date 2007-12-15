@@ -57,7 +57,7 @@ class InactiveAdmins < Piglobot::Job
   def publish_list
     now = Piglobot::Tools.write_date(Time.now)
     
-    text = "Liste des administrateurs inactifs (hors [[Wikipédia:Liste des administrateurs inactifs/Exclusions exclusions]]) depuis plus de 3 mois. Mise à jour le #{now} par {{u|Piglobot}}.\n"
+    text = "Liste des administrateurs inactifs (hors [[Wikipédia:Liste des administrateurs inactifs/Exclusions|exclusions]]) depuis plus de 3 mois. Mise à jour le #{now} par {{u|Piglobot}}.\n"
     text << @data.sort_by { |user, date| date }.map { |user, date|
       date = Piglobot::Tools.write_date(date)
       "* {{u|#{user}}}, dernière contribution le #{date}\n"
