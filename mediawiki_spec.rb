@@ -365,6 +365,21 @@ describe MediaWiki, " with fake MiniBrowser" do
     next_id.should == "Gdgourou"
   end
 
+  it "should list users on page 1b" do
+    result = File.read("samples/admin_list_1b.html")
+    url = "/w/index.php?title=Special:Listusers&group=sysop&limit=50"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items, next_id = @wiki.list_users("sysop")
+    items[0].should == "ADM"
+    items[1].should == "Alchemica"
+    items.should include("Cary Bass")
+    items.should include("Céréales Killer")
+    items.should include("David.Monniaux")
+    items.last.should == "GillesC"
+    items.size.should == 50
+    next_id.should == "GillesC"
+  end
+
   it "should list users on page 2" do
     result = File.read("samples/admin_list_2.html")
     url = "/w/index.php?title=Special:Listusers&offset=an+offset&group=sysop&limit=50"
