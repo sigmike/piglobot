@@ -242,10 +242,10 @@ describe Piglobot do
     catch(:done) { @bot.step; true }.should == nil
   end
   
-  it "should not process if safety_check failed" do
+  it "should abort if safety_check failed" do
     @bot.should_receive(:safety_check).with().once.and_return(false)
-    @bot.should_receive(:sleep).with().once
-    @bot.step
+    @bot.should_not_receive(:sleep)
+    catch(:done) { @bot.step; true }.should == nil
   end
   
   it "should long_sleep on Internal Server Error during safety_check" do

@@ -198,7 +198,7 @@ class Piglobot
           sleep
         end
       else
-        sleep
+        throw :done
       end
     rescue MediaWiki::InternalServerError, Timeout::Error => e
       long_sleep
