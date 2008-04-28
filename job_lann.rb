@@ -26,6 +26,7 @@ class LANN < Piglobot::Job
     @title = "Wikipédia:Liste des articles non neutres/"
     @done_model = "Modèle:Archive LANN"
     @empty_comment = "[[Utilisateur:Piglobot/Travail#Blanchiment LANN|Blanchiment automatique de courtoisie]]"
+    @test_page = "Utilisateur:Piglobot/Test LANN"
   end
 
   def done?
@@ -95,7 +96,12 @@ class LANN < Piglobot::Job
   
   def remove_already_done
     links = @wiki.links(@done_model)
-    @pages -= links
+    if links.include? @test_page
+      @pages -= links
+    else
+      notice("Erreur : Page de test [[:#{@test_page}]] non présente dans les liens vers [[:#{@done_model}]]. Considère toutes les pages comme traitées.")
+      @pages = []
+    end
     log "#{pages.size} articles non traités"
     #notice("#{@pages.size} pages ne contenant pas le [[#{@done_model}]]")
   end
@@ -183,6 +189,7 @@ class AaC < LANN
     @title = "Wikipédia:Appel à commentaires/"
     @done_model = "Modèle:Blanchiment de courtoisie"
     @empty_comment = "[[Utilisateur:Piglobot/Travail#Blanchiment AàC|Blanchiment automatique de courtoisie]]"
+    @test_page = "Utilisateur:Piglobot/Test AàC"
   end
 
   def remove_cited

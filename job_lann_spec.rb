@@ -149,11 +149,20 @@ describe "Page cleaner", :shared => true do
   
   it "should remove already done" do
     @job.pages = ["Foo", "Bar", "Baz"]
-    @wiki.should_receive(:links).with(@done_model).and_return(["Foo", "bar", "Baz"])
+    @wiki.should_receive(:links).with(@done_model).and_return(["Foo", "bar", "Baz", @test_page])
     @job.should_receive(:log).with("1 articles non traités")
     @job.should_not_receive(:notice).with("1 pages ne contenant pas le [[#{@done_model}]]")
     @job.remove_already_done
     @job.pages.should == ["Bar"]
+  end
+  
+  it "should consider all pages already done when test page not found" do
+    @job.pages = ["Foo", "Bar", "Baz"]
+    @wiki.should_receive(:links).with(@done_model).and_return(["Foo", "bar", "Baz"])
+    @job.should_receive(:notice).with("Erreur : Page de test [[:#{@test_page}]] non présente dans les liens vers [[:#{@done_model}]]. Considère toutes les pages comme traitées.")
+    @job.should_receive(:log).with("0 articles non traités")
+    @job.remove_already_done
+    @job.pages.should == []
   end
   
   def time_travel(*now)
@@ -276,6 +285,7 @@ describe LANN do
     @title = "Wikipédia:Liste des articles non neutres/"
     @done_model = "Modèle:Archive LANN"
     @empty_comment = "[[Utilisateur:Piglobot/Travail#Blanchiment LANN|Blanchiment automatique de courtoisie]]"
+    @test_page = "Utilisateur:Piglobot/Test LANN"
   end
 
   it "should remove cited" do
@@ -324,6 +334,7 @@ describe AaC do
     @title = "Wikipédia:Appel à commentaires/"
     @done_model = "Modèle:Blanchiment de courtoisie"
     @empty_comment = "[[Utilisateur:Piglobot/Travail#Blanchiment AàC|Blanchiment automatique de courtoisie]]"
+    @test_page = "Utilisateur:Piglobot/Test AàC"
   end
 
   it "should remove cited" do
