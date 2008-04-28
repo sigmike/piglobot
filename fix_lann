@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+
+require 'piglobot'
+
+module Piglobot::Tools
+  module_function
+  def log(*args)
+  end
+end
+
+wiki = Piglobot::Wiki.new
+links = wiki.links("Modèle:Archive LANN").reverse
+
+links.each_with_index do |link, i|
+  changes = wiki.history(link, 3)
+  a1, a2, a3 = changes.map { |c| c[:author] }
+  if a1 == "Piglobot" and a2 == "Piglobot" and a3 != "Piglobot"
+    puts "will fix #{link}"
+    text = wiki.instance_eval { @wiki }.old_text(link, changes[1][:oldid])
+    #puts text
+    wiki.post(link, text, "Correction du double blanchiment")
+  else
+    puts "wont fix #{link}"
+  end
+end
