@@ -264,7 +264,7 @@ module MediaWiki
         REXML::Text.unnormalize(title)
       }
       next_id = nil
-      if content =~ %r{<a href="[^"]+&amp;limit=\d+&amp;from=(\d+)&amp;back=\d+" title="Special:Whatlinkshere/[^"]+">\d+ suivants</a>}
+      if content =~ %r{<a href="[^"]+&amp;from=(\d+)&amp;back=\d+[^"?]*" title="Special:Whatlinkshere/[^"]+">\d+ suivants</a>}
         next_id = $1
       end
       [items, next_id]

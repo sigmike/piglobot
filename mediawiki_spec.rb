@@ -187,6 +187,19 @@ describe MediaWiki, " with fake MiniBrowser" do
     next_id.should == "635"
   end
 
+  it "should retreive links on new version" do
+    result = File.read("samples/test_links_lann.html")
+    url = @uri.path + "index.php?title=#{CGI.escape 'Special:Whatlinkshere/Foo:Bàr'}"
+    url << "&limit=500&from=0"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items, next_id = @wiki.links("Foo:Bàr")
+    items.size.should == 50
+    items.first.should == "Discussion Wikipédia:Liste des articles non neutres"
+    items.should include("Wikipédia:Liste des articles non neutres/Vallée d'Aoste : La francophonie")
+    items.last.should == "Wikipédia:Liste des articles non neutres/Minimal Compact"
+    next_id.should == "493504"
+  end
+
   it "should retreive links with offset" do
     result = File.read("sample_links.html")
     url = @uri.path + "index.php?title=#{CGI.escape 'Special:Whatlinkshere/Foo:Bàr'}"
