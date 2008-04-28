@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+system "wget",
+  "http://fr.wikipedia.org/wiki/Special:Pages_li%C3%A9es/Mod%C3%A8le:Archive_LANN",
+  "-O", "samples/test_links_lann.html"
+
