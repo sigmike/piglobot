@@ -2,6 +2,8 @@
 
 Dir.chdir File.dirname(__FILE__)
 
+system "./spec -t 30 wiki_spec_live.rb" or raise "Live spec failed"
+
 def run_job(job)
   system "./piglobot.rb", job
 end

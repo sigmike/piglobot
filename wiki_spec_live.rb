@@ -29,8 +29,8 @@ describe Piglobot::Wiki, " live" do
   
   it "should retreive history on Accueil" do
     @wiki.history("Accueil", 2, "20070625202235").should == [
-      { :oldid => "18253715", :author => "IAlex", :date => Time.local(2007, 6, 25, 20, 7, 0) },
-      { :oldid => "18253294", :author => "Tavernier", :date => Time.local(2007, 6, 25, 19, 52, 0) },
+      { :oldid => "18253715", :author => "IAlex", :date => Time.local(2007, 6, 25, 21, 7, 0) },
+      { :oldid => "18253294", :author => "Tavernier", :date => Time.local(2007, 6, 25, 20, 52, 0) },
     ]
   end
   
@@ -46,8 +46,10 @@ describe Piglobot::Wiki, " live" do
     @wiki.get("Utilisateur:Piglobot/Page de test").should == "page de test\n\nbla bla\n"
   end
   
-  it "should post quickly" do
-    @wiki.post("Utilisateur:Piglobot/Bac à sable", "* foo bar\n" * 100, "test")
-    @wiki.get("Utilisateur:Piglobot/Bac à sable").should == "* foo bar\n" * 100
+  it "should post" do
+    @wiki.post("Utilisateur:Piglobot/Bac à sable", "foo bar\n", "test 1")
+    @wiki.get("Utilisateur:Piglobot/Bac à sable").should == "foo bar\n"
+    @wiki.post("Utilisateur:Piglobot/Bac à sable", "", "test 2")
+    @wiki.get("Utilisateur:Piglobot/Bac à sable").should == ""
   end
 end

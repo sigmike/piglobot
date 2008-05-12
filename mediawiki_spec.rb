@@ -460,6 +460,11 @@ describe MediaWiki, " with fake MiniBrowser" do
     items.find { |item| item[:oldid] == "22913326" }.should ==({:date => "13 novembre 2007 à 15:37", :oldid => "22913326", :page => "\"I Quit\" match"})
   end
   
+  it "should retreive empty text" do
+    result = File.read("samples/empty_page.html")
+    @browser.should_receive(:get_content).and_return(result)
+    @wiki.fast_get("foo").should == ""
+  end
 end
 
 =begin

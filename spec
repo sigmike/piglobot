@@ -35,6 +35,7 @@ ARGV.replace %w(
   homonym_prevention_spec.rb
   change_spec.rb
   user_category_spec.rb
+  mediawiki_spec.rb
 ) if ARGV.empty?
 ARGV << "--diff"
 

@@ -329,7 +329,7 @@ module MediaWiki
     def fast_get(name)
       content = raw_get(name)
       result = content.scan(%r{<textarea tabindex='1' accesskey="," name="wpTextbox1" id="wpTextbox1" rows='25'
-cols='80' >(.+?)</textarea>}m).first
+cols='80' >(.*?)</textarea>}m).first
       raise "textbox not found in #{url}" if result.empty?
       result.first
     end
