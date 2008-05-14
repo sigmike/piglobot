@@ -24,7 +24,7 @@ describe Piglobot::Wiki, " live" do
   end
   
   it "should find Ruby in 'Langage de programmation'" do
-    @wiki.category("Langage de programmation").should include("Ruby")
+    @wiki.category("Langage de programmation").sort.should include("Ruby")
   end
   
   it "should retreive history on Accueil" do
@@ -35,11 +35,11 @@ describe Piglobot::Wiki, " live" do
   end
   
   it "should find Ruby in links to Infobox Langage de programmation" do
-    @wiki.links("Modèle:Infobox Langage de programmation").should include("Ruby")
+    @wiki.links("Modèle:Infobox Langage de programmation").sort.should include("Ruby")
   end
   
   it "should find Linux in Modèle:Portail informatique" do
-    @wiki.links("Modèle:Portail informatique").should include("Linux")
+    @wiki.links("Modèle:Portail informatique").sort.should include("Linux")
   end
   
   it "should get test page" do

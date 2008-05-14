@@ -226,6 +226,14 @@ describe MediaWiki, " with fake MiniBrowser" do
     next_id.should == nil
   end
   
+  it "should find Linux and offset in samples/links_portail_informatique.html" do
+    result = File.read("samples/links_portail_informatique.html")
+    @browser.should_receive(:get_content).and_return(result)
+    items, next_id = @wiki.links("Foo:Bàr", "offset", 0)
+    items.sort.should include("Linux")
+    next_id.should == "770443"
+  end
+  
   it "should retreive all links pages" do
     @wiki.should_receive(:links).with("foo", "0").and_return([["bar", "baz"], "123"])
     @wiki.should_receive(:links).with("foo", "123").and_return([["bob", "baz"], "456"])
