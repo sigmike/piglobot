@@ -21,6 +21,10 @@ class Piglobot::Wiki
     @wiki = MediaWiki::Wiki.new("http://fr.wikipedia.org/w", "Piglobot", File.read("password"))
   end
   
+  def mediawiki
+    @wiki
+  end
+  
   def internal_post(article_name, text, comment)
     Piglobot::Tools.log("Post [[#{article_name}]] (#{comment})")
     @wiki.fast_post(article_name, text, comment)

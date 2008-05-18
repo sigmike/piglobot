@@ -152,5 +152,8 @@ describe Piglobot::Wiki do
       @wiki.send(method, "foo", :bar).should == "baz"
     end
   end
+  
+  it "should allow access to mediawiki object" do
+    @wiki.mediawiki.should == @mediawiki
+  end
 end
-

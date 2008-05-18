@@ -425,6 +425,16 @@ describe MediaWiki, " with fake MiniBrowser" do
     next_id.should == nil
   end
   
+  it "should list users with new syntax" do
+    result = File.read("samples/admin_list_new.html")
+    url = "/w/index.php?title=Special:Listusers&group=sysop&limit=50"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items, next_id = @wiki.list_users("sysop")
+    items[0].should == "Aeleftherios"
+    items.last.should == "Gdgourou"
+    next_id.should == "Gdgourou"
+  end
+  
   it "should get all users" do
     @wiki.should_receive(:list_users).with("group").and_return([["foo", "bar"], "next"])
     @wiki.should_receive(:list_users).with("group", "next").and_return([["baz"], "last"])

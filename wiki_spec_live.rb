@@ -52,4 +52,9 @@ describe Piglobot::Wiki, " live" do
     @wiki.post("Utilisateur:Piglobot/Bac à sable", "", "test 2")
     @wiki.get("Utilisateur:Piglobot/Bac à sable").should == ""
   end
+  
+  it "should have at least 2 pages in admin list" do
+    list, next_id = @wiki.mediawiki.list_users("sysop")
+    next_id.should_not be_nil
+  end
 end
