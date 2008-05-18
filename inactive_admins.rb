@@ -62,6 +62,6 @@ class InactiveAdmins < Piglobot::Job
       date = Piglobot::Tools.write_date(date)
       "* {{u|#{user}}}, dernière contribution le #{date}\n"
     }.join
-    @wiki.post("Wikipédia:Liste des administrateurs inactifs", text, "[[Utilisateur:Piglobot/Travail#Liste_des_admins_inactifs Mise à jour]]")
+    @wiki.post("Wikipédia:Liste des administrateurs inactifs", text, "[[Utilisateur:Piglobot/Travail#Liste des admins inactifs|Mise à jour]]")
   end
 end

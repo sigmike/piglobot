@@ -86,7 +86,7 @@ describe InactiveAdmins do
     @wiki.should_receive(:post).with("Wikipédia:Liste des administrateurs inactifs",
       "Liste des administrateurs inactifs (hors [[Wikipédia:Liste des administrateurs inactifs/Exclusions|exclusions]]) depuis plus de 3 mois. Mise à jour le date0 par {{u|Piglobot}}.\n" +
       "* {{u|baz}}, dernière contribution le date2\n" +
-      "* {{u|bar}}, dernière contribution le date1\n", "[[Utilisateur:Piglobot/Travail#Liste_des_admins_inactifs Mise à jour]]")
+      "* {{u|bar}}, dernière contribution le date1\n", "[[Utilisateur:Piglobot/Travail#Liste des admins inactifs|Mise à jour]]")
     @job.publish_list
   end
 end
