@@ -4,3 +4,7 @@ system "wget",
   "http://fr.wikipedia.org/wiki/Special:Pages_li%C3%A9es/Mod%C3%A8le:Archive_LANN",
   "-O", "samples/test_links_lann.html"
 
+system "wget",
+  "http://fr.wikipedia.org/w/index.php?title=Special:Liste_des_utilisateurs&group=sysop&limit=50",
+  "-O", "samples/admin_list_1.html"
+  

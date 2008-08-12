@@ -264,7 +264,8 @@ module MediaWiki
         REXML::Text.unnormalize(title)
       }
       next_id = nil
-      if content =~ %r{<a href="[^"]+&amp;from=(\d+)&amp;back=\d+[^"?]*" title="Special:[^"]+">\d+ suivants</a>}
+      # <a href="/w/index.php?title=Special:Pages_li%C3%A9es/Mod%C3%A8le:Archive_LANN&amp;from=493505&amp;back=0" title="Special:Pages liées/Modèle:Archive LANN">50 suivantes</a>
+      if content =~ %r{<a href="[^"]+&amp;from=(\d+)&amp;back=\d+[^"?]*" title="Special:[^"]+">\d+ suivante?s</a>}
         next_id = $1
       end
       [items, next_id]
@@ -371,7 +372,7 @@ cols='80' >(.+?)</textarea>}m).first.first + text,
       res = content.scan(%r{<li><a href="/wiki/Utilisateur:.+?" title="Utilisateur:.+?">(.+?)</a>})
       items = res.map { |match| match.first }
       
-      next_id = content.scan(%r{offset=([^&]+)&amp;group=#{group}" title="(Special:Listusers|Special:Liste des utilisateurs)"( rel="next")?>50 suivants</a>}).first
+      next_id = content.scan(%r{offset=([^&]+)&amp;group=#{group}" title="(Special:Listusers|Special:Liste des utilisateurs)"( rel="next")?>50 suivante?s</a>}).first
       next_id = next_id.first if next_id
       
       [items, next_id]

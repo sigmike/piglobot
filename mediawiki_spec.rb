@@ -194,10 +194,10 @@ describe MediaWiki, " with fake MiniBrowser" do
     @browser.should_receive(:get_content).with(url).and_return(result)
     items, next_id = @wiki.links("Foo:Bàr")
     items.size.should == 50
-    items.first.should == "Discussion Wikipédia:Liste des articles non neutres"
+    items.first.should == "Wikipédia:Liste des articles non neutres/Sacha Sher"
     items.should include("Wikipédia:Liste des articles non neutres/Vallée d'Aoste : La francophonie")
-    items.last.should == "Wikipédia:Liste des articles non neutres/Minimal Compact"
-    next_id.should == "493504"
+    items.last.should == "Wikipédia:Liste des articles non neutres/And also the trees"
+    next_id.should == "493505"
   end
 
   it "should retreive links with offset" do
@@ -372,18 +372,19 @@ describe MediaWiki, " with fake MiniBrowser" do
   end
   
   it "should list users on page 1" do
+    # http://fr.wikipedia.org/w/index.php?title=Special:Liste_des_utilisateurs&group=sysop&limit=50
     result = File.read("samples/admin_list_1.html")
     url = "/w/index.php?title=Special:Listusers&group=sysop&limit=50"
     @browser.should_receive(:get_content).with(url).and_return(result)
     items, next_id = @wiki.list_users("sysop")
-    items[0].should == "ADM"
+    items[0].should == "Aeleftherios"
     items[1].should == "Alchemica"
     items.should include("Cary Bass")
     items.should include("Céréales Killer")
     items.should include("David.Monniaux")
-    items.last.should == "Gdgourou"
+    items.last.should == "Galoric"
     items.size.should == 50
-    next_id.should == "Gdgourou"
+    next_id.should == "Galoric"
   end
 
   it "should list users on page 1b" do
