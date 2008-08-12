@@ -2,7 +2,7 @@
 
 Dir.chdir File.dirname(__FILE__)
 
-unless system "./spec -t 30 wiki_spec_live.rb"
+unless system "./spec -t 90 wiki_spec_live.rb"
   system "ruby", "-rpiglobot", "-e", "Piglobot.new.notice 'Les tests de compatibilité avec la version actuelle de mediawiki ont échoué. Tous les travaux en cours sont suspendus.'"
   raise "Live spec failed"
 end
