@@ -89,7 +89,8 @@ class Piglobot::Wiki
       send(method, *args)
     rescue => e
       if retried < 9
-        Piglobot::Tools.log("Retry in 10 minutes (#{e.message})")
+        Piglobot::Tools.log("Error in #{method}(#{args.map { |x| x.inspect}.join(',')}). Retry in 10 minutes (#{e.message})")
+        puts e.backtrace.join("\n") if $VERBOSE
         Kernel.sleep(10*60)
         retried += 1
         retry
