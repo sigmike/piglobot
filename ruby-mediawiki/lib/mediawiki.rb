@@ -329,9 +329,8 @@ module MediaWiki
     
     def fast_get(name)
       content = raw_get(name)
-      result = content.scan(%r{<textarea tabindex='1' accesskey="," name="wpTextbox1" id="wpTextbox1" rows='25'
-cols='80' >(.*?)</textarea>}m).first
-      raise "textbox not found in #{url}" if result.empty?
+      result = content.scan(%r{<textarea name="wpTextbox1" id="wpTextbox1" cols="80" rows="25" tabindex="1" accesskey=",">(.*?)</textarea>}m).first
+      raise "textbox not found in #{url}" if result.nil? or result.empty?
       result.first
     end
   
@@ -354,8 +353,7 @@ cols='80' >(.*?)</textarea>}m).first
         "wpEditToken" => c.scan(%r{<input type='hidden' value="(.+?)" name="wpEditToken" />}).first.first,
         "wpStarttime" => c.scan(%r{<input type='hidden' value="(.+?)" name="wpStarttime" />}).first.first,
         "wpEdittime" => c.scan(%r{<input type='hidden' value="(.+?)" name="wpEdittime" />}).first.first,
-       "wpTextbox1" => c.scan(%r{<textarea tabindex='1' accesskey="," name="wpTextbox1" id="wpTextbox1" rows='25'
-cols='80' >(.+?)</textarea>}m).first.first + text,
+       "wpTextbox1" => c.scan(%r{<textarea name="wpTextbox1" id="wpTextbox1" cols="80" rows="25" tabindex="1" accesskey=",">(.+?)</textarea>}m).first.first + text,
        "wpSummary" => comment,
       }
       url = page_url(name, "action" => "submit")

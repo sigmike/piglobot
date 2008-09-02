@@ -347,7 +347,7 @@ describe MediaWiki, " with fake MiniBrowser" do
     data = {
       "wpTextbox1" => "text",
       "wpEdittime" => "20071202151254",
-      "wpStarttime" => "20071202151407",
+      "wpStarttime" => "20080902201149",
       "wpEditToken" => "+\\",
       "wpSummary" => "comment",
     }
@@ -363,7 +363,7 @@ describe MediaWiki, " with fake MiniBrowser" do
     data = {
       "wpTextbox1" => "page de test\n\nbla bla\ntext",
       "wpEdittime" => "20071202151254",
-      "wpStarttime" => "20071202151407",
+      "wpStarttime" => "20080902201149",
       "wpEditToken" => "+\\",
       "wpSummary" => "comment",
     }
@@ -482,7 +482,7 @@ describe MediaWiki, " with fake MiniBrowser" do
   it "should retreive empty text" do
     result = File.read("samples/empty_page.html")
     @browser.should_receive(:get_content).and_return(result)
-    @wiki.fast_get("foo").should == ""
+    @wiki.fast_get("foo").should == "\n"
   end
 end
 

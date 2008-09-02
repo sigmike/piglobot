@@ -1,10 +1,21 @@
 #!/usr/bin/env ruby
 
-system "wget",
-  "http://fr.wikipedia.org/wiki/Special:Pages_li%C3%A9es/Mod%C3%A8le:Archive_LANN",
-  "-O", "samples/test_links_lann.html"
+target = ARGV.shift
+raise "usage: #$0 <target>" unless target
 
-system "wget",
-  "http://fr.wikipedia.org/w/index.php?title=Special:Liste_des_utilisateurs&group=sysop&limit=50",
-  "-O", "samples/admin_list_1.html"
+urls = {
+  "samples/test_links_lann.html" =>
+    "http://fr.wikipedia.org/wiki/Special:Pages_li%C3%A9es/Mod%C3%A8le:Archive_LANN",
+  "samples/admin_list_1.html" =>
+    "http://fr.wikipedia.org/w/index.php?title=Special:Liste_des_utilisateurs&group=sysop&limit=50",
+  "samples/edit.html" =>
+    "http://fr.wikipedia.org/w/index.php?title=Utilisateur:Piglobot/Page_de_test&action=edit",
+  "samples/empty_page.html" =>
+    "http://fr.wikipedia.org/w/index.php?title=Utilisateur:Piglobot/Page_de_test_inexistante&action=edit"
+}
+
+url = urls[target]
+raise "target not found" unless url
   
+system "wget", url, "-O", target
+
