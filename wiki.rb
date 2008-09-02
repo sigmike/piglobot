@@ -84,12 +84,18 @@ class Piglobot::Wiki
   end
   
   def retry(method, *args)
+    retried = 0
     begin
       send(method, *args)
     rescue => e
-      Piglobot::Tools.log("Retry in 10 minutes (#{e.message})")
-      Kernel.sleep(10*60)
-      retry
+      if retried < 9
+        Piglobot::Tools.log("Retry in 10 minutes (#{e.message})")
+        Kernel.sleep(10*60)
+        retried += 1
+        retry
+      else
+        raise e
+      end
     end
   end
   

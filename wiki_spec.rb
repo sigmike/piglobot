@@ -85,22 +85,19 @@ describe Piglobot::Wiki do
     @wiki.internal_all_pages(namespace).should == expected_pages
   end
   
-  it "should wait 10 minutes and retry on error" do
+  it "should wait 10 minutes and retry 10 times on error" do
     step = 0
-    steps = rand(30) + 2
     
-    Piglobot::Tools.should_receive(:log).with("Retry in 10 minutes (Mock 'Piglobot::Wiki' received :foo but passed block failed with: erreur)").exactly(steps-1).times
-    Kernel.should_receive(:sleep).with(10*60).exactly(steps-1).times
+    Piglobot::Tools.should_receive(:log).with(/Retry in 10 minutes \(.+\)/).exactly(9).times
+    Kernel.should_receive(:sleep).with(10*60).exactly(9).times
     
-    @wiki.should_receive(:foo).with("bar", :baz).exactly(steps).times do
-      step += 1
-      if step < steps
-        raise "erreur"
-      else
-        "result"
-      end
+    e = RuntimeError.new("error")
+    @wiki.should_receive(:foo).with("bar", :baz).exactly(10).times.and_raise(e)
+    timeout 2 do
+      lambda {
+        @wiki.retry(:foo, "bar", :baz)
+      }.should raise_error(RuntimeError, "error")
     end
-    @wiki.retry(:foo, "bar", :baz).should == "result"
   end
   
   it "should retreive history" do
