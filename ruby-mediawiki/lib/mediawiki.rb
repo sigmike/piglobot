@@ -369,8 +369,7 @@ module MediaWiki
       content = @browser.get_content(url)
       res = content.scan(%r{<li><a href="/wiki/Utilisateur:.+?" title="Utilisateur:.+?">(.+?)</a>})
       items = res.map { |match| match.first }
-      
-      next_id = content.scan(%r{offset=([^&]+)&amp;group=#{group}" title="(Special:Listusers|Special:Liste des utilisateurs)"( rel="next")?>50 suivante?s</a>}).first
+      next_id = content.scan(%r{offset=([^&]+)&amp;group=#{group}" title="(Special:Listusers|Special:Liste des utilisateurs)"[^>]*>50 suivante?s</a>}).first
       next_id = next_id.first if next_id
       
       [items, next_id]

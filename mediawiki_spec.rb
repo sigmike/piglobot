@@ -382,9 +382,9 @@ describe MediaWiki, " with fake MiniBrowser" do
     items.should include("Cary Bass")
     items.should include("Céréales Killer")
     items.should include("David.Monniaux")
-    items.last.should == "Galoric"
+    items.last.should == "Gdgourou"
     items.size.should == 50
-    next_id.should == "Galoric"
+    next_id.should == "Gdgourou"
   end
 
   it "should list users on page 1b" do
