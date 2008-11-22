@@ -11,7 +11,9 @@ urls = {
   "samples/edit.html" =>
     "http://fr.wikipedia.org/w/index.php?title=Utilisateur:Piglobot/Page_de_test&action=edit",
   "samples/empty_page.html" =>
-    "http://fr.wikipedia.org/w/index.php?title=Utilisateur:Piglobot/Page_de_test_inexistante&action=edit"
+    "http://fr.wikipedia.org/w/index.php?title=Utilisateur:Piglobot/Page_de_test_inexistante&action=edit",
+  "samples/lann_category.html" =>
+    "http://fr.wikipedia.org/w/index.php?title=Cat%C3%A9gorie:Wikip%C3%A9dia:Archives_Articles_non_neutres&from=Wikip%C3%A9dia%3AListe+des+articles+non+neutres%2FBernard+Lugan"
 }
 
 url = urls[target]

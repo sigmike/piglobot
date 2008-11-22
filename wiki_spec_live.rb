@@ -57,4 +57,9 @@ describe Piglobot::Wiki, " live" do
     list, next_id = @wiki.mediawiki.list_users("sysop")
     next_id.should_not be_nil
   end
+
+  it "should have at least 2 pages in LANN category" do
+    list, next_id = @wiki.mediawiki.category_slice("Wikipédia:Archives Articles non neutres")
+    next_id.should_not be_nil
+  end
 end

@@ -232,7 +232,7 @@ module MediaWiki
         end
       end
       next_id = nil
-      content.scan(%r{\(<a href=".+?\?title=.+?&amp;from=(.+?)" title=".+?">200 suivants</a>\)}).each do |id,|
+      content.scan(%r{\(<a href=".+?\?title=.+?&amp;from=(.+?)" title=".+?">200 suivante?s</a>\)}).each do |id,|
         next_id = id
       end
       [res, next_id]

@@ -143,6 +143,15 @@ describe MediaWiki, " with fake MiniBrowser" do
     next_id.should == nil
   end
   
+  it "should find Charlatan in sample lann category" do
+    result = File.read("samples/lann_category.html")
+    @browser.should_receive(:get_content).and_return(result)
+    items, next_id = @wiki.category_slice("name", "next")
+    items.each { |item| item.sub!(/^Wikipédia:Liste des articles non neutres\//, "") }
+    items.should include("Charlatan")
+    next_id.should == "Wikip%C3%A9dia%3AListe+des+articles+non+neutres%2FDanielle+Bleitrach"
+  end
+  
   it "should retreive full category" do
     name = mock("name")
     @wiki.should_receive(:puts).ordered.with("Getting pages in category #{name}")

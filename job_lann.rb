@@ -65,6 +65,7 @@ class LANN < Piglobot::Job
   def get_pages
     @pages = @wiki.category(@category)
     log "#{@pages.size} articles dans la catégorie"
+    log @pages.grep(/Charlatan/).inspect
     #notice("#{@pages.size} pages dans la [[:Catégorie:#@category]]")
   end
   
@@ -90,7 +91,8 @@ class LANN < Piglobot::Job
     if @pages.size == old_pages.size
       raise Piglobot::ErrorPrevention, "Aucune page de la catégorie n'est cité dans [[WP:LANN]]"
     end
-    log "#{pages.size} articles non cités"
+    log "#{pages.size} article(s) non cité(s)"
+    
     #notice("#{@pages.size} pages non mentionnées dans [[WP:LANN]]")
   end
   

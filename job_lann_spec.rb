@@ -16,6 +16,7 @@
     along with Piglobot.  If not, see <http://www.gnu.org/licenses/>.
 =end
 
+require 'piglobot'
 require 'job_lann'
 
 describe Piglobot, " on clean job" do
@@ -294,7 +295,7 @@ describe LANN do
     
     @wiki.should_receive(:get).with("Wikipédia:Liste des articles non neutres").and_return("content")
     parser_should_return("content", links)
-    @job.should_receive(:log).with("1 articles non cités")
+    @job.should_receive(:log).with("1 article(s) non cité(s)")
     @job.should_not_receive(:notice).with("1 pages non mentionnées dans [[WP:LANN]]")
     @job.remove_cited
     @job.pages.should == ["Wikipédia:Liste des articles non neutres/Bar"]
@@ -321,7 +322,6 @@ describe LANN do
     @wiki.should_receive(:post).with(page, content, comment)
     @job.empty_page(page).should == true
   end
-  
 end
 
 describe AaC do

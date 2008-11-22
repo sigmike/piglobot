@@ -224,7 +224,7 @@ class Piglobot
 end
 
 if __FILE__ == $0
-  job = ARGV.shift
+  job = ARGV.first
   if job.nil?
     puts "usage: #$0 <job>"
     exit 1
