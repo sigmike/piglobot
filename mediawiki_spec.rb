@@ -404,7 +404,7 @@ describe MediaWiki, " with fake MiniBrowser" do
 
   it "should list users on page 2" do
     result = File.read("samples/admin_list_2.html")
-    url = "/w/index.php?title=Special:Listusers&offset=an+offset&group=sysop&limit=50"
+    url = "/w/index.php?title=Special:Listusers&group=sysop&limit=50&offset=an+offset"
     @browser.should_receive(:get_content).with(url).and_return(result)
     items, next_id = @wiki.list_users("sysop", "an+offset")
     items[0].should == "Gemini1980"
@@ -417,7 +417,7 @@ describe MediaWiki, " with fake MiniBrowser" do
 
   it "should list users on last page" do
     result = File.read("samples/admin_list_last.html")
-    url = "/w/index.php?title=Special:Listusers&offset=last+offset&group=sysop&limit=50"
+    url = "/w/index.php?title=Special:Listusers&group=sysop&limit=50&offset=last+offset"
     @browser.should_receive(:get_content).with(url).and_return(result)
     items, next_id = @wiki.list_users("sysop", "last+offset")
     items[0].should == "Turb"

@@ -45,7 +45,7 @@ module Piglobot::Tools
     if text =~ /\A(\d+) (\S+) (\d{4}) à (\d{2}):(\d{2})\Z/
       month = MONTHS.index($2)
       if month
-        return Time.local($3.to_i, month + 1, $1.to_i, $4.to_i, $5.to_i, 0)
+        return Time.utc($3.to_i, month + 1, $1.to_i, $4.to_i, $5.to_i, 0)
       end
     end
     raise ArgumentError, "Invalid time: #{text.inspect}"

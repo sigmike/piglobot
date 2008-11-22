@@ -47,11 +47,11 @@ describe Piglobot::Tools do
   end
   
   [
-    ["25 octobre 2007 à 17:17", Time.local(2007, 10, 25, 17, 17, 0)],
-    ["25 août 2006 à 09:16", Time.local(2006, 8, 25, 9, 16, 0)],
-    ["12 juillet 2006 à 08:40", Time.local(2006, 7, 12, 8, 40, 0)],
-    ["10 novembre 2002 à 19:12", Time.local(2002, 11, 10, 19, 12, 0)],
-    ["1 décembre 2002 à 11:39", Time.local(2002, 12, 1, 11, 39, 0)],
+    ["25 octobre 2007 à 17:17", Time.utc(2007, 10, 25, 17, 17, 0)],
+    ["25 août 2006 à 09:16", Time.utc(2006, 8, 25, 9, 16, 0)],
+    ["12 juillet 2006 à 08:40", Time.utc(2006, 7, 12, 8, 40, 0)],
+    ["10 novembre 2002 à 19:12", Time.utc(2002, 11, 10, 19, 12, 0)],
+    ["1 décembre 2002 à 11:39", Time.utc(2002, 12, 1, 11, 39, 0)],
   ].each do |text, time|
     it "should parse time #{text.inspect}" do
       Piglobot::Tools.parse_time(text).should == time
@@ -76,12 +76,12 @@ describe Piglobot::Tools do
     expected_month = i + 1
     it "should parse month #{month.inspect}" do
       Piglobot::Tools.parse_time("25 #{month} 2007 à 17:17").should ==
-        Time.local(2007, expected_month, 25, 17, 17, 0)
+        Time.utc(2007, expected_month, 25, 17, 17, 0)
     end
   end
   
   months.each_with_index do |month, i|
-    time = Time.local(2007, i + 1, 3, 11, 23, 3)
+    time = Time.utc(2007, i + 1, 3, 11, 23, 3)
     Piglobot::Tools.write_date(time).should == "{{date|3|#{month}|2007}}"
   end
 end

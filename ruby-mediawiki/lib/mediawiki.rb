@@ -319,7 +319,7 @@ module MediaWiki
     def page_url(name, data)
       "/w/index.php?title=" +
         CGI.escape(name.gsub(" ", "_")).gsub("%3A", ":").gsub("%2F", "/") +
-        "&" + data.map { |name, value| CGI.escape(name) + "=" + CGI.escape(value) }.join("&")
+        "&" + data.sort.map { |name, value| CGI.escape(name) + "=" + CGI.escape(value) }.join("&")
     end
     
     def raw_get(name)
