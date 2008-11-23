@@ -65,7 +65,6 @@ class LANN < Piglobot::Job
   def get_pages
     @pages = @wiki.category(@category)
     log "#{@pages.size} articles dans la catégorie"
-    log @pages.grep(/Charlatan/).inspect
     #notice("#{@pages.size} pages dans la [[:Catégorie:#@category]]")
   end
   
