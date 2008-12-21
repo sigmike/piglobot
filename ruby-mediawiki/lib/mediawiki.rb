@@ -265,7 +265,7 @@ module MediaWiki
       }
       next_id = nil
       # <a href="/w/index.php?title=Special:Pages_li%C3%A9es/Mod%C3%A8le:Archive_LANN&amp;from=493505&amp;back=0" title="Special:Pages liées/Modèle:Archive LANN">50 suivantes</a>
-      if content =~ %r{<a href="[^"]+&amp;from=(\d+)&amp;back=\d+[^"?]*" title="Special:[^"]+">\d+ suivante?s</a>}
+      if content =~ %r{<a href="[^"]+&amp;from=(\d+)&amp;back=\d+[^"?]*" title="Sp(e|é)cial:[^"]+">\d+ suivante?s</a>}
         next_id = $1
       end
       [items, next_id]
@@ -369,7 +369,8 @@ module MediaWiki
       content = @browser.get_content(url)
       res = content.scan(%r{<li><a href="/wiki/Utilisateur:.+?" title="Utilisateur:.+?">(.+?)</a>})
       items = res.map { |match| match.first }
-      next_id = content.scan(%r{offset=([^&]+)&amp;group=#{group}" title="(Special:Listusers|Special:Liste des utilisateurs)"[^>]*>50 suivante?s</a>}).first
+      #  (<a href="/w/index.php?title=Sp%C3%A9cial:Liste_des_utilisateurs&amp;offset=GL&amp;group=sysop" title="Spécial:Liste des utilisateurs" rel="next" class="mw-nextlink">50 suivantes</a>)
+      next_id = content.scan(%r{offset=([^&]+)&amp;group=#{group}" title="(Special:Listusers|Sp(e|é)cial:Liste des utilisateurs)"[^>]*>50 suivante?s</a>}).first
       next_id = next_id.first if next_id
       
       [items, next_id]
