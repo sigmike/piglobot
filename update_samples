@@ -13,7 +13,15 @@ urls = {
   "samples/empty_page.html" =>
     "http://fr.wikipedia.org/w/index.php?title=Utilisateur:Piglobot/Page_de_test_inexistante&action=edit",
   "samples/lann_category.html" =>
-    "http://fr.wikipedia.org/w/index.php?title=Cat%C3%A9gorie:Wikip%C3%A9dia:Archives_Articles_non_neutres&from=Wikip%C3%A9dia%3AListe+des+articles+non+neutres%2FBernard+Lugan"
+    "http://fr.wikipedia.org/w/index.php?title=Cat%C3%A9gorie:Wikip%C3%A9dia:Archives_Articles_non_neutres&from=Wikip%C3%A9dia%3AListe+des+articles+non+neutres%2FBernard+Lugan",
+  "samples/contributions.html" =>
+    "http://fr.wikipedia.org/w/index.php?limit=3&title=Sp%C3%A9cial%3AContributions&contribs=user&target=Piglobot&namespace=&year=2008&month=7",
+  "samples/contributions_2.html" =>
+    "http://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:Contributions&offset=20071203195253&contribs=user&target=Piglop&limit=1",
+  "samples/contributions_3.html" =>
+    "http://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:Contributions&dir=prev&offset=20071204075134&limit=1&contribs=user&target=69.70.212.195",
+  "samples/contributions_4.html" =>
+    "http://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:Contributions&offset=20071113143800&limit=1&contribs=user&target=129.194.8.73",
 }
 
 url = urls[target]

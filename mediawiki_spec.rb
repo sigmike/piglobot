@@ -458,9 +458,9 @@ describe MediaWiki, " with fake MiniBrowser" do
     @browser.should_receive(:get_content).with(url).and_return(result)
     items = @wiki.contributions("username", 14)
     items.should == [
-      { :date => "9 décembre 2007 à 06:36", :oldid => "23797511", :page => "Utilisateur:Piglobot/Journal" },
-      { :date => "9 décembre 2007 à 06:36", :oldid => "23797510", :page => "Modèle:Change/Màj" },
-      { :date => "9 décembre 2007 à 06:36", :oldid => "23797509", :page => "Modèle:Change/GBP" },
+      { :date => "31 juillet 2008 à 06:30", :oldid => "32049373", :page => "Utilisateur:Piglobot/Bac à sable" },
+      { :date => "31 juillet 2008 à 06:30", :oldid => "32049372", :page => "Utilisateur:Piglobot/Bac à sable" },
+      { :date => "30 juillet 2008 à 07:13", :oldid => "32022065", :page => "Utilisateur:Piglobot/Journal" },
     ]
   end
   
