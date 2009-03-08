@@ -195,7 +195,7 @@ class Piglobot
           raise
         rescue Exception => e
           log_error(e)
-          sleep
+          throw :done
         end
       else
         throw :done

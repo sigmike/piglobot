@@ -275,13 +275,12 @@ describe Piglobot do
   end
   
   class AnyError < Exception; end
-  it "should log exceptions during process" do
+  it "should log exceptions and throw done during process" do
     @bot.should_receive(:safety_check).with().once.and_return(true)
     e = AnyError.new
     @bot.should_receive(:process).with().once.and_raise(e)
     @bot.should_receive(:log_error).with(e).once
-    @bot.should_receive(:sleep).with().once
-    @bot.step
+    catch(:done) { @bot.step; true }.should == nil
   end
   
   it "should abort on Interrupt during process" do
