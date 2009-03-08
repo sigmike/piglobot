@@ -73,9 +73,7 @@ describe MediaWiki, " with fake MiniBrowser" do
   end
   
   it "should retreive history" do
-    # to update:
-    # wget "http://fr.wikipedia.org/w/index.php?title=Wikip%C3%A9dia&dir=prev&offset=20071023064530&limit=4&action=history" -O sample_history.html
-    result = File.read("sample_history.html")
+    result = File.read("samples/history.html")
     @browser.should_receive(:get_content).with(@uri.path + "index.php?title=#{CGI.escape('Wikipédia')}&limit=1000&action=history").and_return(result)
     @wiki.history("Wikipédia", 1000).should == [
       { :oldid => "22180997", :author => "Jauclair", :date => "25 octobre 2007 à 17:17" },
@@ -86,7 +84,7 @@ describe MediaWiki, " with fake MiniBrowser" do
   end
   
   it "should use offset in history" do
-    result = File.read("sample_history.html")
+    result = File.read("samples/history.html")
     @browser.should_receive(:get_content).with(@uri.path + "index.php?title=#{CGI.escape('Wikipédia')}&limit=1000&offset=offset&action=history").and_return(result)
     @wiki.history("Wikipédia", 1000, "offset")
   end
@@ -106,18 +104,16 @@ describe MediaWiki, " with fake MiniBrowser" do
   end
   
   it "should retreive category articles" do
-    result = File.read("sample_category.html")
+    result = File.read("samples/category.html")
     @browser.should_receive(:get_content).with(@uri.path + "index.php?title=#{CGI.escape 'Category:Category_name'}").and_return(result)
     items, next_id = @wiki.category_slice("Category name")
+    items.first.should == "Discussion Catégorie:Antisémitisme/Neutralité"
+    items.should include("Discussion Utilisateur:Kropotkine 113/testNPOV/Titre de l'article/Neutralité")
+    items.should include("Discuter:Alfa Romeo 166/Neutralité")
+    items.should include("Discuter:Auriculothérapie/Neutralité")
+    items.last.should == "Discuter:Bataille de Méribel/Neutralité"
+    next_id.should == "Discuter%3ABataille+de+Saint-Aubin-du-Cormier%2FNeutralit%C3%A9"
     items.size.should == 200
-    items.first.should == "Discussion Wikipédia:Liste des articles non neutres/André-Georges Manry"
-    items.should include("Modèle:Initialiser LANN")
-    items.should include("Wikipédia:Liste des articles non neutres/Alexis Carrel")
-    items.should include("Wikipédia:Liste des articles non neutres/Alfa Romeo 166")
-    items.should include("Wikipédia:Liste des articles non neutres/Auriculothérapie")
-    items.should include("Wikipédia:Liste des articles non neutres/Bengaliidae")
-    items.last.should == "Wikipédia:Liste des articles non neutres/Canadien français"
-    next_id.should == "Wikip%C3%A9dia%3AListe+des+articles+non+neutres%2FCannelle+%28ourse%29"
   end
 
   it "should retreive category article with amp" do
@@ -131,7 +127,7 @@ describe MediaWiki, " with fake MiniBrowser" do
   end
 
   it "should retreive next category articles" do
-    result = File.read("sample_category.html")
+    result = File.read("samples/category.html")
     @browser.should_receive(:get_content).with(@uri.path + "index.php?title=#{CGI.escape 'Category:Category_name'}&from=néxt_id").and_return(result)
     @wiki.category_slice("Category name", "néxt_id")
   end
@@ -141,15 +137,6 @@ describe MediaWiki, " with fake MiniBrowser" do
     @browser.should_receive(:get_content).and_return(result)
     items, next_id = @wiki.category_slice("name", "next")
     next_id.should == nil
-  end
-  
-  it "should find Charlatan in sample lann category" do
-    result = File.read("samples/lann_category.html")
-    @browser.should_receive(:get_content).and_return(result)
-    items, next_id = @wiki.category_slice("name", "next")
-    items.each { |item| item.sub!(/^Wikipédia:Liste des articles non neutres\//, "") }
-    items.should include("Charlatan")
-    next_id.should == "Wikip%C3%A9dia%3AListe+des+articles+non+neutres%2FDanielle+Bleitrach"
   end
   
   it "should retreive full category" do
@@ -167,11 +154,11 @@ describe MediaWiki, " with fake MiniBrowser" do
     name = "Langage de programmation"
     
     url = @uri.path + "index.php?title=Category%3ALangage_de_programmation"
-    content = File.read("sample_category_programming.html")
+    content = File.read("samples/category_programming.html")
     @browser.should_receive(:get_content).with(url).and_return(content)
     
     url = @uri.path + 
-      "index.php?title=Category%3ALangage_de_programmation&from=Visual+Basic+for+Applications"
+      "index.php?title=Category%3ALangage_de_programmation&from=Sed+%28logiciel%29"
     content = File.read("sample_category_programming_2.html")
     @browser.should_receive(:get_content).with(url).and_return(content)
     
@@ -396,32 +383,17 @@ describe MediaWiki, " with fake MiniBrowser" do
     next_id.should == items.last
   end
 
-  it "should list users on page 1b" do
-    result = File.read("samples/admin_list_1b.html")
-    url = "/w/index.php?title=Special:Listusers&group=sysop&limit=50"
-    @browser.should_receive(:get_content).with(url).and_return(result)
-    items, next_id = @wiki.list_users("sysop")
-    items[0].should == "ADM"
-    items[1].should == "Alchemica"
-    items.should include("Cary Bass")
-    items.should include("Céréales Killer")
-    items.should include("David.Monniaux")
-    items.last.should == "GillesC"
-    items.size.should == 50
-    next_id.should == "GillesC"
-  end
-
   it "should list users on page 2" do
     result = File.read("samples/admin_list_2.html")
     url = "/w/index.php?title=Special:Listusers&group=sysop&limit=50&offset=an+offset"
     @browser.should_receive(:get_content).with(url).and_return(result)
     items, next_id = @wiki.list_users("sysop", "an+offset")
-    items[0].should == "Gemini1980"
+    items[0].should == "Galoric"
     items.should include("GôTô")
     items.should include("K!roman")
-    items.last.should == "Nicolas Ray"
+    items.last.should == "Markadet"
     items.size.should == 50
-    next_id.should == "Nicolas+Ray"
+    next_id.should == "Markadet"
   end
 
   it "should list users on last page" do
@@ -433,16 +405,6 @@ describe MediaWiki, " with fake MiniBrowser" do
     items.last.should == "~Pyb"
     items.size.should == 15
     next_id.should == nil
-  end
-  
-  it "should list users with new syntax" do
-    result = File.read("samples/admin_list_new.html")
-    url = "/w/index.php?title=Special:Listusers&group=sysop&limit=50"
-    @browser.should_receive(:get_content).with(url).and_return(result)
-    items, next_id = @wiki.list_users("sysop")
-    items[0].should == "Aeleftherios"
-    items.last.should == "Gdgourou"
-    next_id.should == "Gdgourou"
   end
   
   it "should get all users" do

@@ -8,6 +8,8 @@ urls = {
     "http://fr.wikipedia.org/wiki/Special:Pages_li%C3%A9es/Mod%C3%A8le:Archive_LANN",
   "samples/admin_list_1.html" =>
     "http://fr.wikipedia.org/w/index.php?title=Special:Liste_des_utilisateurs&group=sysop&limit=50",
+  "samples/admin_list_2.html" =>
+    "http://fr.wikipedia.org/w/index.php?title=Special:Listusers&group=sysop&limit=50&offset=GL",
   "samples/edit.html" =>
     "http://fr.wikipedia.org/w/index.php?title=Utilisateur:Piglobot/Page_de_test&action=edit",
   "samples/empty_page.html" =>
@@ -22,6 +24,11 @@ urls = {
     "http://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:Contributions&dir=prev&offset=20071204075134&limit=1&contribs=user&target=69.70.212.195",
   "samples/contributions_4.html" =>
     "http://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial:Contributions&offset=20071113143800&limit=1&contribs=user&target=129.194.8.73",
+  "samples/history.html" => "http://fr.wikipedia.org/w/index.php?title=Wikip%C3%A9dia&dir=prev&offset=20071023064530&limit=4&action=history",
+  "samples/category.html" =>
+    "http://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Wikip%C3%A9dia:Archives_Articles_non_neutres",
+  "samples/category_programming.html" =>
+    "http://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Langage_de_programmation",
 }
 
 url = urls[target]

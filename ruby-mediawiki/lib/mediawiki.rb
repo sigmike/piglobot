@@ -181,9 +181,11 @@ module MediaWiki
         li.each_element("a") do |a|
           href = a.attributes["href"]
           if href !~ /diff=/ and href =~ /\oldid=(\d+)/
-            oldid = $1
-            date = a.text
-            break
+            if $1 != "0"
+              oldid = $1
+              date = a.text
+              break
+            end
           end
         end
     
@@ -227,12 +229,13 @@ module MediaWiki
       content = @browser.get_content(url)
       res = []
       content.scan(%r{<li><a href=".+?" title="(.+?)">(.+?)</a></li>}).each do |title, text|
+        title.gsub! /&#039;/, "'"
         if title == text
           res << title.gsub("&amp;", "&")
         end
       end
       next_id = nil
-      content.scan(%r{\(<a href=".+?\?title=.+?&amp;from=(.+?)" title=".+?">200 suivante?s</a>\)}).each do |id,|
+      content.scan(%r{\(<a href=".+?\?title=.+?&amp;from=(.+?)" title=".+?">200 éléments suivants</a>\)}).each do |id,|
         next_id = id
       end
       [res, next_id]
@@ -370,7 +373,7 @@ module MediaWiki
       res = content.scan(%r{<li><a href="/wiki/Utilisateur:.+?" title="Utilisateur:.+?">(.+?)</a>})
       items = res.map { |match| match.first }
       #  (<a href="/w/index.php?title=Sp%C3%A9cial:Liste_des_utilisateurs&amp;offset=GL&amp;group=sysop" title="Spécial:Liste des utilisateurs" rel="next" class="mw-nextlink">50 suivantes</a>)
-      next_id = content.scan(%r{offset=([^&]+)&amp;group=#{group}" title="(Special:Listusers|Sp(e|é)cial:Liste des utilisateurs)"[^>]*>50 suivante?s</a>}).first
+      next_id = content.scan(%r{offset=([^&]+)&amp;group=#{group}" title="(Special:Listusers|Sp(e|é)cial:Liste des utilisateurs)"[^>]*>50 éléments suivants</a>}).first
       next_id = next_id.first if next_id
       
       [items, next_id]
