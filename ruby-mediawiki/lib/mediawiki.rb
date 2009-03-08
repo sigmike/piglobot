@@ -397,9 +397,7 @@ module MediaWiki
       options = { "limit" => count.to_s, "target" => user }
       url = page_url("Special:Contributions", options)
       content = @browser.get_content(url)
-      # <li><a href="/w/index.php?title=Utilisateur:Piglobot/Journal&amp;oldid=32022065" title="Utilisateur:Piglobot/Journal">30 juillet 2008 à 07:13</a> (<a href="/w/index.php?title=Utilisateur:Piglobot/Journal&amp;action=history" title="Utilisateur:Piglobot/Journal">hist</a>) (<a href="/w/index.php?title=Utilisateur:Piglobot/Journal&amp;diff=prev&amp;oldid=32022065" title="Utilisateur:Piglobot/Journal">diff</a>)  <a href="/wiki/Utilisateur:Piglobot/Journal" title="Utilisateur:Piglobot/Journal">Utilisateur:Piglobot/Journal</a> ‎ <span class="comment">({{m|Change}} : Terminé)</span> </li>
-
-      res = content.scan(%r{<li>.+?">(.+?)</a> \(<a href="[^"]+" title="([^"]+)">hist</a>\) \(<a href=".+?&amp;oldid=([^"]+?)"})
+      res = content.scan(%r{<li class="">.+?">(.+?)</a> \(<a href="[^"]+" title="([^"]+)">hist</a>\) \(<a href=".+?&amp;oldid=([^"]+?)"})
       items = res.map { |match| { :date => match[0], :page => unquote(match[1]), :oldid => match[2] } }
       
       items

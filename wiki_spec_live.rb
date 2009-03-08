@@ -62,4 +62,9 @@ describe Piglobot::Wiki, " live" do
     list, next_id = @wiki.mediawiki.category_slice("Wikipédia:Archives Articles non neutres")
     next_id.should_not be_nil
   end
+  
+  it "should get some contributions for Piglobot" do
+    list = @wiki.contributions("Piglobot", 10)
+    list.size.should == 10
+  end
 end

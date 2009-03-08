@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
-target = ARGV.shift
-raise "usage: #$0 <target>" unless target
+raise "usage: #$0 <target>" if ARGV.empty?
 
 urls = {
   "samples/test_links_lann.html" =>
@@ -31,8 +30,17 @@ urls = {
     "http://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Langage_de_programmation",
 }
 
-url = urls[target]
-raise "target not found" unless url
-  
-system "wget", url, "-O", target
+not_found = []
+ARGV.each do |target|
+  next if target =~ /\~$/
+  url = urls[target]
+  if url
+    system "wget", url, "-O", target
+  else
+    not_found << target
+  end
+end
 
+not_found.each do |target|
+  puts "Targets not found: #{target.inspect}"
+end
