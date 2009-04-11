@@ -29,8 +29,8 @@ describe Piglobot::Wiki, " live" do
   
   it "should retreive history on Accueil" do
     @wiki.history("Accueil", 2, "20070625202235").should == [
-      { :oldid => "18253715", :author => "IAlex", :date => Time.utc(2007, 6, 25, 20, 7, 0) },
-      { :oldid => "18253294", :author => "Tavernier", :date => Time.utc(2007, 6, 25, 19, 52, 0) },
+      { :oldid => "18253715", :author => "IAlex", :date => Time.utc(2007, 6, 25, 21, 7, 0) },
+      { :oldid => "18253294", :author => "Tavernier", :date => Time.utc(2007, 6, 25, 20, 52, 0) },
     ]
   end
   
