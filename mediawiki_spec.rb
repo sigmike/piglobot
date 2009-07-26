@@ -450,6 +450,14 @@ describe MediaWiki, " with fake MiniBrowser" do
     items.find { |item| item[:oldid] == "22913326" }.should ==({:date => "13 novembre 2007 à 15:37", :oldid => "22913326", :page => "\"I Quit\" match"})
   end
   
+  it "should work on arria contributions (change on a redirection)" do
+    result = File.read("samples/user_arria.html")
+    url = "/w/index.php?title=Special:Contributions&limit=1&target=Arria+Belli"
+    @browser.should_receive(:get_content).with(url).and_return(result)
+    items = @wiki.contributions("Arria Belli", 1)
+    items.find { |item| item[:oldid] == "38154160" }.should ==({:date => "17 février 2009 à 22:47", :oldid => "38154160", :page => "Romain Dupuy"})
+  end
+  
   it "should retreive empty text" do
     result = File.read("samples/empty_page.html")
     @browser.should_receive(:get_content).and_return(result)

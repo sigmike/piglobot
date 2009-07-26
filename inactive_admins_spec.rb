@@ -55,7 +55,7 @@ describe InactiveAdmins do
     @job.get_last_contribution
     @job.data.should == [["bob", "bob time"], ["mock", "mock time"]]
   end
-  
+
   it "should remove_active" do
     now = Time.local(2007, 1, 9, 10, 40, 12)
     Time.should_receive(:now).with().and_return(now)

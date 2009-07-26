@@ -17,6 +17,7 @@
 =end
 
 require 'job'
+require 'tools'
 
 class InactiveAdmins < Piglobot::Job
   def process

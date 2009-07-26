@@ -397,9 +397,9 @@ module MediaWiki
       options = { "limit" => count.to_s, "target" => user }
       url = page_url("Special:Contributions", options)
       content = @browser.get_content(url)
-      res = content.scan(%r{<li class="">.+?">(.+?)</a> \(<a href="[^"]+" title="([^"]+)">hist</a>\) \(<a href=".+?&amp;oldid=([^"]+?)"})
+            
+      res = content.scan(%r{<li class="">.+?">(.+?)</a> \(<a href="[^"]+"(?: class="mw-redirect")? title="([^"]+)">hist</a>\) \(<a href=".+?&amp;oldid=([^"]+?)"})
       items = res.map { |match| { :date => match[0], :page => unquote(match[1]), :oldid => match[2] } }
-      
       items
     end
     

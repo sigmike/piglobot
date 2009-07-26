@@ -73,6 +73,7 @@ module MediaWiki
     # result:: [String] Document
     def get_content(url)
       retries = 10
+      puts "GET #{url}" if $VERBOSE
 
       @http.start { |http|
         loop {
