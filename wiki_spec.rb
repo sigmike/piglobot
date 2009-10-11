@@ -135,17 +135,35 @@ describe Piglobot::Wiki do
     @wiki.internal_users("foo").should == "result"
   end
   
-  it "should get contributions" do
-    Piglobot::Tools.should_receive(:parse_time).with("time").and_return("parsed time")
-    Piglobot::Tools.should_receive(:parse_time).with("time 2").and_return("parsed time 2")
-    @mediawiki.should_receive(:contributions).with("username", 12).and_return([
-      { :oldid => "oldid", :page => "page", :date => "time" },
-      { :oldid => "oldid2", :page => "page2", :date => "time 2" },
-    ])
+  it "should use rwikibot to get contributions" do
+    bot_result = [
+      {"comment"=>
+        "Les tests de compatibilit\303\251 avec la version actuelle de mediawiki ont \303\251chou\303\251. Tous les travaux en cours sont suspendus.",
+        "size"=>"327051",
+        "revid"=>"45649272",
+        "pageid"=>"2081159",
+        "timestamp"=>"2009-10-11T05:30:48Z",
+        "title"=>"Utilisateur:Piglobot/Journal",
+        "ns"=>"2",
+        "user"=>"Piglobot",
+        "top"=>""},
+      {"comment"=>"test 2",
+        "size"=>"0",
+        "revid"=>"45649269",
+        "pageid"=>"2074026",
+        "timestamp"=>"2009-10-11T05:30:35Z",
+        "title"=>"Utilisateur:Piglobot/Bac \303\240 sable",
+        "ns"=>"2",
+        "user"=>"Piglobot",
+        "top"=>""}]
+
+    Piglobot::Tools.should_receive(:parse_time).with("2009-10-11T05:30:48Z").and_return("parsed time")
+    Piglobot::Tools.should_receive(:parse_time).with("2009-10-11T05:30:35Z").and_return("parsed time 2")
+    @bot.should_receive(:contributions).with(:user => "username", :limit => 12).and_return(bot_result)
     Piglobot::Tools.should_receive(:log).with("Contributions of username (12)")
     @wiki.internal_contributions("username", 12).should == [
-      { :oldid => "oldid", :page => "page", :date => "parsed time" },
-      { :oldid => "oldid2", :page => "page2", :date => "parsed time 2" },
+      { :oldid => "45649272", :page => "Utilisateur:Piglobot/Journal", :date => "parsed time" },
+      { :oldid => "45649269", :page => "Utilisateur:Piglobot/Bac \303\240 sable", :date => "parsed time 2" },
     ]
   end
   

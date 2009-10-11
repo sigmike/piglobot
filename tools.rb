@@ -47,6 +47,9 @@ module Piglobot::Tools
       if month
         return Time.utc($3.to_i, month + 1, $1.to_i, $4.to_i, $5.to_i, 0)
       end
+    elsif text =~ /(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)Z/
+      values = $~.captures.map { |x| x.to_i }
+      return Time.utc(*values)
     end
     raise ArgumentError, "Invalid time: #{text.inspect}"
   end

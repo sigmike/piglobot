@@ -52,6 +52,7 @@ describe Piglobot::Tools do
     ["12 juillet 2006 à 08:40", Time.utc(2006, 7, 12, 8, 40, 0)],
     ["10 novembre 2002 à 19:12", Time.utc(2002, 11, 10, 19, 12, 0)],
     ["1 décembre 2002 à 11:39", Time.utc(2002, 12, 1, 11, 39, 0)],
+    ["2009-10-11T05:30:48Z", Time.utc(2009, 10, 11, 5, 30, 48)],
   ].each do |text, time|
     it "should parse time #{text.inspect}" do
       Piglobot::Tools.parse_time(text).should == time

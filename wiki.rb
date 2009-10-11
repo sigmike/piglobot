@@ -70,11 +70,14 @@ class Piglobot::Wiki
   
   def internal_contributions(name, count)
     Piglobot::Tools.log("Contributions of #{name} (#{count})")
-    contribs = @wiki.contributions(name, count)
-    contribs.each do |result|
-      result[:date] = Piglobot::Tools.parse_time(result[:date])
+    contribs = @bot.contributions(:user => name, :limit => count)
+    contribs.map do |item|
+      {
+        :oldid => item["revid"],
+        :page => item["title"],
+        :date => Piglobot::Tools.parse_time(item["timestamp"])
+      }
     end
-    contribs
   end
   
   def internal_all_pages(namespace)
