@@ -27,6 +27,12 @@ describe Piglobot::Wiki do
       "Piglobot",
       File.read("password").strip
     ).and_return(@mediawiki)
+    @bot = mock("bot")
+    RWikiBot.should_receive(:new).once.with(
+      "Piglobot",
+      File.read("password").strip,
+      "http://fr.wikipedia.org/w/api.php"
+      ).and_return(@bot)
     @article = mock("article")
     @wiki = Piglobot::Wiki.new
   end

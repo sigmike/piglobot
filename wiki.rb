@@ -16,9 +16,13 @@
     along with Piglobot.  If not, see <http://www.gnu.org/licenses/>.
 =end
 
+$: << File.join(File.dirname(__FILE__), "..", "rwikibot", "lib")
+require 'rwikibot'
+
 class Piglobot::Wiki
   def initialize
     @wiki = MediaWiki::Wiki.new("http://fr.wikipedia.org/w", "Piglobot", File.read("password"))
+    @bot = RWikiBot.new("Piglobot", File.read("password"), "http://fr.wikipedia.org/w/api.php")
   end
   
   def mediawiki
