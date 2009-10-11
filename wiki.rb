@@ -16,6 +16,7 @@
     along with Piglobot.  If not, see <http://www.gnu.org/licenses/>.
 =end
 
+require 'rubygems'
 $: << File.join(File.dirname(__FILE__), "..", "rwikibot", "lib")
 require 'rwikibot'
 
