@@ -106,29 +106,6 @@ describe Piglobot::Wiki do
     end
   end
   
-  it "should retreive history" do
-    Piglobot::Tools.should_receive(:parse_time).with("time").and_return("parsed time")
-    Piglobot::Tools.should_receive(:parse_time).with("time 2").and_return("parsed time 2")
-    @mediawiki.should_receive(:history).with("foo", 12, nil).and_return([
-      { :oldid => "oldid", :author => "author", :date => "time" },
-      { :oldid => "oldid2", :author => "author2", :date => "time 2" },
-    ])
-    Piglobot::Tools.should_receive(:log).with("History [[foo]] (12, nil)")
-    @wiki.internal_history("foo", 12).should == [
-      { :oldid => "oldid", :author => "author", :date => "parsed time" },
-      { :oldid => "oldid2", :author => "author2", :date => "parsed time 2" },
-    ]
-  end
-  
-  it "should retreive history with offset" do
-    Piglobot::Tools.should_receive(:parse_time).with("time").and_return("parsed time")
-    @mediawiki.should_receive(:history).with("foo", 5, "123456").and_return([
-      { :oldid => "oldid", :author => "author", :date => "time" },
-    ])
-    Piglobot::Tools.should_receive(:log).with("History [[foo]] (5, \"123456\")")
-    @wiki.internal_history("foo", 5, "123456")
-  end
-  
   it "should get user list" do
     Piglobot::Tools.should_receive(:log).with("User list in group foo")
     @mediawiki.should_receive(:list_all_users).with("foo").once.and_return("result")
@@ -164,6 +141,46 @@ describe Piglobot::Wiki do
     @wiki.internal_contributions("username", 12).should == [
       { :oldid => "45649272", :page => "Utilisateur:Piglobot/Journal", :date => "parsed time" },
       { :oldid => "45649269", :page => "Utilisateur:Piglobot/Bac \303\240 sable", :date => "parsed time 2" },
+    ]
+  end
+  
+  it "should use rwikibot to get history" do
+    bot_result = {
+      "pages"=> {
+        "page"=> {
+          "pageid"=>"826510",
+          "title"=>"Bot informatique",
+          "ns"=>"0",
+          "revisions"=> {
+            "rev"=> [
+              {
+                "comment"=>
+                "Annulation des modifications 47587549 de [[Sp\303\251cial:Contributions/3eX|3eX]] ([[User talk:3eX|d]]) pub",
+                "revid"=>"47594710",
+                "timestamp"=>"2009-12-10T08:51:11Z",
+                "parentid"=>"47587549",
+                "user"=>"Freewol"
+              },
+              {
+                "comment"=>"/* Articles connexes */",
+                "revid"=>"47587549",
+                "timestamp"=>"2009-12-09T22:41:12Z",
+                "parentid"=>"45437160",
+                "user"=>"3eX"
+              }
+            ]
+          }
+        }
+      }
+    }
+
+    Piglobot::Tools.should_receive(:parse_time).with("2009-12-10T08:51:11Z").and_return("parsed time")
+    Piglobot::Tools.should_receive(:parse_time).with("2009-12-09T22:41:12Z").and_return("parsed time 2")
+    @bot.should_receive(:revisions).with(:titles => "Bot informatique", :limit => 2, :startid => "start").and_return(bot_result)
+    Piglobot::Tools.should_receive(:log).with("History [[Bot informatique]] (2)")
+    @wiki.internal_history("Bot informatique", 2, "start").should == [
+      { :oldid => "47594710", :author => "Freewol", :date => "parsed time" },
+      { :oldid => "47587549", :author => "3eX", :date => "parsed time 2" },
     ]
   end
   

@@ -28,9 +28,10 @@ describe Piglobot::Wiki, " live" do
   end
   
   it "should retreive history on Accueil" do
-    @wiki.history("Accueil", 2, "20070625202235").should == [
-      { :oldid => "18253715", :author => "IAlex", :date => Time.utc(2007, 6, 25, 20, 7, 0) },
-      { :oldid => "18253294", :author => "Tavernier", :date => Time.utc(2007, 6, 25, 19, 52, 0) },
+    result = @wiki.history("Bot informatique", 2, "47594710")
+    result.should == [
+      { :oldid => "47594710", :author => "Freewol", :date => Time.at(1260435071) },
+      { :oldid => "47587549", :author => "3eX", :date => Time.at(1260398472) },
     ]
   end
   
@@ -39,7 +40,7 @@ describe Piglobot::Wiki, " live" do
   end
   
   it "should find Linux in Modèle:Portail informatique" do
-    @wiki.links("Modèle:Portail informatique").sort.should include("Linux")
+    @wiki.links("Modèle:Portail informatique").sort.should include("Noyau de système d'exploitation")
   end
   
   it "should get test page" do

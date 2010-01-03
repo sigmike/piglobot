@@ -60,13 +60,19 @@ class Piglobot::Wiki
     @wiki.full_category(category)
   end
   
-  def internal_history(name, count, offset = nil)
-    Piglobot::Tools.log("History [[#{name}]] (#{count}, #{offset.inspect})")
-    history = @wiki.history(name, count, offset)
-    history.each do |result|
-      result[:date] = Piglobot::Tools.parse_time(result[:date])
-    end
-    history
+  def internal_history(name, count, start = nil)
+    Piglobot::Tools.log("History [[#{name}]] (#{count})")
+    options = { :titles => name, :limit => count }
+    options[:startid] = start if start
+    history = @bot.revisions(options)
+    history = history.fetch("pages").fetch("page").fetch("revisions").fetch("rev")
+    history.map do |rev|
+      {
+        :oldid => rev["revid"],
+        :date => Piglobot::Tools.parse_time(rev["timestamp"]),
+        :author => rev["user"],
+      }
+    end           
   end
   
   def internal_contributions(name, count)
