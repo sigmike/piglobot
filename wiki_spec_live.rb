@@ -44,7 +44,7 @@ describe Piglobot::Wiki, " live" do
   end
   
   it "should get test page" do
-    @wiki.get("Utilisateur:Piglobot/Page de test").should == "page de test\n\nbla bla\n"
+    @wiki.get("Utilisateur:Piglobot/Page de test").should == "page de test\n\nbla bla"
   end
   
   it "should post" do

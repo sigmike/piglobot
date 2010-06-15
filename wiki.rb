@@ -37,7 +37,7 @@ class Piglobot::Wiki
 
   def internal_get(article_name)
     Piglobot::Tools.log("Get [[#{article_name}]]")
-    @wiki.fast_get(article_name)
+    @bot.page(article_name).content["content"]
   end
   
   def internal_append(article_name, text, comment)

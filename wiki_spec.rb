@@ -44,9 +44,11 @@ describe Piglobot::Wiki do
   end
   
   it "should get text" do
-    @mediawiki.should_receive(:fast_get).with("Article name").once.and_return("content")
+    page = mock("page")
+    @bot.should_receive(:page).with("Article name").once.and_return(page)
+    page.should_receive(:content).with().once.and_return("content" => "the content")
     Piglobot::Tools.should_receive(:log).with("Get [[Article name]]")
-    @wiki.internal_get("Article name").should == "content"
+    @wiki.internal_get("Article name").should == "the content"
   end
   
   it "should append text" do
