@@ -43,7 +43,9 @@ class Piglobot::Wiki
   
   def internal_append(article_name, text, comment)
     Piglobot::Tools.log("Append [[#{article_name}]] (#{comment})")
-    @wiki.fast_append(article_name, text, comment)
+    page = @bot.page(article_name)
+    old_content = page.content["content"].to_s
+    page.save(old_content + "\n" + text, comment)
   end
   
   def internal_links(name, namespace = nil)

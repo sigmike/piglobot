@@ -63,7 +63,10 @@ describe Piglobot::Wiki do
   end
   
   it "should append text" do
-    @mediawiki.should_receive(:fast_append).with("Article name", "new text", "append comment").once
+    page = mock("page")
+    @bot.should_receive(:page).with("Article name").once.and_return(page)
+    page.should_receive(:content).with().once.and_return("content" => "old content")
+    page.should_receive(:save).with("old content\nnew text", "append comment").once
     Piglobot::Tools.should_receive(:log).with("Append [[Article name]] (append comment)")
     @wiki.internal_append("Article name", "new text", "append comment")
   end
