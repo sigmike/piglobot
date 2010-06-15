@@ -49,7 +49,7 @@ describe Piglobot::Wiki, " live" do
   
   it "should post" do
     @wiki.post("Utilisateur:Piglobot/Bac à sable", "foo bar\n", "test 1")
-    @wiki.get("Utilisateur:Piglobot/Bac à sable").should == "foo bar\n"
+    @wiki.get("Utilisateur:Piglobot/Bac à sable").should == "foo bar"
     @wiki.post("Utilisateur:Piglobot/Bac à sable", "", "test 2")
     @wiki.get("Utilisateur:Piglobot/Bac à sable").should == ""
   end

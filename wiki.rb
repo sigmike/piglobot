@@ -24,6 +24,7 @@ class Piglobot::Wiki
   def initialize
     @wiki = MediaWiki::Wiki.new("http://fr.wikipedia.org/w", "Piglobot", File.read("password"))
     @bot = RWikiBot.new("Piglobot", File.read("password"), "http://fr.wikipedia.org/w/api.php")
+    @bot.login
   end
   
   def mediawiki
@@ -32,12 +33,12 @@ class Piglobot::Wiki
   
   def internal_post(article_name, text, comment)
     Piglobot::Tools.log("Post [[#{article_name}]] (#{comment})")
-    @wiki.fast_post(article_name, text, comment)
+    @bot.page(article_name).save(text, comment)
   end
 
   def internal_get(article_name)
     Piglobot::Tools.log("Get [[#{article_name}]]")
-    @bot.page(article_name).content["content"]
+    @bot.page(article_name).content["content"].to_s
   end
   
   def internal_append(article_name, text, comment)

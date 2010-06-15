@@ -33,12 +33,15 @@ describe Piglobot::Wiki do
       File.read("password").strip,
       "http://fr.wikipedia.org/w/api.php"
       ).and_return(@bot)
+    @bot.should_receive(:login).with().once.and_return(true)
     @article = mock("article")
     @wiki = Piglobot::Wiki.new
   end
   
   it "should post text" do
-    @mediawiki.should_receive(:fast_post).with("Article name", "article content", "comment").once
+    page = mock("page")
+    @bot.should_receive(:page).with("Article name").once.and_return(page)
+    page.should_receive(:save).with("article content", "comment").once
     Piglobot::Tools.should_receive(:log).with("Post [[Article name]] (comment)")
     @wiki.internal_post "Article name", "article content", "comment"
   end
@@ -49,6 +52,14 @@ describe Piglobot::Wiki do
     page.should_receive(:content).with().once.and_return("content" => "the content")
     Piglobot::Tools.should_receive(:log).with("Get [[Article name]]")
     @wiki.internal_get("Article name").should == "the content"
+  end
+  
+  it "should get empty text" do
+    page = mock("page")
+    @bot.should_receive(:page).with("Article name").once.and_return(page)
+    page.should_receive(:content).with().once.and_return("content" => nil)
+    Piglobot::Tools.should_receive(:log).with("Get [[Article name]]")
+    @wiki.internal_get("Article name").should == ""
   end
   
   it "should append text" do
