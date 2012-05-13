@@ -1,7 +1,5 @@
 *~
-password
+/password
 *.log
-AaC.yaml
-Change.yaml
-InactiveAdmins.yaml
-SuiviPortailInformatique.yaml
+/.bundle
+/vendor/bundle
