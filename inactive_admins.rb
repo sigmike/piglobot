@@ -55,7 +55,7 @@ text << inactive_admins.sort_by { |admin| last_time[admin] }.map do |admin|
   end
 end.join
 
-# page = "Wikipédia:Liste des administrateurs inactifs"
-page = "Utilisateur:Piglobot/Bac à sable"
+page = "Wikipédia:Liste des administrateurs inactifs"
+# page = "Utilisateur:Piglobot/Bac à sable"
 
-bot.edit(page, text, :summary => "[[Utilisateur:Piglobot/Travail#Liste des admins inactifs|Mise à jour]]")
+bot.edit(page, text, :summary => "[[Utilisateur:Piglobot/Administrateurs inactifs|Mise à jour des administrateurs inactifs]]")
