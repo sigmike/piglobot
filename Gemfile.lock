@@ -1,5 +1,6 @@
-PATH
-  remote: ../mediawiki-gateway
+GIT
+  remote: git://github.com/piglop/mediawiki-gateway.git
+  revision: 26395c97a9bb00f3eedce065630a9d8aaba181af
   specs:
     mediawiki-gateway (0.4.5)
       activesupport
