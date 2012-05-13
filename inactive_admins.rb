@@ -21,5 +21,10 @@ require File.expand_path('../piglobot', __FILE__)
 
 bot = Piglobot.new
 
-puts bot.get("Ruby")
+excluded =  bot.get("Wikipédia:Liste des administrateurs inactifs/Exclusions")
+excluded = excluded.scan(%r"\{\{u\|(.+?)\}\}").map { |match| match.first }
 
+admins = bot.users("augroup" => "sysop")
+admins -= excluded
+
+p admins
