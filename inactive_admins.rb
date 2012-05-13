@@ -27,4 +27,35 @@ excluded = excluded.scan(%r"\{\{u\|(.+?)\}\}").map { |match| match.first }
 admins = bot.users("augroup" => "sysop")
 admins -= excluded
 
-p admins
+limit = Date.today << 3
+
+last_time = {}
+
+admins.each do |admin|
+  contrib = bot.contributions(admin, 1).first
+  if contrib
+    last_time[admin] = DateTime.parse(contrib["timestamp"])
+  end
+end
+
+inactive_admins = admins.select do |admin|
+  last_time[admin].nil? or last_time[admin] < limit
+end
+
+now = bot.format_date(Time.now)
+
+text = "Liste des administrateurs inactifs (hors [[Wikipédia:Liste des administrateurs inactifs/Exclusions|exclusions]]) depuis plus de 3 mois. Mise à jour le #{now} par {{u|Piglobot}}.\n"
+text << inactive_admins.sort_by { |admin| last_time[admin] }.map do |admin|
+  time = last_time[admin]
+  if time
+    date = bot.format_date(time)
+    "* {{u|#{admin}}}, dernière contribution le #{date}\n"
+  else
+    "* {{u|#{admin}}}, aucune contribution\n"
+  end
+end.join
+
+# page = "Wikipédia:Liste des administrateurs inactifs"
+page = "Utilisateur:Piglobot/Bac à sable"
+
+bot.edit(page, text, :summary => "[[Utilisateur:Piglobot/Travail#Liste des admins inactifs|Mise à jour]]")

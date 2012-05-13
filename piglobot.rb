@@ -28,4 +28,14 @@ class Piglobot < MediaWiki::Gateway
     super("http://fr.wikipedia.org/w/api.php")
     login("Piglobot", File.read(File.expand_path('../password', __FILE__)))
   end
+  
+  MONTHS = %w(janvier février mars avril mai juin
+              juillet août septembre octobre novembre décembre)
+
+  def format_date(time)
+    day = time.day
+    month = MONTHS[time.month - 1]
+    year = time.year
+    "{{date|#{day}|#{month}|#{year}}}"
+  end
 end
