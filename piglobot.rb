@@ -26,7 +26,8 @@ require 'media_wiki'
 class Piglobot < MediaWiki::Gateway
   def initialize
     super("http://fr.wikipedia.org/w/api.php")
-    login("Piglobot", File.read(File.expand_path('../password', __FILE__)))
+    password = File.read(File.expand_path('../password', __FILE__)).strip
+    login("Piglobot", password)
   end
   
   MONTHS = %w(janvier février mars avril mai juin
