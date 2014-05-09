@@ -1,22 +1,29 @@
 GIT
   remote: git://github.com/piglop/mediawiki-gateway.git
-  revision: 3df31b488187765959ac442ab0b40096e1d11772
+  revision: 154bb0ba7625b285a0020fe119633824ec603372
   specs:
-    mediawiki-gateway (0.5.0)
+    mediawiki-gateway (0.6.0)
       activesupport
       rest-client (>= 1.3.0)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (3.2.6)
-      i18n (~> 0.6)
-      multi_json (~> 1.0)
-    i18n (0.6.0)
-    mime-types (1.19)
-    multi_json (1.3.6)
+    activesupport (4.1.1)
+      i18n (~> 0.6, >= 0.6.9)
+      json (~> 1.7, >= 1.7.7)
+      minitest (~> 5.1)
+      thread_safe (~> 0.1)
+      tzinfo (~> 1.1)
+    i18n (0.6.9)
+    json (1.8.1)
+    mime-types (2.2)
+    minitest (5.3.3)
     rest-client (1.6.7)
       mime-types (>= 1.16)
+    thread_safe (0.3.3)
+    tzinfo (1.1.0)
+      thread_safe (~> 0.1)
 
 PLATFORMS
   ruby
