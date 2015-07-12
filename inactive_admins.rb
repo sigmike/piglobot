@@ -21,10 +21,11 @@ require File.expand_path('../piglobot', __FILE__)
 
 bot = Piglobot.new
 
-excluded =  bot.get("Wikipédia:Liste des administrateurs inactifs/Exclusions")
+excluded =  bot.api.get_wikitext("Wikipédia:Liste des administrateurs inactifs/Exclusions").body
 excluded = excluded.scan(%r"\{\{u\|(.+?)\}\}").map { |match| match.first }
+excluded.delete "Nom de l'utilisateur"
 
-admins = bot.users("augroup" => "sysop")
+admins = bot.admins
 admins -= excluded
 
 limit = Date.today << 3

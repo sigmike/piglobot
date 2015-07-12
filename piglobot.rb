@@ -21,13 +21,15 @@
 require "rubygems"
 require "bundler/setup"
 
-require 'media_wiki'
+require "mediawiki_api"
 
-class Piglobot < MediaWiki::Gateway
+class Piglobot
+  attr_reader :api
   def initialize
-    super("https://fr.wikipedia.org/w/api.php", ignorewarnings: true)
     password = File.read(File.expand_path('../password', __FILE__)).strip
-    login("Piglobot", password)
+
+    @api = MediawikiApi::Client.new "https://fr.wikipedia.org/w/api.php"
+    @api.log_in("Piglobot", password)
   end
   
   MONTHS = %w(janvier février mars avril mai juin
@@ -38,5 +40,18 @@ class Piglobot < MediaWiki::Gateway
     month = MONTHS[time.month - 1]
     year = time.year
     "{{date|#{day}|#{month}|#{year}}}"
+  end
+
+  def admins
+    admins = []
+    query = {"augroup" => "sysop", "aulimit" => 5000}
+    continue = {"continue": ""}
+    loop do
+      response = @api.list(:allusers, query.merge(continue))
+      admins += response.data.map { |u| u["name"] }
+      continue = response["continue"]
+      break unless continue
+    end
+    admins
   end
 end
