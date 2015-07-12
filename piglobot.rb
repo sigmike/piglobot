@@ -25,7 +25,7 @@ require 'media_wiki'
 
 class Piglobot < MediaWiki::Gateway
   def initialize
-    super("http://fr.wikipedia.org/w/api.php", ignorewarnings: true)
+    super("https://fr.wikipedia.org/w/api.php", ignorewarnings: true)
     password = File.read(File.expand_path('../password', __FILE__)).strip
     login("Piglobot", password)
   end
