@@ -42,7 +42,7 @@ class Piglobot
     "{{date|#{day}|#{month}|#{year}}}"
   end
 
-  def admins
+  def admin_names
     admins = []
     query = {"augroup" => "sysop", "aulimit" => 5000}
     continue = {"continue": ""}
@@ -53,5 +53,18 @@ class Piglobot
       break unless continue
     end
     admins
+  end
+
+  def last_contribution_time(user)
+    contribution = @api.list(:usercontribs, "ucuser" => user, "uclimit" => 1).data.first
+    if contribution
+      DateTime.parse(contribution["timestamp"])
+    else
+      nil
+    end
+  end
+
+  def edit(page, text, summary)
+    @api.edit(title: page, text: text, summary: summary)
   end
 end

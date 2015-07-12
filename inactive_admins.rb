@@ -25,7 +25,7 @@ excluded =  bot.api.get_wikitext("Wikipédia:Liste des administrateurs inactifs/
 excluded = excluded.scan(%r"\{\{u\|(.+?)\}\}").map { |match| match.first }
 excluded.delete "Nom de l'utilisateur"
 
-admins = bot.admins
+admins = bot.admin_names
 admins -= excluded
 
 limit = Date.today << 3
@@ -33,10 +33,7 @@ limit = Date.today << 3
 last_time = {}
 
 admins.each do |admin|
-  contrib = bot.contributions(admin, 1).first
-  if contrib
-    last_time[admin] = DateTime.parse(contrib["timestamp"])
-  end
+  last_time[admin] = bot.last_contribution_time(admin)
 end
 
 inactive_admins = admins.select do |admin|
@@ -57,6 +54,6 @@ text << inactive_admins.sort_by { |admin| last_time[admin] }.map do |admin|
 end.join
 
 page = "Wikipédia:Liste des administrateurs inactifs"
-# page = "Utilisateur:Piglobot/Bac à sable"
+page = "Utilisateur:Piglobot/Bac à sable"
 
-bot.edit(page, text, :summary => "[[Utilisateur:Piglobot/Administrateurs inactifs|Mise à jour des administrateurs inactifs]]")
+bot.edit(page, text, "[[Utilisateur:Piglobot/Administrateurs inactifs|Mise à jour des administrateurs inactifs]]")
