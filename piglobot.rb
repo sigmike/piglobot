@@ -45,7 +45,7 @@ class Piglobot
   def admin_names
     admins = []
     query = {"augroup" => "sysop", "aulimit" => 5000}
-    continue = {"continue": ""}
+    continue = {"continue" => ""}
     loop do
       response = @api.list(:allusers, query.merge(continue))
       admins += response.data.map { |u| u["name"] }
