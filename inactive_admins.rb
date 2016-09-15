@@ -33,7 +33,10 @@ limit = Date.today << 3
 last_time = {}
 
 admins.each do |admin|
-  last_time[admin] = bot.last_contribution_time(admin)
+  last_time[admin] = [
+    bot.last_contribution_time(admin),
+    bot.last_log_event_time(admin),
+  ].compact.max
 end
 
 inactive_admins = admins.select do |admin|

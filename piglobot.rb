@@ -64,6 +64,15 @@ class Piglobot
     end
   end
 
+  def last_log_event_time(user)
+    contribution = @api.list(:logevents, "leuser" => user, "lelimit" => 1).data.first
+    if contribution
+      DateTime.parse(contribution["timestamp"])
+    else
+      nil
+    end
+  end
+
   def edit(page, text, summary)
     @api.edit(title: page, text: text, summary: summary)
   end
