@@ -40,7 +40,7 @@ admins.each do |admin|
 end
 
 inactive_admins = admins.select do |admin|
-  last_time[admin].nil? or last_time[admin] < limit
+  last_time[admin] and last_time[admin] < limit
 end
 
 now = bot.format_date(Time.now)
